@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireRole } from "@/lib/auth/require-user";
+import { requirePermission } from "@/lib/auth/require-user";
+import type { CampaignLocale } from "./campaign-copy";
 
 export type CampaignActionState = {
   ok: boolean;
@@ -11,44 +12,46 @@ export type CampaignActionState = {
   fieldErrors?: Record<string, string[]>;
 };
 
-const campaignSchema = z
-  .object({
-    name: z.string().trim().min(3, "اسم الحملة يجب أن يكون 3 أحرف على الأقل").max(180),
-    brand: z.string().trim().min(1, "اختاري أو اكتبي اسم البراند").max(120),
-    product: z.string().trim().max(180).optional().default(""),
-    campaignType: z.string().trim().max(120).optional().default(""),
-    brief: z.string().trim().max(10000).optional().default(""),
-    startDate: z.string().trim().optional().default(""),
-    endDate: z.string().trim().optional().default(""),
-    contentDueAtIso: z.string().trim().optional().default(""),
-    publishingDate: z.string().trim().optional().default(""),
-    budget: z.string().trim().optional().default(""),
-    status: z.enum(["draft", "active", "paused", "completed", "archived"]),
-    managerId: z.string().uuid("مدير الحملة غير صحيح").optional().or(z.literal("")),
-    hashtags: z.string().trim().max(3000).optional().default(""),
-    referenceLinks: z.string().trim().max(5000).optional().default(""),
-    internalNotes: z.string().trim().max(10000).optional().default(""),
-  })
-  .superRefine((value, context) => {
-    if (value.startDate && value.endDate && value.endDate < value.startDate) {
-      context.addIssue({
-        code: "custom",
-        path: ["endDate"],
-        message: "تاريخ النهاية يجب أن يكون بعد تاريخ البداية",
-      });
-    }
-
-    if (value.budget) {
-      const amount = Number(value.budget.replace(/,/g, ""));
-      if (!Number.isFinite(amount) || amount < 0) {
+function schema(locale: CampaignLocale) {
+  const ar = locale === "ar";
+  return z
+    .object({
+      name: z.string().trim().min(3, ar ? "اسم الحملة يجب أن يكون 3 أحرف على الأقل" : "Campaign name must be at least 3 characters").max(180),
+      brand: z.string().trim().min(1, ar ? "اختاري أو اكتبي اسم البراند" : "Select or enter a brand").max(120),
+      product: z.string().trim().max(180).optional().default(""),
+      campaignType: z.string().trim().max(120).optional().default(""),
+      brief: z.string().trim().max(10000).optional().default(""),
+      startDate: z.string().trim().optional().default(""),
+      endDate: z.string().trim().optional().default(""),
+      contentDueAtIso: z.string().trim().optional().default(""),
+      publishingDate: z.string().trim().optional().default(""),
+      budget: z.string().trim().optional().default(""),
+      status: z.enum(["draft", "active", "paused", "completed", "archived"]),
+      managerId: z.string().uuid(ar ? "مدير الحملة غير صحيح" : "Invalid campaign manager").optional().or(z.literal("")),
+      hashtags: z.string().trim().max(3000).optional().default(""),
+      referenceLinks: z.string().trim().max(5000).optional().default(""),
+      internalNotes: z.string().trim().max(10000).optional().default(""),
+    })
+    .superRefine((value, context) => {
+      if (value.startDate && value.endDate && value.endDate < value.startDate) {
         context.addIssue({
           code: "custom",
-          path: ["budget"],
-          message: "الميزانية يجب أن تكون رقمًا موجبًا",
+          path: ["endDate"],
+          message: ar ? "تاريخ النهاية يجب أن يكون بعد تاريخ البداية" : "End date must be after the start date",
         });
       }
-    }
-  });
+      if (value.budget) {
+        const amount = Number(value.budget.replace(/,/g, ""));
+        if (!Number.isFinite(amount) || amount < 0) {
+          context.addIssue({
+            code: "custom",
+            path: ["budget"],
+            message: ar ? "الميزانية يجب أن تكون رقمًا موجبًا" : "Budget must be a positive number",
+          });
+        }
+      }
+    });
+}
 
 function splitList(value: string) {
   return Array.from(
@@ -65,9 +68,11 @@ export async function createCampaign(
   _previousState: CampaignActionState,
   formData: FormData,
 ): Promise<CampaignActionState> {
-  const { profile, supabase } = await requireRole(["admin", "coordinator"]);
+  const locale: CampaignLocale = formData.get("locale") === "en" ? "en" : "ar";
+  const ar = locale === "ar";
+  const { profile, supabase } = await requirePermission("campaigns", "create");
 
-  const parsed = campaignSchema.safeParse({
+  const parsed = schema(locale).safeParse({
     name: formData.get("name"),
     brand: formData.get("brand"),
     product: formData.get("product"),
@@ -88,17 +93,14 @@ export async function createCampaign(
   if (!parsed.success) {
     return {
       ok: false,
-      message: "راجعي الحقول المطلوبة ثم حاولي مرة أخرى.",
+      message: ar ? "راجعي الحقول المطلوبة ثم حاولي مرة أخرى." : "Review the required fields and try again.",
       fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
   const value = parsed.data;
-  const managerId =
-    profile.role === "admin" && value.managerId ? value.managerId : profile.id;
-  const normalizedBudget = value.budget
-    ? Number(value.budget.replace(/,/g, ""))
-    : null;
+  const managerId = profile.role === "admin" && value.managerId ? value.managerId : profile.id;
+  const normalizedBudget = value.budget ? Number(value.budget.replace(/,/g, "")) : null;
 
   const { data: campaign, error } = await supabase
     .from("campaigns")
@@ -131,8 +133,12 @@ export async function createCampaign(
     return {
       ok: false,
       message: duplicate
-        ? "توجد حملة أخرى بنفس الاسم وتاريخ البداية. غيّري أحدهما ثم أعيدي المحاولة."
-        : `تعذر إنشاء الحملة: ${error.message}`,
+        ? ar
+          ? "توجد حملة أخرى بنفس الاسم وتاريخ البداية. غيّري أحدهما ثم أعيدي المحاولة."
+          : "Another campaign has the same name and start date. Change one and try again."
+        : ar
+          ? `تعذر إنشاء الحملة: ${error.message}`
+          : `Could not create campaign: ${error.message}`,
     };
   }
 
@@ -141,11 +147,7 @@ export async function createCampaign(
     entity_type: "campaign",
     entity_id: campaign.id,
     action: "campaign_created",
-    metadata: {
-      name: value.name,
-      brand: value.brand,
-      status: value.status,
-    },
+    metadata: { name: value.name, brand: value.brand, status: value.status },
   });
 
   revalidatePath("/dashboard");

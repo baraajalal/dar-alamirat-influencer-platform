@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireRole } from "@/lib/auth/require-user";
+import { requirePermission } from "@/lib/auth/require-user";
 
 export type AssignmentActionState = {
   ok: boolean;
@@ -46,7 +46,7 @@ const assignmentSchema = z
     attendanceAtIso: z.string().trim().optional().default(""),
     orderNumber: z.string().trim().max(180).optional().default(""),
     orderInvoiceAmount: z.string().trim().optional().default(""),
-    orderNotes: z.string().trim().max(3000).optional().default(""),
+    orderCode: z.string().trim().max(120).optional().default(""),
     hasContract: z.boolean(),
     contractReference: z.string().trim().max(180).optional().default(""),
     agreementDate: z.string().trim().optional().default(""),
@@ -290,7 +290,7 @@ export async function createCampaignAssignment(
   _previousState: AssignmentActionState,
   formData: FormData,
 ): Promise<AssignmentActionState> {
-  const { supabase } = await requireRole(["admin", "coordinator"]);
+  const { supabase } = await requirePermission("campaigns", "update");
 
   const parsed = assignmentSchema.safeParse({
     campaignId: String(formData.get("campaign_id") ?? ""),
@@ -304,7 +304,7 @@ export async function createCampaignAssignment(
     attendanceAtIso: String(formData.get("attendance_at_iso") ?? ""),
     orderNumber: String(formData.get("order_number") ?? ""),
     orderInvoiceAmount: String(formData.get("order_invoice_amount") ?? ""),
-    orderNotes: String(formData.get("order_notes") ?? ""),
+    orderCode: String(formData.get("order_code") ?? ""),
     hasContract: formData.get("has_contract") === "true",
     contractReference: String(formData.get("contract_reference") ?? ""),
     agreementDate: String(formData.get("agreement_date") ?? ""),
@@ -345,7 +345,7 @@ export async function createCampaignAssignment(
       p_attendance_at: value.attendanceAtIso || null,
       p_order_number: value.orderNumber || null,
       p_order_invoice_amount: orderAmount,
-      p_order_notes: value.orderNotes || null,
+      p_order_notes: value.orderCode || null,
       p_has_contract: value.hasContract,
       p_contract_reference: value.contractReference || null,
       p_agreement_date: value.agreementDate || null,
