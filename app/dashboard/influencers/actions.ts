@@ -47,4 +47,5 @@ export async function reviewInfluencerRegistration(formData: FormData) {
     });
 
   revalidatePath("/dashboard/influencers");
+  revalidatePath(`/dashboard/influencers/${influencerId}`);
 }
