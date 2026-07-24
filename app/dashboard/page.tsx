@@ -1,50 +1,136 @@
-import Image from "next/image";
 import Link from "next/link";
-import { logout } from "@/app/login/actions";
-import { requireRole } from "@/lib/auth/require-user";
+import { cookies } from "next/headers";
+import { requirePermission } from "@/lib/auth/require-user";
+import { hasPermission } from "@/lib/auth/permissions";
+import { getDashboardDictionary, normalizeDashboardLocale } from "@/lib/i18n/dashboard";
+import { DashboardIcon } from "@/components/dashboard/icons";
+import { DashboardEmpty, DashboardPanel, DashboardStatCard } from "@/components/dashboard/dashboard-widgets";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const { profile, supabase } = await requireRole(["admin", "coordinator", "finance"]);
+type CampaignStatus = "draft" | "active" | "paused" | "completed" | "archived";
+type CampaignRow = { id: string; name: string; brand: string | null; status: CampaignStatus; budget: number | null; start_date: string | null };
+type InfluencerRow = { id: string; full_name: string; city: string | null; profile_completion: number | null; created_at: string };
+type PaymentRow = { amount: number | null; status: string };
 
-  const [{ count: campaignCount }, { count: influencerCount }, { count: accessRequestCount }] = await Promise.all([
-    supabase.from("campaigns").select("id", { count: "exact", head: true }).neq("status", "archived"),
+export default async function DashboardPage() {
+  const { profile, supabase } = await requirePermission("dashboard", "view");
+  const cookieStore = await cookies();
+  const locale = normalizeDashboardLocale(cookieStore.get("dashboard_locale")?.value);
+  const dictionary = getDashboardDictionary(locale);
+  const d = dictionary.dashboard;
+
+  const [campaignsResult, influencerCountResult, recentInfluencersResult, contentCountResult, accessCountResult, paymentsResult] = await Promise.all([
+    supabase.from("campaigns").select("id,name,brand,status,budget,start_date").order("created_at", { ascending: false }),
     supabase.from("influencers").select("id", { count: "exact", head: true }),
+    supabase.from("influencers").select("id,full_name,city,profile_completion,created_at").order("created_at", { ascending: false }).limit(5),
+    supabase.from("content_items").select("id", { count: "exact", head: true }).in("status", ["submitted", "under_review"]),
     supabase.from("portal_access_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("payments").select("amount,status").in("status", ["awaiting_approval", "ready_for_finance", "partially_paid"]),
   ]);
 
+  const campaigns = (campaignsResult.data ?? []) as CampaignRow[];
+  const recentCampaigns = campaigns.slice(0, 5);
+  const recentInfluencers = (recentInfluencersResult.data ?? []) as InfluencerRow[];
+  const pendingPayments = ((paymentsResult.data ?? []) as PaymentRow[]).reduce((total, payment) => total + Number(payment.amount ?? 0), 0);
+  const totalCampaigns = campaigns.filter((campaign) => campaign.status !== "archived").length;
+  const activeCampaigns = campaigns.filter((campaign) => campaign.status === "active").length;
+  const statusCounts = campaigns.reduce<Record<CampaignStatus, number>>((accumulator, campaign) => {
+    accumulator[campaign.status] += 1;
+    return accumulator;
+  }, { draft: 0, active: 0, paused: 0, completed: 0, archived: 0 });
+  const maxStatusCount = Math.max(1, ...Object.values(statusCounts));
+  const canCreateCampaign = hasPermission(profile.role, "campaigns", "create");
+
   return (
-    <main dir="rtl" className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_8%_12%,rgba(216,221,247,0.82),transparent_27%),radial-gradient(circle_at_93%_85%,rgba(169,185,230,0.35),transparent_25%),linear-gradient(135deg,#FDFDFF_0%,#F6F7FC_48%,#EFF2FB_100%)] font-['Tajawal',Tahoma,Arial,sans-serif] text-[#33447F]">
-      <header className="relative z-20 border-b border-white/80 bg-white/78 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-[1450px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <form action={logout}><button className="rounded-2xl border border-[#D8DDF7] bg-white px-4 py-3 text-sm font-black text-[#5B6DC3] transition hover:bg-[#F4F6FF]">تسجيل الخروج</button></form>
-          <div className="flex items-center gap-3"><div className="hidden text-left sm:block"><p className="text-sm font-black text-[#33447F]">{profile.full_name}</p><p className="text-xs text-[#8991AB]">{roleLabel(profile.role)}</p></div><div className="flex h-14 w-24 items-center justify-center rounded-2xl bg-[#6877C8] p-2 shadow-[0_10px_25px_rgba(104,119,200,0.25)]"><Image src="/da-logo.png" alt="دار الأميرات" width={110} height={55} className="h-10 w-auto object-contain" priority /></div></div>
+    <main className="mx-auto w-full max-w-[1540px] space-y-5 sm:space-y-6">
+      <section className="relative overflow-hidden rounded-[28px] bg-[linear-gradient(125deg,#6578CF_0%,#566AC4_55%,#8795DF_100%)] px-5 py-6 text-white shadow-[0_24px_65px_rgba(72,88,170,0.25)] sm:px-7 sm:py-7">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border border-white/12" />
+        <div className="pointer-events-none absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-white/6 blur-2xl" />
+        <div className="relative flex flex-col justify-between gap-5 md:flex-row md:items-center">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/10 px-3 py-1.5 text-[11px] font-extrabold text-white/88"><DashboardIcon name="sparkles" className="h-4 w-4" />{dictionary.header.welcome} {profile.full_name}</span>
+            <h1 className="mt-4 text-2xl font-black sm:text-3xl">{d.title}</h1>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-white/72">{d.subtitle}</p>
+          </div>
+          {canCreateCampaign ? <Link href="/dashboard/campaigns/new" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-[#5265BA] shadow-[0_12px_30px_rgba(32,46,119,0.18)] transition hover:-translate-y-0.5 hover:bg-[#F9FAFF]"><DashboardIcon name="plus" className="h-5 w-5" />{d.newCampaign}</Link> : null}
         </div>
-      </header>
+      </section>
 
-      <div className="relative z-10 mx-auto max-w-[1350px] px-4 py-8 sm:px-6 lg:px-8">
-        <section className="overflow-hidden rounded-[30px] bg-[linear-gradient(135deg,#6877C8_0%,#5A6BC1_52%,#8794DE_100%)] p-6 text-white shadow-[0_24px_65px_rgba(74,88,162,0.25)] sm:p-8"><span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black">لوحة الإدارة</span><h1 className="mt-4 text-3xl font-black sm:text-4xl">أهلًا {profile.full_name}</h1><p className="mt-3 max-w-2xl text-sm leading-7 text-white/78">إدارة المؤثرين والحملات والمحتوى والمدفوعات من مساحة موحدة.</p></section>
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <DashboardStatCard label={d.totalCampaigns} value={totalCampaigns} helper={`${activeCampaigns} ${d.active}`} icon="campaigns" accent="blue" />
+        <DashboardStatCard label={d.activeCampaigns} value={activeCampaigns} helper={`${statusCounts.draft} ${d.draft}`} icon="dashboard" accent="green" />
+        <DashboardStatCard label={d.totalInfluencers} value={influencerCountResult.count ?? 0} icon="influencers" accent="violet" />
+        <DashboardStatCard label={d.pendingPayments} value={formatMoney(pendingPayments, locale)} helper={`${(paymentsResult.data ?? []).length} ${d.financeQueue}`} icon="wallet" accent="gold" />
+      </section>
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-3"><Stat label="الحملات الحالية" value={campaignCount ?? 0} /><Stat label="ملفات المؤثرين" value={influencerCount ?? 0} /><Stat label="طلبات التفعيل" value={accessRequestCount ?? 0} /></section>
+      <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
+        <DashboardPanel title={d.campaignPerformance} actionHref="/dashboard/campaigns" actionLabel={dictionary.common.viewAll}>
+          <div className="relative h-56 overflow-hidden rounded-2xl bg-[linear-gradient(180deg,#FAFBFF,#F6F8FE)] p-4">
+            <div className="absolute inset-x-4 top-1/4 border-t border-dashed border-[#DDE2F3]"/><div className="absolute inset-x-4 top-1/2 border-t border-dashed border-[#DDE2F3]"/><div className="absolute inset-x-4 top-3/4 border-t border-dashed border-[#DDE2F3]"/>
+            <svg viewBox="0 0 700 190" className="relative h-full w-full" preserveAspectRatio="none" aria-label={d.campaignsTrend}>
+              <defs><linearGradient id="dashboardArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#6578CF" stopOpacity=".28"/><stop offset="100%" stopColor="#6578CF" stopOpacity="0"/></linearGradient></defs>
+              <path d="M0 155 C65 150 85 128 145 136 C205 144 225 92 285 103 C345 114 376 68 435 75 C505 83 536 38 595 50 C645 60 665 30 700 24 L700 190 L0 190 Z" fill="url(#dashboardArea)"/>
+              <path d="M0 155 C65 150 85 128 145 136 C205 144 225 92 285 103 C345 114 376 68 435 75 C505 83 536 38 595 50 C645 60 665 30 700 24" fill="none" stroke="#5D70C7" strokeWidth="4" strokeLinecap="round"/>
+            </svg>
+            <div className="absolute bottom-3 left-4 right-4 flex justify-between text-[10px] font-bold text-[#A2A9BC]"><span>{d.draft}</span><span>{d.active}</span><span>{d.completed}</span></div>
+          </div>
+        </DashboardPanel>
 
-        <section className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          <DashboardCard href="/dashboard/campaigns" number="01" title="إدارة الحملات" description="إنشاء الحملات ومتابعة المؤثرين والمحتوى والمستحقات." primary />
-          <DashboardCard href="/dashboard/influencers" number="02" title="إدارة المؤثرين" description="البحث في الملفات، مراجعة البيانات والحسابات الاجتماعية." />
-          <DashboardCard href="/dashboard/access-requests" number="03" title="طلبات تفعيل البوابة" description="مراجعة الطلبات وإرسال دعوات الدخول للمؤثرين." />
-          <DashboardCard number="04" title="مراجعة المحتوى" description="ستُنقل إلى Supabase في المرحلة التالية." disabled />
-          <DashboardCard number="05" title="المدفوعات" description="متابعة التحويلات والقسائم وموافقة المالية." disabled />
-          <DashboardCard number="06" title="التقارير والأداء" description="مؤشرات الحملات والمؤثرين وأداء الموظفين." disabled />
-        </section>
-      </div>
+        <DashboardPanel title={d.campaignDistribution}>
+          <div className="grid items-center gap-5 sm:grid-cols-[150px_1fr] xl:grid-cols-1 2xl:grid-cols-[150px_1fr]">
+            <div className="relative mx-auto flex h-36 w-36 items-center justify-center rounded-full" style={{ background: buildConicGradient(statusCounts) }}>
+              <div className="flex h-[92px] w-[92px] flex-col items-center justify-center rounded-full bg-white shadow-inner"><strong className="text-2xl font-black text-[#34457E]">{totalCampaigns}</strong><span className="text-[10px] font-bold text-[#929AB1]">{d.totalCampaigns}</span></div>
+            </div>
+            <div className="space-y-3">
+              {(["active", "draft", "paused", "completed"] as const).map((status) => <StatusRow key={status} label={d[status]} value={statusCounts[status]} max={maxStatusCount} status={status}/>) }
+            </div>
+          </div>
+        </DashboardPanel>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[1.3fr_1fr_0.9fr]">
+        <DashboardPanel title={d.recentCampaigns} actionHref="/dashboard/campaigns" actionLabel={dictionary.common.viewAll}>
+          {recentCampaigns.length ? <div className="space-y-2.5">{recentCampaigns.map((campaign) => <Link key={campaign.id} href={`/dashboard/campaigns/${campaign.id}`} className="flex items-center gap-3 rounded-2xl border border-transparent bg-[#F9FAFE] p-3 transition hover:border-[#DCE2F4] hover:bg-white"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF1FF] text-[#5B6EC6]"><DashboardIcon name="campaigns" className="h-5 w-5" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-[#3A4A7E]">{campaign.name}</p><p className="mt-1 truncate text-[11px] font-bold text-[#949CB2]">{campaign.brand || "—"} · {formatDate(campaign.start_date, locale)}</p></div><span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${statusClass(campaign.status)}`}>{d[campaign.status]}</span></Link>)}</div> : <DashboardEmpty text={d.noCampaigns}/>} 
+        </DashboardPanel>
+
+        <DashboardPanel title={d.recentInfluencers} actionHref="/dashboard/influencers" actionLabel={dictionary.common.viewAll}>
+          {recentInfluencers.length ? <div className="space-y-3">{recentInfluencers.map((influencer) => { const percentage = Math.max(0, Math.min(100, Number(influencer.profile_completion ?? 0))); return <div key={influencer.id} className="rounded-2xl bg-[#F9FAFE] p-3"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#D8DDF7,#A9B9E6)] text-xs font-black text-[#4054A7]">{initials(influencer.full_name)}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-[#3A4A7E]">{influencer.full_name}</p><p className="mt-0.5 text-[11px] font-bold text-[#969DB2]">{influencer.city || "—"}</p></div><span className="text-xs font-black text-[#596CC4]">{percentage}%</span></div><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E8EBF7]"><div className="h-full rounded-full bg-[linear-gradient(90deg,#6578CF,#9AA8E5)]" style={{ width: `${percentage}%` }}/></div></div>;})}</div> : <DashboardEmpty text={d.noInfluencers}/>} 
+        </DashboardPanel>
+
+        <DashboardPanel title={d.workQueue}>
+          <div className="space-y-3">
+            <QueueItem href="/dashboard/content" disabled label={d.contentReviews} value={contentCountResult.count ?? 0} icon="content" color="blue" />
+            <QueueItem href="/dashboard/access-requests" label={d.accessRequests} value={accessCountResult.count ?? 0} icon="access" color="gold" />
+            <QueueItem href="/dashboard/payments" disabled label={d.financeQueue} value={(paymentsResult.data ?? []).length} icon="payments" color="green" />
+          </div>
+        </DashboardPanel>
+      </section>
     </main>
   );
 }
 
-function DashboardCard({ href, number, title, description, primary = false, disabled = false }: { href?: string; number: string; title: string; description: string; primary?: boolean; disabled?: boolean }) {
-  const content = <><div className={`flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-black ${primary ? "bg-white/16 text-white" : "bg-[#EEF0FF] text-[#6171C7]"}`}>{number}</div><h2 className={`mt-6 text-xl font-black ${primary ? "text-white" : "text-[#3F4D7D]"}`}>{title}</h2><p className={`mt-2 text-sm leading-7 ${primary ? "text-white/72" : "text-[#7E87A5]"}`}>{description}</p><span className={`mt-6 inline-flex text-sm font-black ${primary ? "text-white" : disabled ? "text-[#A1A7B8]" : "text-[#596BC4]"}`}>{disabled ? "قريبًا" : "فتح الوحدة ←"}</span></>;
-  const className = `rounded-[26px] border p-6 shadow-[0_18px_48px_rgba(72,84,150,0.08)] transition ${primary ? "border-transparent bg-[linear-gradient(135deg,#6877C8,#5365BB)] hover:-translate-y-1" : disabled ? "border-white/85 bg-white/65" : "border-white/85 bg-white/94 hover:-translate-y-1 hover:border-[#D8DDF7]"}`;
-  return href && !disabled ? <Link href={href} className={className}>{content}</Link> : <div className={className}>{content}</div>;
+function QueueItem({ href, label, value, icon, color, disabled = false }: { href: string; label: string; value: number; icon: "content" | "access" | "payments"; color: "blue" | "gold" | "green"; disabled?: boolean }) {
+  const tone = { blue: "bg-[#EEF1FF] text-[#596CC4]", gold: "bg-[#FFF3D5] text-[#A8750D]", green: "bg-[#E9F8EF] text-[#2E7B50]" }[color];
+  const content = <><span className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}><DashboardIcon name={icon} className="h-5 w-5" /></span><span className="min-w-0 flex-1 text-sm font-extrabold text-[#4A5888]">{label}</span><strong className="flex h-8 min-w-8 items-center justify-center rounded-full bg-[#F0F2FA] px-2 text-xs font-black text-[#5263B5]">{value}</strong></>;
+  const classes = `flex items-center gap-3 rounded-2xl border border-[#EDF0F8] bg-[#FBFCFF] p-3 transition ${disabled ? "cursor-default opacity-72" : "hover:border-[#D9DFF2] hover:bg-white"}`;
+  return disabled ? <div className={classes}>{content}</div> : <Link href={href} className={classes}>{content}</Link>;
 }
-function Stat({ label, value }: { label: string; value: number }) { return <div className="rounded-[22px] border border-white/85 bg-white/94 p-5 shadow-[0_16px_42px_rgba(72,84,150,0.08)]"><p className="text-sm font-bold text-[#8991AA]">{label}</p><p className="mt-2 text-3xl font-black text-[#405080]">{value}</p></div>; }
-function roleLabel(role: string) { return role === "admin" ? "مدير النظام" : role === "coordinator" ? "منسق حملات" : role === "finance" ? "المالية" : role; }
+
+function StatusRow({ label, value, max, status }: { label: string; value: number; max: number; status: CampaignStatus }) {
+  const colors: Record<CampaignStatus, string> = { active: "bg-[#6578CF]", draft: "bg-[#A9B9E6]", paused: "bg-[#F4C55F]", completed: "bg-[#75C69B]", archived: "bg-[#C9CEDD]" };
+  return <div><div className="mb-1.5 flex items-center justify-between text-xs font-bold text-[#76809F]"><span>{label}</span><span>{value}</span></div><div className="h-1.5 overflow-hidden rounded-full bg-[#EBEEF7]"><div className={`h-full rounded-full ${colors[status]}`} style={{ width: `${Math.max(value ? 8 : 0, value / max * 100)}%` }}/></div></div>;
+}
+
+function buildConicGradient(counts: Record<CampaignStatus, number>) {
+  const values = [counts.active, counts.draft, counts.paused, counts.completed, counts.archived];
+  const colors = ["#6578CF", "#A9B9E6", "#F4C55F", "#75C69B", "#C9CEDD"];
+  const total = Math.max(1, values.reduce((sum, value) => sum + value, 0));
+  let cursor = 0;
+  const stops = values.map((value, index) => { const start = cursor; cursor += value / total * 100; return `${colors[index]} ${start}% ${cursor}%`; });
+  return `conic-gradient(${stops.join(",")})`;
+}
+function formatMoney(value: number, locale: "ar" | "en") { return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value) + " " + (locale === "ar" ? "ر.س" : "SAR"); }
+function formatDate(value: string | null, locale: "ar" | "en") { if (!value) return "—"; return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" }).format(new Date(`${value}T00:00:00`)); }
+function initials(name: string) { return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase(); }
+function statusClass(status: CampaignStatus) { return { draft: "bg-slate-100 text-slate-600", active: "bg-emerald-50 text-emerald-700", paused: "bg-amber-50 text-amber-700", completed: "bg-[#EEF1FF] text-[#596CC4]", archived: "bg-[#F1F2F5] text-[#7E8495]" }[status]; }

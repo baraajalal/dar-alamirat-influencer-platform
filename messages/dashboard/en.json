@@ -1,0 +1,71 @@
+{
+  "brand": {
+    "name": "Dar Al Amirat",
+    "system": "Influencer Management System",
+    "employeePortal": "Employee Portal"
+  },
+  "common": {
+    "soon": "Soon",
+    "viewAll": "View all",
+    "open": "Open",
+    "currency": "SAR",
+    "noData": "No data yet",
+    "logout": "Sign out",
+    "language": "Language"
+  },
+  "roles": {
+    "admin": "System Admin",
+    "coordinator": "Campaign Coordinator",
+    "finance": "Finance",
+    "reviewer": "Content Reviewer",
+    "viewer": "Read only",
+    "influencer": "Influencer"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "influencers": "Influencers",
+    "campaigns": "Campaigns",
+    "content": "Content Review",
+    "payments": "Payments",
+    "messages": "Messages",
+    "reports": "Reports",
+    "accessRequests": "Access Requests",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "header": {
+    "welcome": "Welcome",
+    "notifications": "Notifications",
+    "menu": "Open menu"
+  },
+  "dashboard": {
+    "title": "Main Dashboard",
+    "subtitle": "A complete view of campaigns, influencers, content and payments.",
+    "newCampaign": "Create campaign",
+    "totalCampaigns": "Total campaigns",
+    "activeCampaigns": "Active campaigns",
+    "totalInfluencers": "Total influencers",
+    "pendingPayments": "Payments requiring action",
+    "campaignPerformance": "Campaign performance",
+    "campaignDistribution": "Campaign status distribution",
+    "recentCampaigns": "Recent campaigns",
+    "recentInfluencers": "Recent influencers",
+    "workQueue": "Work queue",
+    "contentReviews": "Content awaiting review",
+    "accessRequests": "Portal access requests",
+    "financeQueue": "Payments awaiting finance",
+    "active": "Active",
+    "draft": "Draft",
+    "paused": "Paused",
+    "completed": "Completed",
+    "archived": "Archived",
+    "profileCompletion": "Profile completion",
+    "budget": "Budget",
+    "started": "Start date",
+    "status": "Status",
+    "quickOverview": "Quick overview",
+    "campaignsTrend": "Current work progress",
+    "noCampaigns": "No recent campaigns",
+    "noInfluencers": "No recent influencer profiles"
+  }
+}

@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type UserRole = "influencer" | "coordinator" | "finance" | "admin";
+import { hasPermission, type AppRole, type PermissionAction, type PermissionResource } from "@/lib/auth/permissions";
+
+export type UserRole = AppRole;
 
 export async function requireUser() {
   const supabase = await createClient();
@@ -35,6 +37,19 @@ export async function requireRole(allowedRoles: UserRole[]) {
   const session = await requireUser();
 
   if (!allowedRoles.includes(session.profile.role as UserRole)) {
+    redirect("/unauthorized");
+  }
+
+  return session;
+}
+
+export async function requirePermission(
+  resource: PermissionResource,
+  action: PermissionAction = "view",
+) {
+  const session = await requireUser();
+
+  if (!hasPermission(session.profile.role, resource, action)) {
     redirect("/unauthorized");
   }
 

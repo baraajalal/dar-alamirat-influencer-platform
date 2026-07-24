@@ -1,0 +1,71 @@
+{
+  "brand": {
+    "name": "دار الأميرات",
+    "system": "نظام إدارة المؤثرين",
+    "employeePortal": "بوابة الموظفين"
+  },
+  "common": {
+    "soon": "قريبًا",
+    "viewAll": "عرض الكل",
+    "open": "فتح",
+    "currency": "ر.س",
+    "noData": "لا توجد بيانات حتى الآن",
+    "logout": "تسجيل الخروج",
+    "language": "اللغة"
+  },
+  "roles": {
+    "admin": "مدير النظام",
+    "coordinator": "منسق حملات",
+    "finance": "الإدارة المالية",
+    "reviewer": "مراجع المحتوى",
+    "viewer": "مشاهدة فقط",
+    "influencer": "مؤثر"
+  },
+  "navigation": {
+    "dashboard": "لوحة التحكم",
+    "influencers": "المؤثرون",
+    "campaigns": "الحملات",
+    "content": "مراجعة المحتوى",
+    "payments": "المدفوعات",
+    "messages": "الرسائل",
+    "reports": "التقارير",
+    "accessRequests": "طلبات التفعيل",
+    "users": "المستخدمون",
+    "settings": "الإعدادات"
+  },
+  "header": {
+    "welcome": "مرحبًا",
+    "notifications": "الإشعارات",
+    "menu": "فتح القائمة"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم الرئيسية",
+    "subtitle": "نظرة شاملة على الحملات والمؤثرين والمحتوى والمستحقات.",
+    "newCampaign": "إنشاء حملة جديدة",
+    "totalCampaigns": "إجمالي الحملات",
+    "activeCampaigns": "الحملات النشطة",
+    "totalInfluencers": "إجمالي المؤثرين",
+    "pendingPayments": "مستحقات بانتظار الإجراء",
+    "campaignPerformance": "أداء الحملات",
+    "campaignDistribution": "توزيع حالات الحملات",
+    "recentCampaigns": "أحدث الحملات",
+    "recentInfluencers": "أحدث المؤثرين",
+    "workQueue": "مهام تحتاج إجراء",
+    "contentReviews": "محتوى بانتظار المراجعة",
+    "accessRequests": "طلبات تفعيل الحساب",
+    "financeQueue": "دفعات بانتظار المالية",
+    "active": "نشطة",
+    "draft": "مسودة",
+    "paused": "موقوفة",
+    "completed": "مكتملة",
+    "archived": "مؤرشفة",
+    "profileCompletion": "اكتمال الملف",
+    "budget": "الميزانية",
+    "started": "تاريخ البداية",
+    "status": "الحالة",
+    "quickOverview": "ملخص سريع",
+    "campaignsTrend": "تقدم العمل الحالي",
+    "noCampaigns": "لا توجد حملات حديثة",
+    "noInfluencers": "لا توجد ملفات مؤثرين حديثة"
+  }
+}

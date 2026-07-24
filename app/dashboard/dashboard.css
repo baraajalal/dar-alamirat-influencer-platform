@@ -1,0 +1,14 @@
+.employee-dashboard-content > main {
+  min-height: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.employee-dashboard-content > main > header {
+  display: none !important;
+}
+
+.employee-dashboard-content > main > div[aria-hidden="true"] {
+  display: none !important;
+}
