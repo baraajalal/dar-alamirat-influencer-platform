@@ -5,6 +5,7 @@ import { DashboardIcon } from "@/components/dashboard/icons";
 import type { CampaignLocale } from "../../../campaign-copy";
 import { CampaignPanel } from "../../../campaign-ui";
 import { createCampaignAssignment, type AssignmentActionState } from "./actions";
+import QuickInfluencerModal from "./quick-influencer-modal";
 
 type SocialAccount = {
   id: string;
@@ -50,6 +51,7 @@ type Props = {
   defaultPublishingDate: string;
   budget: BudgetSummary;
   initialBranches: BranchOption[];
+  returnTo?: string;
 };
 type CompensationSelection = { bank_transfer: boolean; voucher: boolean; product: boolean };
 
@@ -76,6 +78,7 @@ export default function AssignmentForm({
   defaultPublishingDate,
   budget,
   initialBranches,
+  returnTo,
 }: Props) {
   const t = text(locale);
   const [state, formAction, pending] = useActionState(createCampaignAssignment, initialState);
@@ -87,6 +90,7 @@ export default function AssignmentForm({
   const [results, setResults] = useState<InfluencerResult[]>([]);
   const [selectedInfluencer, setSelectedInfluencer] = useState<InfluencerResult | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Record<string, SelectedPlatform>>({});
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   const [executionType, setExecutionType] = useState<"home" | "in_branch" | "remote">("home");
   const [otherExecutionDetails, setOtherExecutionDetails] = useState("");
@@ -124,7 +128,7 @@ export default function AssignmentForm({
 
   const contentDueIsoRef = useRef<HTMLInputElement | null>(null);
   const attendanceIsoRef = useRef<HTMLInputElement | null>(null);
-  const topRef = useRef<HTMLDivElement | null>(null);
+  const topRef = useRef<HTMLFormElement | null>(null);
   const effectiveRequiresContent = executionType === "remote" ? requiresContent : true;
 
   useEffect(() => {
@@ -327,13 +331,20 @@ export default function AssignmentForm({
     <form action={formAction} onSubmit={prepareSubmission} className="space-y-6" ref={topRef}>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="campaign_id" value={campaignId} />
+      <input type="hidden" name="return_to" value={returnTo ?? ""} />
       <input type="hidden" name="influencer_id" value={selectedInfluencer?.influencer_id ?? ""} />
       <input type="hidden" name="platforms_json" value={JSON.stringify(platformsPayload)} />
       <input type="hidden" name="compensations_json" value={JSON.stringify(compensationsPayload)} />
       <input type="hidden" name="execution_type" value={executionType} />
+      <input type="hidden" name="other_execution_details" value={otherExecutionDetails} />
       <input type="hidden" name="requires_content" value={String(effectiveRequiresContent)} />
       <input ref={contentDueIsoRef} type="hidden" name="content_due_at_iso" />
+      <input type="hidden" name="publishing_date" value={effectiveRequiresContent ? publishingDate : ""} />
+      <input type="hidden" name="branch_name" value={executionType === "in_branch" ? branchName : ""} />
       <input ref={attendanceIsoRef} type="hidden" name="attendance_at_iso" />
+      <input type="hidden" name="order_number" value={executionType === "home" ? orderNumber : ""} />
+      <input type="hidden" name="order_invoice_amount" value={executionType === "home" ? orderAmount : ""} />
+      <input type="hidden" name="order_code" value={executionType === "home" ? orderCode : ""} />
       <input type="hidden" name="has_contract" value={String(hasContract)} />
       <input type="hidden" name="currency" value="SAR" />
 
@@ -352,7 +363,26 @@ export default function AssignmentForm({
             </span>
           </div>
 
-          {searchMessage ? <p className="mt-4 rounded-2xl bg-[#F8F9FF] px-4 py-3 text-sm font-bold text-[#7E88A7]">{searchMessage}</p> : null}
+          {searchMessage ? (
+            <div className="mt-4 flex flex-col gap-3 rounded-2xl bg-[#F8F9FF] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-bold text-[#7E88A7]">{searchMessage}</p>
+              {!searching && results.length === 0 ? (
+                <button type="button" onClick={() => setQuickAddOpen(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#6877C8] px-4 text-xs font-black text-white shadow-[0_10px_24px_rgba(78,95,177,0.18)]">
+                  <DashboardIcon name="plus" className="h-4 w-4" />
+                  {t.quickAdd}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {!searchMessage && !searching ? (
+            <div className="mt-4 flex justify-end">
+              <button type="button" onClick={() => setQuickAddOpen(true)} className="inline-flex items-center gap-2 rounded-xl border border-[#D8DDF7] bg-white px-4 py-2.5 text-xs font-black text-[#596BC4]">
+                <DashboardIcon name="plus" className="h-4 w-4" />
+                {t.quickAdd}
+              </button>
+            </div>
+          ) : null}
 
           {results.length > 0 ? (
             <div className="mt-5 grid gap-4 lg:grid-cols-2">
@@ -448,14 +478,13 @@ export default function AssignmentForm({
           {executionType === "home" ? (
             <div className="mt-6 grid gap-5 md:grid-cols-3">
               <Field label={t.orderNumber} required error={state.fieldErrors?.orderNumber?.[0]}>
-                <input name="order_number" value={orderNumber} onChange={(event) => setOrderNumber(event.target.value)} className={inputClass} placeholder="ORD-0001" />
+                <input value={orderNumber} onChange={(event) => setOrderNumber(event.target.value)} className={inputClass} placeholder="ORD-0001" />
               </Field>
               <Field label={t.orderCode}>
-                <input name="order_code" value={orderCode} onChange={(event) => setOrderCode(event.target.value)} className={inputClass} placeholder={t.orderCodePlaceholder} />
+                <input value={orderCode} onChange={(event) => setOrderCode(event.target.value)} className={inputClass} placeholder={t.orderCodePlaceholder} />
               </Field>
               <Field label={t.orderValue} required error={state.fieldErrors?.orderInvoiceAmount?.[0]}>
                 <MoneyInput value={orderAmount} onChange={setOrderAmount} locale={locale} />
-                <input type="hidden" name="order_invoice_amount" value={orderAmount} />
               </Field>
             </div>
           ) : null}
@@ -463,7 +492,7 @@ export default function AssignmentForm({
           {executionType === "in_branch" ? (
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <Field label={t.branch} required error={state.fieldErrors?.branchName?.[0]}>
-                <input name="branch_name" list="campaign-branch-options" value={branchName} onChange={(event) => setBranchName(event.target.value)} className={inputClass} placeholder={t.branchPlaceholder} />
+                <input list="campaign-branch-options" value={branchName} onChange={(event) => setBranchName(event.target.value)} className={inputClass} placeholder={t.branchPlaceholder} />
                 <BranchDatalist id="campaign-branch-options" branches={initialBranches} />
                 <p className="mt-2 text-xs font-semibold leading-6 text-[#929AAF]">{t.branchSaveHint}</p>
               </Field>
@@ -476,7 +505,7 @@ export default function AssignmentForm({
           {executionType === "remote" ? (
             <div className="mt-6 space-y-5">
               <Field label={t.otherDetails} required error={state.fieldErrors?.otherExecutionDetails?.[0]}>
-                <textarea name="other_execution_details" value={otherExecutionDetails} onChange={(event) => setOtherExecutionDetails(event.target.value)} className={textareaClass} placeholder={t.otherDetailsPlaceholder} />
+                <textarea value={otherExecutionDetails} onChange={(event) => setOtherExecutionDetails(event.target.value)} className={textareaClass} placeholder={t.otherDetailsPlaceholder} />
               </Field>
               <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#DDE2F3] bg-[#FAFBFF] p-5">
                 <input type="checkbox" checked={requiresContent} onChange={(event) => setRequiresContent(event.target.checked)} className="mt-1 h-5 w-5 accent-[#6877C8]" />
@@ -488,9 +517,9 @@ export default function AssignmentForm({
           {effectiveRequiresContent ? (
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <Field label={t.contentDue}><input type="datetime-local" value={contentDueLocal} onChange={(event) => setContentDueLocal(event.target.value)} className={inputClass} /></Field>
-              <Field label={t.publishingDate}><input name="publishing_date" type="date" value={publishingDate} onChange={(event) => setPublishingDate(event.target.value)} className={inputClass} /></Field>
+              <Field label={t.publishingDate}><input type="date" value={publishingDate} onChange={(event) => setPublishingDate(event.target.value)} className={inputClass} /></Field>
             </div>
-          ) : <input type="hidden" name="publishing_date" value="" />}
+          ) : null}
 
           <WizardFooter locale={locale} step={step} nextDisabled={!collaborationValid} onPrevious={() => goTo(1)} onNext={() => goTo(3)} />
         </CampaignPanel>
@@ -595,6 +624,28 @@ export default function AssignmentForm({
           <WizardFooter locale={locale} step={step} onPrevious={() => goTo(2)} submitDisabled={!canSubmit} pending={pending} campaignName={campaignName} />
         </CampaignPanel>
       ) : null}
+
+      <QuickInfluencerModal
+        open={quickAddOpen}
+        campaignId={campaignId}
+        locale={locale}
+        initialQuery={query}
+        onClose={() => setQuickAddOpen(false)}
+        onDuplicate={(mobile) => {
+          setQuery(mobile);
+          setSearchMessage(locale === "ar" ? "المؤثر مسجل مسبقًا؛ تم البحث عنه برقم الجوال." : "The influencer already exists; searching by mobile number.");
+        }}
+        onCreated={(influencer) => {
+          setResults((current) => [influencer, ...current.filter((item) => item.influencer_id !== influencer.influencer_id)]);
+          setSelectedInfluencer(influencer);
+          setQuery(influencer.mobile_e164);
+          const firstAccount = influencer.social_accounts[0];
+          setSelectedPlatforms(firstAccount ? {
+            [firstAccount.id]: { account: firstAccount, deliverables: [newDeliverable(t.defaultContentType)] },
+          } : {});
+          setSearchMessage(locale === "ar" ? "تم إنشاء ملف أولي للمؤثر واختياره للحملة." : "An initial influencer profile was created and selected.");
+        }}
+      />
     </form>
   );
 }
@@ -677,14 +728,14 @@ function text(locale: CampaignLocale) {
   if (locale === "en") return {
     steps: ["Influencer and social accounts", "Collaboration options", "Payment and contract"], stepLabel: "Step", previous: "Previous", next: "Next", saving: "Saving...", saveAssignment: "Save and add influencer",
     step1Title: "1. Choose influencer and social accounts", step1Subtitle: "Search for the influencer, verify availability and select the social accounts used in this campaign.",
-    searchPlaceholder: "Search by name, mobile digits or username", searchFailed: "Influencer search failed.", noResults: "No matching influencer was found.", cityUnknown: "City not set", profileCompletion: "Profile", accounts: "accounts", selected: "selected", socialTitle: "Social accounts and deliverables", socialHint: "Choose one or more accounts and define the content required from each.", noSocial: "This influencer has no social accounts.", quantity: "Quantity", remove: "Remove", addContent: "Add content item", defaultContentType: "Reel",
+    searchPlaceholder: "Search by name, mobile digits or username", quickAdd: "Add a new influencer", searchFailed: "Influencer search failed.", noResults: "No matching influencer was found.", cityUnknown: "City not set", profileCompletion: "Profile", accounts: "accounts", selected: "selected", socialTitle: "Social accounts and deliverables", socialHint: "Choose one or more accounts and define the content required from each.", noSocial: "This influencer has no social accounts.", quantity: "Quantity", remove: "Remove", addContent: "Add content item", defaultContentType: "Reel",
     step2Title: "2. Collaboration options", step2Subtitle: "Choose home, in-branch or another type, then set the operational details.", home: "Home collaboration", homeHint: "Products are delivered to the influencer for home content.", inBranch: "In-branch collaboration", inBranchHint: "The influencer attends a selected branch.", other: "Other", otherHint: "A custom collaboration agreed with the influencer.", orderNumber: "Order number", orderCode: "Order code", orderCodePlaceholder: "Discount or delivery code", orderValue: "Order value", branch: "Branch", branchPlaceholder: "Search or type a new branch", branchSaveHint: "A new branch will be saved for future team use.", attendanceAt: "Attendance date and time", otherDetails: "Other collaboration details", otherDetailsPlaceholder: "Describe the collaboration and required execution...", requiresContent: "This collaboration requires content and publishing", requiresContentHint: "Disable it when the custom collaboration has no content deliverables.", contentDue: "Content due date", publishingDate: "Publishing date",
     step3Title: "3. Compensation, payment and contract", step3Subtitle: "Select one or more compensation types. Each selected type has its own amount and details.", bankTransfer: "Bank transfer", bankHint: "Cash amount processed by finance.", voucher: "Shopping voucher", voucherHint: "Redeemed online or at a selected branch.", products: "Products", productsHint: "Cash value is zero while product value is kept for reporting.", noCompensation: "No compensation was selected. The assignment will be saved as unpaid.", bankBadge: "Transfer", voucherBadge: "Voucher", productsBadge: "Products", bankAmount: "Transfer amount", expectedPayment: "Expected payment date", bankNotes: "Transfer notes", financeNotesPlaceholder: "Any information required by finance...", voucherAmount: "Voucher value", voucherSource: "Voucher redemption", website: "Online store", aBranch: "A branch", voucherBranch: "Voucher branch", voucherNotes: "Voucher notes", voucherNotesPlaceholder: "Voucher code or delivery method when available...", cashValue: "Cash payment value", productReference: "Product value for reporting", productDescription: "Product description", productDescriptionPlaceholder: "List the products or package provided to the influencer...", productNotes: "Product delivery notes", productNotesPlaceholder: "Preparation date or delivery method...", estimatedBudget: "Estimated budget", currentCommitted: "Currently committed", remainingBefore: "Remaining before", remainingAfter: "Remaining after", budgetRule: "Only bank transfers and vouchers count against the influencer campaign budget. Home order and product values are reported separately.", overBudget: "The estimated budget will be exceeded by", warningOnly: "This is a warning and does not prevent saving.", withinBudget: "Compensation is within budget. Remaining after adding:", hasContract: "This collaboration is governed by a contract or agreement", contractHint: "Finance will see the contract flag and payment timing clearly.", contractReference: "Contract or agreement reference", agreementDate: "Agreement date", paymentTiming: "Payment timing", beforePublish: "Before publishing", afterPublish: "After publishing", byAgreement: "By agreement", contractNotes: "Contract notes", coordinatorNotes: "Coordinator notes", coordinatorNotesPlaceholder: "Internal coordination notes for this influencer...", summary: "Assignment summary", influencer: "Influencer", platforms: "Platforms", collaboration: "Collaboration", financialTotal: "Financial total",
   } as const;
   return {
     steps: ["اختيار المؤثر وحسابات السوشيال", "خيارات التعاون", "الدفع والعقد"], stepLabel: "الخطوة", previous: "السابق", next: "التالي", saving: "جاري الحفظ...", saveAssignment: "حفظ وإضافة المؤثر",
     step1Title: "1. اختيار المؤثر وحسابات السوشيال ميديا", step1Subtitle: "ابحثي عن المؤثر وتحققي من توفره ثم اختاري الحسابات المستخدمة في الحملة.",
-    searchPlaceholder: "اكتبي اسم المؤثر أو آخر أرقام الجوال أو اسم المستخدم", searchFailed: "تعذر البحث عن المؤثرين.", noResults: "لم نجد مؤثرًا مطابقًا لبيانات البحث.", cityUnknown: "المدينة غير محددة", profileCompletion: "اكتمال الملف", accounts: "حساب", selected: "محدد", socialTitle: "حسابات التواصل والمحتوى", socialHint: "اختاري حسابًا أو أكثر وحددي المحتوى المطلوب من كل حساب.", noSocial: "لا توجد حسابات تواصل مسجلة لهذا المؤثر.", quantity: "العدد", remove: "حذف", addContent: "إضافة محتوى", defaultContentType: "ريلز",
+    searchPlaceholder: "اكتبي اسم المؤثر أو آخر أرقام الجوال أو اسم المستخدم", quickAdd: "إضافة مؤثر جديد", searchFailed: "تعذر البحث عن المؤثرين.", noResults: "لم نجد مؤثرًا مطابقًا لبيانات البحث.", cityUnknown: "المدينة غير محددة", profileCompletion: "اكتمال الملف", accounts: "حساب", selected: "محدد", socialTitle: "حسابات التواصل والمحتوى", socialHint: "اختاري حسابًا أو أكثر وحددي المحتوى المطلوب من كل حساب.", noSocial: "لا توجد حسابات تواصل مسجلة لهذا المؤثر.", quantity: "العدد", remove: "حذف", addContent: "إضافة محتوى", defaultContentType: "ريلز",
     step2Title: "2. تحديد خيارات التعاون", step2Subtitle: "اختاري منزلي أو حضوري أو أخرى ثم أدخلي تفاصيل التنفيذ.", home: "تعاون منزلي", homeHint: "إرسال طلب ومنتجات للمؤثر للتصوير من المنزل.", inBranch: "تعاون حضوري", inBranchHint: "حضور المؤثر إلى أحد الفروع المحددة.", other: "أخرى", otherHint: "تنفيذ خاص يتم الاتفاق عليه مع المؤثر.", orderNumber: "رقم الطلب", orderCode: "كود الطلب", orderCodePlaceholder: "كود الخصم أو التسليم", orderValue: "قيمة الطلب", branch: "الفرع", branchPlaceholder: "ابحثي أو اكتبي اسم فرع جديد", branchSaveHint: "الفرع الجديد سيُحفظ لاستخدام الفريق مستقبلًا.", attendanceAt: "تاريخ ووقت الحضور", otherDetails: "تفاصيل التعاون الآخر", otherDetailsPlaceholder: "اشرحي نوع التعاون وطريقة التنفيذ المطلوبة...", requiresContent: "هذا التعاون يتطلب محتوى ونشر", requiresContentHint: "أزيلي الاختيار إذا كان التعاون الآخر لا يتضمن محتوى.", contentDue: "موعد تسليم المحتوى", publishingDate: "موعد النشر",
     step3Title: "3. تفاصيل المقابل والدفع والعقد", step3Subtitle: "يمكن اختيار أكثر من نوع مقابل، ولكل خيار مبلغ وتفاصيل مستقلة.", bankTransfer: "تحويل بنكي", bankHint: "مبلغ نقدي تتم معالجته من الإدارة المالية.", voucher: "قسيمة مشتريات", voucherHint: "تُصرف من الموقع أو من فرع محدد.", products: "مقابل منتجات", productsHint: "القيمة النقدية صفر مع حفظ قيمة المنتجات للتقارير.", noCompensation: "لم يتم اختيار مقابل؛ سيُحفظ التكليف كبدون مقابل.", bankBadge: "تحويل", voucherBadge: "قسيمة", productsBadge: "منتجات", bankAmount: "قيمة التحويل", expectedPayment: "موعد الدفع المتوقع", bankNotes: "ملاحظات التحويل", financeNotesPlaceholder: "أي تفاصيل مطلوبة للإدارة المالية...", voucherAmount: "قيمة القسيمة", voucherSource: "مكان صرف القسيمة", website: "الموقع الإلكتروني", aBranch: "أحد الفروع", voucherBranch: "فرع صرف القسيمة", voucherNotes: "ملاحظات القسيمة", voucherNotesPlaceholder: "كود القسيمة أو طريقة التسليم عند توفرها...", cashValue: "القيمة النقدية للدفع", productReference: "قيمة المنتجات للتقارير", productDescription: "وصف المنتجات", productDescriptionPlaceholder: "اكتبي المنتجات أو الباقة التي سيحصل عليها المؤثر...", productNotes: "ملاحظات تسليم المنتجات", productNotesPlaceholder: "موعد التجهيز أو طريقة التسليم...", estimatedBudget: "الميزانية التقديرية", currentCommitted: "المبلغ المرتبط حاليًا", remainingBefore: "المتبقي قبل الإضافة", remainingAfter: "المتبقي بعد الإضافة", budgetRule: "يُخصم من ميزانية الحملة مجموع التحويلات البنكية وقيم القسائم فقط. قيمة الطلب المنزلي وقيمة المنتجات تظهران في التقارير بشكل منفصل.", overBudget: "سيتم تجاوز الميزانية التقديرية بمبلغ", warningOnly: "هذا تنبيه فقط ولن يمنع الحفظ.", withinBudget: "المقابل المالي ضمن الميزانية، والمتبقي بعد الإضافة", hasContract: "هذا التعاون مقيد بعقد أو اتفاق", contractHint: "سيظهر للإدارة المالية مع توقيت الدفع بشكل واضح.", contractReference: "مرجع العقد أو الاتفاق", agreementDate: "تاريخ الاتفاق", paymentTiming: "توقيت الدفع", beforePublish: "قبل النشر", afterPublish: "بعد النشر", byAgreement: "حسب الاتفاق", contractNotes: "ملاحظات العقد", coordinatorNotes: "ملاحظات المنسق العامة", coordinatorNotesPlaceholder: "ملاحظات داخلية لتنسيق هذا المؤثر...", summary: "ملخص التكليف", influencer: "المؤثر", platforms: "المنصات", collaboration: "نوع التعاون", financialTotal: "إجمالي المقابل المالي",
   } as const;

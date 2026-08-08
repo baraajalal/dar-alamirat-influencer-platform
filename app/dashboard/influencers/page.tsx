@@ -50,9 +50,10 @@ type Availability = {
   state: "available" | "active" | "cooldown";
   campaignName?: string;
   blockedUntil?: string;
+  remainingDays?: number;
 };
 
-const CLOSED_STATUSES = new Set(["closed", "rejected", "cancelled"]);
+const CLOSED_STATUSES = new Set(["paid", "closed", "rejected", "cancelled"]);
 
 const ar = {
   title: "قاعدة بيانات المؤثرين",
@@ -197,7 +198,9 @@ export default async function InfluencersPage({
   }
 
   const availabilityMap = new Map<string, Availability>();
-  const now = Date.now();
+  // الصفحة خادمية وتحتاج الوقت الحالي لحساب توفر المؤثر.
+// eslint-disable-next-line react-hooks/purity
+const now = Date.now();
   for (const influencer of influencers) {
     const rows = assignments.filter((assignment) => assignment.influencer_id === influencer.id);
     const activeAssignment = rows.find((assignment) => !CLOSED_STATUSES.has(assignment.status));
@@ -216,6 +219,7 @@ export default async function InfluencersPage({
         state: "cooldown",
         campaignName: campaignMap.get(cooldown.campaign_id),
         blockedUntil: cooldown.availability_blocked_until ?? undefined,
+        remainingDays: Math.max(1, Math.ceil((new Date(cooldown.availability_blocked_until as string).getTime() - now) / 86_400_000)),
       });
       continue;
     }
@@ -378,7 +382,7 @@ function AvailabilityBadge({ availability, locale, labels }: { availability: Ava
   if (availability.state === "available") return <Pill tone="green">{labels.available}</Pill>;
   if (availability.state === "active") return <div><Pill tone="red">{labels.active}</Pill>{availability.campaignName ? <p className="mt-1.5 max-w-40 text-xs font-bold text-[#8F96AA]">{availability.campaignName}</p> : null}</div>;
   const date = availability.blockedUntil ? new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ar-SA", { dateStyle: "medium" }).format(new Date(availability.blockedUntil)) : null;
-  return <div><Pill tone="amber">{labels.cooldown}</Pill>{date ? <p className="mt-1.5 text-xs font-bold text-[#8F96AA]">{date}</p> : null}</div>;
+  return <div><Pill tone="amber">{labels.cooldown}</Pill>{availability.remainingDays ? <p className="mt-1.5 text-xs font-black text-amber-700">{labels === en ? `${availability.remainingDays} days remaining` : `متبقي ${availability.remainingDays} يوم`}</p> : null}{date ? <p className="mt-1 text-xs font-bold text-[#8F96AA]">{labels === en ? `Available ${date}` : `متاح بعد ${date}`}</p> : null}</div>;
 }
 
 function AccountBadge({ status, hasUser, labels }: { status: string | null; hasUser: boolean; labels: typeof ar }) {

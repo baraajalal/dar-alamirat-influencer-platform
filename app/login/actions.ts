@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export async function login(formData: FormData) {
@@ -33,7 +34,31 @@ export async function login(formData: FormData) {
     redirect("/login?error=account_disabled");
   }
 
-  if (profile.role === "influencer") redirect("/influencer/dashboard");
+  if (profile.role === "influencer") {
+    const admin = createAdminClient();
+    const { data: influencer } = await admin
+      .from("influencers")
+      .select("id,must_change_password")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+
+    if (!influencer) {
+      await supabase.auth.signOut();
+      redirect("/login?error=profile_not_found");
+    }
+
+    await admin
+      .from("influencers")
+      .update({ last_login_at: new Date().toISOString() })
+      .eq("id", influencer.id);
+
+    if (influencer.must_change_password) {
+      redirect("/portal/set-password");
+    }
+
+    redirect("/portal/dashboard");
+  }
+
   redirect("/dashboard");
 }
 

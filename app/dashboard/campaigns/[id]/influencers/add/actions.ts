@@ -316,15 +316,24 @@ export async function createCampaignAssignment(
     compensationsJson: String(formData.get("compensations_json") ?? "[]"),
   });
 
-  if (!parsed.success) {
-    return {
-      ok: false,
-      message: "راجعي بيانات التكليف قبل الحفظ.",
-      fieldErrors: parsed.error.flatten().fieldErrors,
-    };
-  }
+ if (!parsed.success) {
+  const firstIssue =
+    parsed.error.issues[0]?.message ??
+    "راجعي بيانات التكليف قبل الحفظ.";
 
+  console.error(
+    "Campaign assignment validation failed:",
+    parsed.error.issues,
+  );
+
+  return {
+    ok: false,
+    message: firstIssue,
+    fieldErrors: parsed.error.flatten().fieldErrors,
+  };
+}
   const value = parsed.data;
+  const returnTo = String(formData.get("return_to") ?? "");
   const platforms = z.array(platformSchema).parse(JSON.parse(value.platformsJson));
   const compensations = z
     .array(compensationSchema)
@@ -385,5 +394,9 @@ export async function createCampaignAssignment(
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/campaigns");
   revalidatePath(`/dashboard/campaigns/${value.campaignId}`);
+  revalidatePath("/dashboard/campaigns/assignments");
+  if (returnTo.startsWith("/dashboard/campaigns/assignments")) {
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}assignment=${assignmentId}`);
+  }
   redirect(`/dashboard/campaigns/${value.campaignId}?assignment=${assignmentId}`);
 }

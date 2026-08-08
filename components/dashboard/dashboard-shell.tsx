@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import type { DashboardDictionary, DashboardLocale } from "@/lib/i18n/dashboard";
 import { DashboardHeader } from "./header";
 import { DashboardSidebar } from "./sidebar";
+import { UntranslatedPageTranslator } from "./untranslated-page-translator";
 
 export function DashboardShell({
   children,
@@ -40,7 +41,10 @@ export function DashboardShell({
           <div className="relative min-h-[calc(100vh-78px)] overflow-hidden">
             <div className="pointer-events-none absolute -left-16 bottom-0 h-72 w-72 rounded-full bg-[#D8DDF7]/22 blur-3xl" />
             <div className="pointer-events-none absolute -right-20 top-8 h-64 w-64 rounded-full bg-[#A9B9E6]/18 blur-3xl" />
-            <div className="employee-dashboard-content relative px-4 py-5 sm:px-6 sm:py-7 xl:px-8">{children}</div>
+            <div className="employee-dashboard-content relative px-4 py-5 sm:px-6 sm:py-7 xl:px-8">
+              <UntranslatedPageTranslator locale={locale} />
+              {children}
+            </div>
           </div>
         </div>
       </div>

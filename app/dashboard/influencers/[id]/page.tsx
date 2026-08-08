@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
@@ -29,7 +30,7 @@ export default async function InfluencerDetailsPage({ params }: { params: Promis
     completion: "Profile completion", followers: "Total followers", engagement: "Average engagement", availability: "Availability",
     available: "Available", linked: "Linked", cooldown: "Cooldown", personal: "Personal information", mobile: "Mobile", email: "Email", gender: "Gender", city: "City", country: "Country", portal: "Portal account", enabled: "Enabled", disabled: "Not enabled", female: "Female", male: "Male",
     categories: "Advertising categories", preferences: "Content preferences", social: "Social accounts", views: "Views", likes: "Likes", openAccount: "Open account ↗", noSocial: "No social accounts registered.",
-    campaigns: "Current and previous campaigns", noCampaigns: "The influencer has not been linked to a campaign yet.", campaignAvailability: "Campaign availability", availableLink: "Available to assign", activeCampaign: "Currently linked to a campaign", cooldownState: "Within cooldown period", availableAfter: "Available after",
+    campaigns: "Current and previous campaigns", noCampaigns: "The influencer has not been linked to a campaign yet.", campaignAvailability: "Campaign availability", availableLink: "Available to assign", activeCampaign: "Currently linked to a campaign", cooldownState: "Within cooldown period", availableAfter: "Available after", cooldownRemaining: "Days remaining",
     dues: "Dues and payments", paid: "Total paid", pending: "Pending payment", compensationItems: "Compensation items", finance: "Protected financial data", holder: "Account holder", bank: "Bank", iban: "IBAN", nationalId: "National ID", mawthooq: "Mawthooq number", financeNote: "Sensitive data is visible only to admins and finance, and values are masked in the interface.",
     system: "System information", fileStatus: "Profile status", archive: "Archive match", source: "Registration source", updated: "Last update",
   } : {
@@ -37,7 +38,7 @@ export default async function InfluencerDetailsPage({ params }: { params: Promis
     completion: "اكتمال الملف", followers: "إجمالي المتابعين", engagement: "متوسط التفاعل", availability: "حالة التوفر",
     available: "متاح", linked: "مرتبط", cooldown: "حظر", personal: "البيانات الشخصية", mobile: "الجوال", email: "البريد الإلكتروني", gender: "الجنس", city: "المدينة", country: "الدولة", portal: "حساب البوابة", enabled: "مفعل", disabled: "غير مفعل", female: "أنثى", male: "ذكر",
     categories: "مجالات الإعلان", preferences: "تفضيلات المحتوى", social: "حسابات التواصل الاجتماعي", views: "المشاهدات", likes: "الإعجابات", openAccount: "فتح الحساب ↗", noSocial: "لا توجد حسابات تواصل مسجلة.",
-    campaigns: "الحملات السابقة والحالية", noCampaigns: "لم يتم ربط المؤثر بأي حملة حتى الآن.", campaignAvailability: "التوفر للحملات", availableLink: "متاح للربط", activeCampaign: "مرتبط بحملة حاليًا", cooldownState: "داخل فترة الحظر", availableAfter: "متاح بعد",
+    campaigns: "الحملات السابقة والحالية", noCampaigns: "لم يتم ربط المؤثر بأي حملة حتى الآن.", campaignAvailability: "التوفر للحملات", availableLink: "متاح للربط", activeCampaign: "مرتبط بحملة حاليًا", cooldownState: "داخل فترة الحظر", availableAfter: "متاح بعد", cooldownRemaining: "الأيام المتبقية لفك الحظر",
     dues: "المستحقات والمدفوعات", paid: "إجمالي المدفوع", pending: "بانتظار الدفع", compensationItems: "بنود المقابل", finance: "البيانات المالية المحمية", holder: "اسم صاحب الحساب", bank: "البنك", iban: "الآيبان", nationalId: "الهوية", mawthooq: "رقم موثوق", financeNote: "تظهر البيانات الحساسة للمدير والمالية فقط، والقيم مقنّعة في واجهة العرض.",
     system: "معلومات النظام", fileStatus: "حالة الملف", archive: "مطابقة الأرشيف", source: "مصدر التسجيل", updated: "آخر تحديث",
   };
@@ -69,9 +70,17 @@ export default async function InfluencerDetailsPage({ params }: { params: Promis
   const averageEngagement = (social ?? []).length ? (social ?? []).reduce((sum, item) => sum + Number(item.engagement_rate ?? 0), 0) / (social ?? []).length : 0;
   const totalPaid = (payments ?? []).filter((item) => item.status === "paid").reduce((sum, item) => sum + Number(item.amount ?? 0), 0);
   const pendingAmount = (payments ?? []).filter((item) => !["paid", "cancelled"].includes(item.status)).reduce((sum, item) => sum + Number(item.amount ?? 0), 0);
-  const activeAssignment = assignmentRows.find((item) => !["closed", "rejected", "cancelled"].includes(item.status));
-  const cooldown = assignmentRows.find((item) => item.availability_blocked_until && new Date(item.availability_blocked_until).getTime() > Date.now());
+  const activeAssignment = assignmentRows.find((item) => !["paid", "closed", "rejected", "cancelled"].includes(item.status));
+  const currentTime = Date.now();
+  const cooldown = assignmentRows.find(
+    (item) =>
+      item.availability_blocked_until &&
+      new Date(item.availability_blocked_until).getTime() > currentTime,
+  );
   const availability = activeAssignment ? "active" : cooldown ? "cooldown" : "available";
+  const cooldownRemainingDays = cooldown?.availability_blocked_until
+    ? Math.max(1, Math.ceil((new Date(cooldown.availability_blocked_until).getTime() - currentTime) / 86_400_000))
+    : 0;
   const fmt = new Intl.NumberFormat(locale === "en" ? "en-US" : "ar-SA");
   const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "ar-SA", { style: "currency", currency: "SAR", maximumFractionDigits: 0 });
 
@@ -89,7 +98,12 @@ export default async function InfluencerDetailsPage({ params }: { params: Promis
         <div className="absolute -left-20 -top-24 h-64 w-64 rounded-full border border-white/12" />
         <div className="relative flex flex-col justify-between gap-6 xl:flex-row xl:items-center">
           <div className="flex items-center gap-4">
-            <span className="flex h-20 w-20 items-center justify-center rounded-[26px] bg-white/16 text-2xl font-black ring-1 ring-white/20">{influencer.full_name.split(/\s+/).slice(0,2).map((part) => part[0]).join("")}</span>
+            <span className="flex h-20 w-20 items-center justify-center rounded-[26px] bg-white/16 text-2xl font-black ring-1 ring-white/20">{String(influencer.full_name ?? "")
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((part: string) => part.charAt(0))
+  .join("")}</span>
             <div><div className="flex flex-wrap items-center gap-2"><h2 className="text-2xl font-black sm:text-3xl">{influencer.full_name}</h2>{influencer.mawthooq_status ? <span className="rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-black text-emerald-50">موثوق</span> : null}</div><p dir="ltr" className="mt-2 text-start text-sm font-bold text-white/75">{influencer.mobile_e164}</p><p className="mt-1 text-sm font-bold text-white/68">{[influencer.city, influencer.country].filter(Boolean).join("، ")}</p></div>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -132,7 +146,7 @@ export default async function InfluencerDetailsPage({ params }: { params: Promis
 
         <aside className="space-y-6">
           <Panel title={t.campaignAvailability}>
-            <div className={`rounded-2xl p-4 ${availability === "available" ? "bg-emerald-50 text-emerald-800" : availability === "active" ? "bg-rose-50 text-rose-800" : "bg-amber-50 text-amber-800"}`}><p className="font-black">{availability === "available" ? t.availableLink : availability === "active" ? t.activeCampaign : t.cooldownState}</p>{activeAssignment ? <p className="mt-2 text-sm font-bold opacity-75">{campaignMap.get(activeAssignment.campaign_id)?.name}</p> : null}{cooldown?.availability_blocked_until ? <p className="mt-2 text-sm font-bold opacity-75">{t.availableAfter} {new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ar-SA", { dateStyle: "medium" }).format(new Date(cooldown.availability_blocked_until))}</p> : null}</div>
+            <div className={`rounded-2xl p-4 ${availability === "available" ? "bg-emerald-50 text-emerald-800" : availability === "active" ? "bg-rose-50 text-rose-800" : "bg-amber-50 text-amber-800"}`}><p className="font-black">{availability === "available" ? t.availableLink : availability === "active" ? t.activeCampaign : t.cooldownState}</p>{activeAssignment ? <p className="mt-2 text-sm font-bold opacity-75">{campaignMap.get(activeAssignment.campaign_id)?.name}</p> : null}{cooldown?.availability_blocked_until ? <><p className="mt-2 text-sm font-bold opacity-75">{t.availableAfter} {new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ar-SA", { dateStyle: "medium" }).format(new Date(cooldown.availability_blocked_until))}</p><p className="mt-1 text-sm font-black">{t.cooldownRemaining}: {cooldownRemainingDays} {locale === "en" ? "days" : "يوم"}</p></> : null}</div>
           </Panel>
 
           <Panel title={t.dues}>

@@ -22,6 +22,8 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
   const [state, formAction, pending] = useActionState(createCampaign, initialState);
   const [status, setStatus] = useState<"draft" | "active" | "paused">("draft");
   const [contentDueLocal, setContentDueLocal] = useState("");
+  const [ownerType, setOwnerType] = useState<"internal" | "external_supplier" | "joint">("internal");
+  const [autoComplete, setAutoComplete] = useState(false);
   const contentDueIsoRef = useRef<HTMLInputElement | null>(null);
   const currentManager = useMemo(() => managers.find((manager) => manager.id === currentUserId), [currentUserId, managers]);
 
@@ -77,8 +79,61 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
         </div>
       </CampaignPanel>
 
+
       <CampaignPanel>
-        <CampaignSectionTitle number="02" title={copy.form.section2} description={copy.form.section2Hint} />
+        <CampaignSectionTitle number="02" title={locale === "ar" ? "ملكية الحملة والاستعداد للمشاريع" : "Campaign ownership and project readiness"} description={locale === "ar" ? "صنّف الحملة الآن لتصبح جاهزة للربط بمسار المشاريع التسويقية لاحقًا." : "Classify the campaign now so it can be linked to marketing projects later."} />
+        <div className="mt-6 grid gap-5 md:grid-cols-2">
+          <Field label={locale === "ar" ? "ملكية الحملة" : "Campaign ownership"}>
+            <select name="campaign_owner_type" className={inputClass} value={ownerType} onChange={(event) => setOwnerType(event.target.value as typeof ownerType)}>
+              <option value="internal">{locale === "ar" ? "حملة داخلية" : "Internal campaign"}</option>
+              <option value="external_supplier">{locale === "ar" ? "حملة لمورد خارجي" : "External supplier campaign"}</option>
+              <option value="joint">{locale === "ar" ? "حملة مشتركة" : "Joint campaign"}</option>
+            </select>
+          </Field>
+          <Field label={locale === "ar" ? "تصنيف الحملة" : "Campaign category"}>
+            <select name="campaign_category" className={inputClass} defaultValue="influencer_campaign">
+              <option value="influencer_campaign">{locale === "ar" ? "حملة مؤثرين" : "Influencer campaign"}</option>
+              <option value="product_launch">{locale === "ar" ? "إطلاق منتج" : "Product launch"}</option>
+              <option value="brand_awareness">{locale === "ar" ? "وعي بالعلامة" : "Brand awareness"}</option>
+              <option value="sales_activation">{locale === "ar" ? "تنشيط مبيعات" : "Sales activation"}</option>
+              <option value="store_activation">{locale === "ar" ? "تنشيط فروع" : "Store activation"}</option>
+              <option value="seasonal_campaign">{locale === "ar" ? "حملة موسمية" : "Seasonal campaign"}</option>
+              <option value="event_support">{locale === "ar" ? "دعم فعالية" : "Event support"}</option>
+              <option value="mixed">{locale === "ar" ? "مشروع مختلط" : "Mixed"}</option>
+            </select>
+          </Field>
+        </div>
+        {ownerType !== "internal" ? (
+          <div className="mt-5 grid gap-5 md:grid-cols-2">
+            <Field label={locale === "ar" ? "اسم الجهة أو المورد" : "Organization / supplier"}><input name="external_organization_name" className={inputClass} /></Field>
+            <Field label={locale === "ar" ? "اسم مسؤول الجهة" : "Contact name"}><input name="external_contact_name" className={inputClass} /></Field>
+            <Field label={locale === "ar" ? "رقم التواصل" : "Contact mobile"}><input name="external_contact_mobile" dir="ltr" className={inputClass} /></Field>
+            <Field label={locale === "ar" ? "البريد الإلكتروني" : "Contact email"}><input name="external_contact_email" type="email" dir="ltr" className={inputClass} /></Field>
+          </div>
+        ) : null}
+      </CampaignPanel>
+
+      <CampaignPanel>
+        <CampaignSectionTitle number="03" title={locale === "ar" ? "التقدم والإكمال التلقائي" : "Progress and automatic completion"} description={locale === "ar" ? "يمكن إضافة أهداف الحملة بعد الإنشاء، وسيُحدّث النظام التقدم تلقائيًا." : "Targets can be added after creation and progress will update automatically."} />
+        <label className="mt-6 flex items-center gap-3 rounded-2xl border border-[#DDE2F3] bg-[#FAFBFF] p-4">
+          <input name="auto_complete_enabled" type="checkbox" checked={autoComplete} onChange={(event) => setAutoComplete(event.target.checked)} className="h-5 w-5" />
+          <span className="font-black text-[#405080]">{locale === "ar" ? "تفعيل الإكمال التلقائي للحملة" : "Enable automatic campaign completion"}</span>
+        </label>
+        <div className="mt-5">
+          <Field label={locale === "ar" ? "قاعدة الإكمال" : "Completion rule"}>
+            {!autoComplete ? <input type="hidden" name="completion_mode" value="manual" /> : null}
+            <select name="completion_mode" className={inputClass} defaultValue="all_required_targets_and_assignments" disabled={!autoComplete}>
+              <option value="manual">{locale === "ar" ? "يدوي" : "Manual"}</option>
+              <option value="all_required_targets">{locale === "ar" ? "عند تحقيق جميع الأهداف المطلوبة" : "All required targets"}</option>
+              <option value="any_primary_target">{locale === "ar" ? "عند تحقيق أي هدف رئيسي" : "Any primary target"}</option>
+              <option value="all_required_targets_and_assignments">{locale === "ar" ? "تحقيق الأهداف وإغلاق جميع التكليفات" : "Targets achieved and assignments closed"}</option>
+            </select>
+          </Field>
+        </div>
+      </CampaignPanel>
+
+      <CampaignPanel>
+        <CampaignSectionTitle number="04" title={copy.form.section2} description={copy.form.section2Hint} />
         <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           <Field label={copy.form.startDate}><input name="start_date" type="date" className={inputClass} /></Field>
           <Field label={copy.form.endDate} error={state.fieldErrors?.endDate?.[0]}><input name="end_date" type="date" className={inputClass} /></Field>
@@ -110,7 +165,7 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
       </CampaignPanel>
 
       <CampaignPanel>
-        <CampaignSectionTitle number="03" title={copy.form.section3} description={copy.form.section3Hint} />
+        <CampaignSectionTitle number="05" title={copy.form.section3} description={copy.form.section3Hint} />
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {statuses.map((option) => {
             const active = status === option.value;
@@ -126,7 +181,7 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
       </CampaignPanel>
 
       <CampaignPanel>
-        <CampaignSectionTitle number="04" title={copy.form.section4} description={copy.form.section4Hint} />
+        <CampaignSectionTitle number="06" title={copy.form.section4} description={copy.form.section4Hint} />
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
           <Field label={copy.form.hashtags}><textarea name="hashtags" className={textareaClass} placeholder={copy.form.hashtagsPlaceholder} /></Field>
           <Field label={copy.form.references}><textarea name="reference_links" dir="ltr" className={`${textareaClass} text-left`} placeholder={copy.form.referencesPlaceholder} /></Field>
