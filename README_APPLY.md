@@ -1,28 +1,21 @@
-# Portal activation build fix
+# تطبيق تصميم الصفحة الرئيسية
 
-هذا التعديل يعالج خطأ Next.js 16 أثناء build:
+انسخ الملفات فوق المشروع الحالي:
 
-`useSearchParams() should be wrapped in a suspense boundary at page "/portal/access/activate"`
+- `app/page.tsx`
+- `public/da-mark.png`
 
-## ما تغير
+لا يوجد SQL أو migration لهذا التعديل.
 
-- أزيل `useSearchParams()` بالكامل من Client Component.
-- `page.tsx` أصبح Server Component ويقرأ `searchParams` من Next.js مباشرة.
-- منطق التفعيل الكامل انتقل إلى `activate-client.tsx` مع تمرير `token` كـ prop.
-- تم الاحتفاظ برسائل النجاح والخطأ Popup وإغلاق رابط التفعيل بعد النجاح.
+المسارات المستخدمة:
+- تسجيل الدخول: `/login`
+- الانضمام/طلب التفعيل: `/portal-access/request`
+- دخول الموظفين: `/staff/login`
 
-## التطبيق
+بعد النسخ:
 
-انسخ مجلدي `app` و`components` فوق المشروع الحالي ثم شغّل:
-
-```bash
+```cmd
 npm run build
 ```
 
-إذا نجح:
-
-```bash
-git add .
-git commit -m "Fix portal activation production build"
-git push origin main
-```
+ثم ارفع إلى GitHub ليبدأ Netlify deploy جديد.
