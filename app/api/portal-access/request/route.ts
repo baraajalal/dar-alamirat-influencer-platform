@@ -127,7 +127,7 @@ export async function POST(request: Request) {
       .from("portal_access_requests")
       .select("id,status")
       .eq("influencer_id", influencerId)
-      .in("status", ["pending", "approved"])
+      .in("status", ["pending", "approved", "needs_changes"])
       .maybeSingle();
 
     if (existingRequestError) throw existingRequestError;
@@ -146,6 +146,8 @@ export async function POST(request: Request) {
           normalized_mobile: normalizedMobile,
           request_reason: reason,
           priority,
+          status: "pending",
+          submitted_at: now,
           updated_at: now,
         })
         .eq("id", existingRequest.id);
@@ -160,6 +162,7 @@ export async function POST(request: Request) {
           normalized_mobile: normalizedMobile,
           request_reason: reason,
           priority,
+          submitted_at: now,
         });
 
       if (insertError) throw insertError;
@@ -192,7 +195,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message:
-        "تم تسجيل طلب تفعيل بوابة المؤثر. ستراجع الإدارة الطلب وترسل لك دعوة التفعيل على البريد الإلكتروني.",
+        "تم تسجيل طلب تفعيل بوابة المؤثر. ستراجع الإدارة الطلب، وبعد الموافقة سيشارك الموظف معك رابط التفعيل مباشرة دون بريد إلكتروني.",
     });
   } catch (error) {
     if (error instanceof Error && error.message === "RATE_LIMITED") {

@@ -31,7 +31,8 @@ const percentageString = optionalNumberString.refine((value) => {
 export const socialAccountSchema = z.object({
   recordId: z.string().optional(),
   platform: z.enum(platformValues),
-  username: z.string().trim().min(1, "اسم المستخدم مطلوب").max(120),
+  username: z.string().trim().max(120).optional().default(""),
+  otherPlatformName: z.string().trim().max(120).optional().default(""),
   profileUrl: z.string().trim().max(500).optional().default(""),
   followersCount: optionalNumberString,
   averageLikes: optionalNumberString,
@@ -60,9 +61,10 @@ export const registrationSchema = z
       email: optionalEmail,
       city: z.string().trim().min(1, "المدينة مطلوبة").max(120),
       country: z.string().trim().min(1).max(120),
-      gender: z.enum(["female", "male"], {
+      gender: z.enum(["female", "male", "other"], {
         message: "يرجى تحديد الجنس",
       }),
+      birthYear: z.union([z.string(), z.number()]).transform((value) => String(value ?? "").trim()).refine((value) => /^\d{4}$/.test(value) && Number(value) >= 1940 && Number(value) <= new Date().getFullYear() - 13, "سنة الميلاد غير صحيحة"),
       nationalId: z.string().trim().max(30).optional().default(""),
       hasMawthooq: z.enum(["yes", "no"], {
         message: "يرجى تحديد حالة موثوق",
@@ -74,6 +76,7 @@ export const registrationSchema = z
       mawthooqExpiryDate: z.string().trim().max(20).optional().default(""),
       preferredAdCategories: z.array(z.string().trim().min(1)).min(1),
       contentStylePreference: z.array(z.string().trim().min(1)).min(1),
+      shootingStylePreferences: z.array(z.string().trim().min(1)).min(1),
     }),
     socialAccounts: z.array(socialAccountSchema).min(1).max(20),
     website: z.string().max(0).optional().default(""),
@@ -124,7 +127,8 @@ export type RegistrationLookup = {
     email: string;
     city: string;
     country: string;
-    gender: "" | "female" | "male";
+    gender: "" | "female" | "male" | "other";
+    birthYear: string;
     nationalId: string;
     hasMawthooq: string;
     bankName: string;
@@ -134,10 +138,12 @@ export type RegistrationLookup = {
     mawthooqExpiryDate: string;
     preferredAdCategories: string[];
     contentStylePreference: string[];
+    shootingStylePreferences: string[];
   } | null;
   socialAccounts: Array<{
     recordId?: string;
     platform: string;
+    otherPlatformName: string;
     username: string;
     profileUrl: string;
     followersCount: string;
@@ -237,6 +243,7 @@ function mapSocialAccount(record: Record<string, unknown>) {
   return {
     recordId: text(record.id),
     platform: platformLabel(record.platform),
+    otherPlatformName: text(record.platform_label),
     username: text(record.username),
     profileUrl: text(record.profile_url ?? record.profileUrl),
     followersCount: text(record.followers_count ?? record.followersCount),
@@ -267,7 +274,7 @@ export async function lookupInfluencerRegistration(
   const { data: activeRecords, error: activeError } = await supabase
     .from("influencers")
     .select(
-      "id,user_id,full_name,mobile_e164,email,city,country,gender,mawthooq_status,preferred_ad_categories,content_style_preferences,profile_completion,portal_access_requested_at",
+      "id,user_id,full_name,mobile_e164,email,city,country,gender,mawthooq_status,preferred_ad_categories,content_style_preferences,shooting_style_preferences,birth_year,profile_completion,portal_access_requested_at",
     )
     .eq("normalized_mobile", normalizedMobile)
     .limit(2);
@@ -325,9 +332,10 @@ export async function lookupInfluencerRegistration(
         city: text(active.city),
         country: text(active.country || "Saudi Arabia"),
         gender:
-          active.gender === "female" || active.gender === "male"
-            ? active.gender
+          ["female", "male", "other"].includes(String(active.gender))
+            ? (active.gender as "female" | "male" | "other")
             : "",
+        birthYear: text(active.birth_year),
         nationalId: "",
         hasMawthooq:
           active.mawthooq_status === true
@@ -342,6 +350,7 @@ export async function lookupInfluencerRegistration(
         mawthooqExpiryDate: text(finance?.mawthooq_expiry_date),
         preferredAdCategories: stringArray(active.preferred_ad_categories),
         contentStylePreference: stringArray(active.content_style_preferences),
+        shootingStylePreferences: stringArray(active.shooting_style_preferences),
       },
       socialAccounts: (accounts ?? []).map((account) =>
         mapSocialAccount(account as Record<string, unknown>),
@@ -398,6 +407,7 @@ export async function lookupInfluencerRegistration(
         city: text(archive.city),
         country: text(archive.country || "Saudi Arabia"),
         gender: "",
+        birthYear: "",
         nationalId: "",
         hasMawthooq: mawthooqLabel(archive.has_mawthooq),
         bankName: "",
@@ -407,6 +417,7 @@ export async function lookupInfluencerRegistration(
         mawthooqExpiryDate: "",
         preferredAdCategories: [],
         contentStylePreference: [],
+        shootingStylePreferences: [],
       },
       socialAccounts: (archiveAccounts ?? []).map((account) =>
         mapSocialAccount(account as Record<string, unknown>),

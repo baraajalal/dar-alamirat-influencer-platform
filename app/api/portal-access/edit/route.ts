@@ -1,0 +1,32 @@
+import { NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { hashPortalToken } from "@/lib/portal-access/tokens";
+import { registrationSchema, normalizeMobile, normalizeProfileUrl, profileUrlFromPlatform } from "@/lib/influencers/registration";
+
+export const dynamic = "force-dynamic";
+
+async function findEditToken(token:string){
+ const admin=createAdminClient(); const hash=hashPortalToken(token);
+ const {data}=await admin.from("portal_access_tokens").select("id,request_id,expires_at,used_at,revoked_at,portal_access_requests(id,influencer_id,normalized_mobile,status,review_notes,influencers(id,user_id,full_name,mobile_e164,email,gender,birth_year,city,country,mawthooq_status,preferred_ad_categories,content_style_preferences,shooting_style_preferences))").eq("token_hash",hash).eq("purpose","edit").maybeSingle();
+ if(!data||data.used_at||data.revoked_at||new Date(data.expires_at).getTime()<Date.now()) return null; return {admin,data};
+}
+function txt(v:unknown){return v==null?"":String(v)}
+export async function GET(request:Request){
+ try{const token=new URL(request.url).searchParams.get("token")||""; if(!token) return NextResponse.json({message:"الرابط غير صالح"},{status:400}); const found=await findEditToken(token); if(!found) return NextResponse.json({message:"رابط التعديل غير صالح أو منتهي"},{status:410});
+ const req:any=Array.isArray(found.data.portal_access_requests)?found.data.portal_access_requests[0]:found.data.portal_access_requests; if(!req||req.status!=="needs_changes") return NextResponse.json({message:"هذا الطلب لم يعد متاحًا للتعديل"},{status:409}); const i:any=Array.isArray(req.influencers)?req.influencers[0]:req.influencers;
+ const [{data:social},{data:finance}]=await Promise.all([found.admin.from("social_accounts").select("platform,platform_label,username,profile_url,followers_count,average_views,average_likes,average_comments,engagement_rate,female_audience,male_audience,audience_main_city,audience_main_country").eq("influencer_id",req.influencer_id).order("created_at"),found.admin.from("influencer_financial_profiles").select("mawthooq_number,mawthooq_expiry_date").eq("influencer_id",req.influencer_id).maybeSingle()]);
+ return NextResponse.json({influencer:{fullName:txt(i.full_name),mobile:txt(i.mobile_e164),email:txt(i.email),gender:txt(i.gender),birthYear:txt(i.birth_year),city:txt(i.city),country:txt(i.country||"Saudi Arabia"),hasMawthooq:i.mawthooq_status===true?"yes":i.mawthooq_status===false?"no":"",mawthooqNumber:txt(finance?.mawthooq_number),mawthooqExpiryDate:txt(finance?.mawthooq_expiry_date),preferredAdCategories:i.preferred_ad_categories||[],contentStylePreference:i.content_style_preferences||[],shootingStylePreferences:i.shooting_style_preferences||[]},socialAccounts:(social||[]).map((a:any)=>({platform:a.platform==="instagram"?"Instagram":a.platform==="tiktok"?"TikTok":a.platform==="snapchat"?"Snapchat":a.platform==="youtube"?"YouTube":a.platform==="facebook"?"Facebook":a.platform==="x"?"X":"Other",otherPlatformName:txt(a.platform_label),username:txt(a.username),profileUrl:txt(a.profile_url),followersCount:txt(a.followers_count),averageViews:txt(a.average_views),averageLikes:txt(a.average_likes),averageComments:txt(a.average_comments),engagementRate:txt(a.engagement_rate),femaleAudience:txt(a.female_audience),maleAudience:txt(a.male_audience),audienceMainCity:txt(a.audience_main_city),audienceMainCountry:txt(a.audience_main_country)})),reviewNotes:req.review_notes||""});
+ }catch(e){console.error(e);return NextResponse.json({message:"تعذر تحميل طلب التعديل"},{status:500})}
+}
+function usernameFromUrl(value:string){try{const u=new URL(value);return u.pathname.split("/").filter(Boolean).at(-1)?.replace(/^@/,"")||"profile"}catch{return "profile"}}
+export async function POST(request:Request){
+ try{const body=await request.json(); const token=String(body.token||""); const found=await findEditToken(token); if(!found) return NextResponse.json({message:"رابط التعديل غير صالح أو منتهي"},{status:410}); const req:any=Array.isArray(found.data.portal_access_requests)?found.data.portal_access_requests[0]:found.data.portal_access_requests; if(!req||req.status!=="needs_changes") return NextResponse.json({message:"الطلب غير متاح للتعديل"},{status:409});
+ const parsed=registrationSchema.safeParse(body.payload); if(!parsed.success) return NextResponse.json({message:parsed.error.issues[0]?.message||"البيانات غير صحيحة"},{status:400}); const {influencer,socialAccounts}=parsed.data; const mobile=normalizeMobile(influencer.mobile); if(mobile!==req.normalized_mobile && req.normalized_mobile) return NextResponse.json({message:"لا يمكن تغيير رقم الجوال من رابط التعديل. تواصل مع الإدارة."},{status:400});
+ const normalized=socialAccounts.map((a,index)=>({...a,username:a.username.trim()||usernameFromUrl(a.profileUrl)||`profile-${index+1}`,profileUrl:normalizeProfileUrl(a.profileUrl||profileUrlFromPlatform(a.platform,a.username))})); const payload={...influencer,mobile,iban:"",socialAccounts:normalized};
+ const {error:saveError}=await found.admin.rpc("save_influencer_profile",{p_payload:payload,p_match_source:"active",p_archive_influencer_id:null,p_existing_influencer_id:req.influencer_id}); if(saveError) throw saveError;
+ await found.admin.from("influencers").update({birth_year:Number(influencer.birthYear),shooting_style_preferences:influencer.shootingStylePreferences,updated_at:new Date().toISOString()}).eq("id",req.influencer_id);
+ const {data:dbSocial}=await found.admin.from("social_accounts").select("id,platform,username").eq("influencer_id",req.influencer_id); for(const a of normalized){if(!a.otherPlatformName?.trim())continue;const d=(dbSocial||[]).find(x=>x.platform==="other"&&x.username===a.username);if(d)await found.admin.from("social_accounts").update({platform_label:a.otherPlatformName.trim()}).eq("id",d.id)}
+ const now=new Date().toISOString(); await found.admin.from("portal_access_requests").update({status:"pending",resubmitted_at:now,submitted_at:now,reviewed_at:null,reviewed_by:null,updated_at:now}).eq("id",req.id); await found.admin.from("portal_access_tokens").update({used_at:now}).eq("id",found.data.id); await found.admin.from("activity_logs").insert({actor_id:null,entity_type:"influencer",entity_id:req.influencer_id,action:"portal_access_resubmitted",metadata:{request_id:req.id}});
+ return NextResponse.json({success:true});
+ }catch(e){console.error("edit portal access",e);return NextResponse.json({message:"تعذر حفظ التعديلات حاليًا"},{status:500})}
+}

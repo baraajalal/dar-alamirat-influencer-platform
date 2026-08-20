@@ -7,6 +7,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { normalizeDashboardLocale } from "@/lib/i18n/dashboard";
 import { DashboardIcon } from "@/components/dashboard/icons";
 import { reviewInfluencerRegistration } from "../actions";
+import SocialPlatformLink from "@/components/social-platform-link";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function InfluencerDetailsPage({ params }: { params: Promis
   if (!influencer) notFound();
 
   const [{ data: social }, { data: assignments }, { data: financial }] = await Promise.all([
-    supabase.from("social_accounts").select("id,platform,username,profile_url,followers_count,average_likes,average_views,average_comments,engagement_rate,female_audience,male_audience,audience_main_city,audience_main_country,last_checked_at").eq("influencer_id", id).order("followers_count", { ascending: false }),
+    supabase.from("social_accounts").select("id,platform,platform_label,username,profile_url,followers_count,average_likes,average_views,average_comments,engagement_rate,female_audience,male_audience,audience_main_city,audience_main_country,last_checked_at").eq("influencer_id", id).order("followers_count", { ascending: false }),
     supabase.from("campaign_assignments").select("id,campaign_id,status,execution_type,content_due_at,publishing_date,agreed_amount,currency,availability_blocked_until,settled_at,created_at").eq("influencer_id", id).order("created_at", { ascending: false }),
     canViewFinance ? supabase.from("influencer_financial_profiles").select("national_id,bank_name,iban,account_holder_name,mawthooq_number,mawthooq_expiry_date").eq("influencer_id", id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
@@ -131,7 +132,7 @@ export default async function InfluencerDetailsPage({ params }: { params: Promis
 
           <Panel title={t.social}>
             <div className="grid gap-4 md:grid-cols-2">
-              {(social ?? []).map((account) => <article key={account.id} className="rounded-2xl border border-[#E4E8F5] bg-[#FAFBFF] p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black text-[#7D87A7]">{account.platform}</p><p className="mt-1 font-black text-[#33447F]">@{account.username}</p></div><span className="rounded-xl bg-[#EEF1FF] px-2.5 py-1 text-xs font-black text-[#576AC2]">{fmt.format(Number(account.followers_count ?? 0))}</span></div><div className="mt-4 grid grid-cols-3 gap-2 text-center"><Mini label={t.views} value={fmt.format(Number(account.average_views ?? 0))} /><Mini label={t.likes} value={fmt.format(Number(account.average_likes ?? 0))} /><Mini label={t.engagement} value={`${Number(account.engagement_rate ?? 0).toFixed(1)}%`} /></div>{account.profile_url ? <a href={account.profile_url} target="_blank" rel="noreferrer" className="mt-4 block text-xs font-extrabold text-[#6072C5]">{t.openAccount}</a> : null}</article>)}
+              {(social ?? []).map((account) => <article key={account.id} className="rounded-2xl border border-[#E4E8F5] bg-[#FAFBFF] p-4"><div className="flex items-start justify-between gap-3"><div><SocialPlatformLink platform={account.platform} platformLabel={account.platform_label} url={account.profile_url}/>{account.username ? <p className="mt-1 font-black text-[#33447F]">@{account.username}</p> : null}</div><span className="rounded-xl bg-[#EEF1FF] px-2.5 py-1 text-xs font-black text-[#576AC2]">{fmt.format(Number(account.followers_count ?? 0))}</span></div><div className="mt-4 grid grid-cols-3 gap-2 text-center"><Mini label={t.views} value={fmt.format(Number(account.average_views ?? 0))} /><Mini label={t.likes} value={fmt.format(Number(account.average_likes ?? 0))} /><Mini label={t.engagement} value={`${Number(account.engagement_rate ?? 0).toFixed(1)}%`} /></div>{account.profile_url ? <a href={account.profile_url} target="_blank" rel="noreferrer" className="mt-4 block text-xs font-extrabold text-[#6072C5]">{t.openAccount}</a> : null}</article>)}
               {(social ?? []).length === 0 ? <Empty text={t.noSocial} /> : null}
             </div>
           </Panel>

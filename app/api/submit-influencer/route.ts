@@ -16,6 +16,16 @@ function numericText(value: string) {
   return value.replace(/[\s,]/g, "");
 }
 
+function usernameFromUrl(value: string) {
+  try {
+    const url = new URL(value);
+    const parts = url.pathname.split("/").filter(Boolean);
+    return (parts.at(-1) || url.hostname.split(".")[0] || "profile").replace(/^@/, "").slice(0, 120);
+  } catch {
+    return "profile";
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const rawBody: unknown = await request.json();
@@ -75,7 +85,7 @@ export async function POST(request: Request) {
 
     const admin = createAdminClient();
 
-    const normalizedSocialAccounts = socialAccounts.map((social) => {
+    const normalizedSocialAccounts = socialAccounts.map((social, index) => {
       const generatedUrl = profileUrlFromPlatform(
         social.platform,
         social.username,
@@ -83,6 +93,7 @@ export async function POST(request: Request) {
 
       return {
         ...social,
+        username: social.username.trim() || usernameFromUrl(social.profileUrl) || `profile-${index + 1}`,
         profileUrl: normalizeProfileUrl(social.profileUrl || generatedUrl),
         followersCount: numericText(social.followersCount),
         averageLikes: numericText(social.averageLikes),
@@ -139,6 +150,38 @@ export async function POST(request: Request) {
         },
         { status: duplicate || claimed ? 409 : 500 },
       );
+    }
+
+    const { error: extendedProfileError } = await admin
+      .from("influencers")
+      .update({
+        birth_year: Number(influencer.birthYear),
+        shooting_style_preferences: influencer.shootingStylePreferences,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", influencerId);
+
+    if (extendedProfileError) throw extendedProfileError;
+
+    const { data: savedAccounts, error: savedAccountsError } = await admin
+      .from("social_accounts")
+      .select("id,platform,username")
+      .eq("influencer_id", influencerId);
+
+    if (savedAccountsError) throw savedAccountsError;
+
+    for (const account of normalizedSocialAccounts) {
+      if (!account.otherPlatformName?.trim()) continue;
+      const dbAccount = (savedAccounts ?? []).find(
+        (item) => item.platform === "other" && item.username === account.username,
+      );
+      if (dbAccount) {
+        const { error: labelError } = await admin
+          .from("social_accounts")
+          .update({ platform_label: account.otherPlatformName.trim() })
+          .eq("id", dbAccount.id);
+        if (labelError) throw labelError;
+      }
     }
 
     const { data: savedProfile } = await admin
