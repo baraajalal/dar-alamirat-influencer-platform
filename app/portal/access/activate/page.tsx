@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import FeedbackModal from "@/components/feedback-modal";
-
+import { Suspense } from "react";
 export default function PortalAccessActivatePage() {
   const search = useSearchParams();
   const token = search.get("token") || "";
