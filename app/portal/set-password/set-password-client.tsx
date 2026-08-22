@@ -85,8 +85,8 @@ export default function SetPasswordClient({
 
   return (
     <main
-      dir="rtl"
-      className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_right,#edf0ff,#f7f8fc_45%,#f4f5f9)] px-4 py-10 font-['Tajawal',Tahoma,Arial,sans-serif]"
+      dir="inherit"
+      className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_right,#F4ECF7,#FBF7FC_45%,#f4f5f9)] px-4 py-10 font-['Tajawal',Tahoma,Arial,sans-serif]"
     >
       <div className="w-full max-w-lg rounded-[32px] border border-white bg-white p-7 shadow-[0_25px_70px_rgba(70,85,150,0.13)] sm:p-9">
         <div className="mb-7 text-center">
@@ -107,7 +107,7 @@ export default function SetPasswordClient({
 
         <form onSubmit={submit} className="space-y-4">
           <label className="block">
-            <span className="mb-2 block text-sm font-black text-[#35467B]">
+            <span className="mb-2 block text-sm font-black text-[#4C4052]">
               كلمة المرور الجديدة
             </span>
             <input
@@ -117,13 +117,13 @@ export default function SetPasswordClient({
               minLength={8}
               required
               autoComplete="new-password"
-              className="h-14 w-full rounded-2xl border border-[#D8DDF7] bg-[#FAFBFF] px-4 font-bold outline-none focus:border-[#6877C8]"
+              className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 font-bold outline-none focus:border-[#A170BA]"
               dir="ltr"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-black text-[#35467B]">
+            <span className="mb-2 block text-sm font-black text-[#4C4052]">
               تأكيد كلمة المرور
             </span>
             <input
@@ -133,7 +133,7 @@ export default function SetPasswordClient({
               minLength={8}
               required
               autoComplete="new-password"
-              className="h-14 w-full rounded-2xl border border-[#D8DDF7] bg-[#FAFBFF] px-4 font-bold outline-none focus:border-[#6877C8]"
+              className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 font-bold outline-none focus:border-[#A170BA]"
               dir="ltr"
             />
           </label>
@@ -143,12 +143,12 @@ export default function SetPasswordClient({
               type="checkbox"
               checked={showPassword}
               onChange={(event: ChangeEvent<HTMLInputElement>) => setShowPassword(event.target.checked)}
-              className="h-4 w-4 accent-[#6877C8]"
+              className="h-4 w-4 accent-[#A170BA]"
             />
             إظهار كلمة المرور
           </label>
 
-          <div className="rounded-2xl bg-[#F6F7FF] px-4 py-3 text-xs leading-6 text-[#727C98]">
+          <div className="rounded-2xl bg-[#F8F3FA] px-4 py-3 text-xs leading-6 text-[#727C98]">
             8 أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز خاص.
           </div>
 
@@ -166,7 +166,7 @@ export default function SetPasswordClient({
           <button
             type="submit"
             disabled={submitting}
-            className="h-14 w-full rounded-2xl bg-[linear-gradient(135deg,#6575CB,#4F60B6)] font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)] disabled:opacity-50"
+            className="h-14 w-full rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)] disabled:opacity-50"
           >
             {submitting ? "جاري التفعيل..." : "حفظ كلمة المرور والمتابعة"}
           </button>

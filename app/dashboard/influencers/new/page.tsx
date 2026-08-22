@@ -39,7 +39,7 @@ export default async function NewInfluencerPage({
 
   return (
     <main
-      dir="rtl"
+      dir="inherit"
       style={{
         minHeight: "100vh",
         background: "#f5f5f5",

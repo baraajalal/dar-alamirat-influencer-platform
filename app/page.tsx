@@ -63,7 +63,7 @@ function MiniIcon({ type }: { type: string }) {
 export default function HomePage() {
   return (
     <main
-      dir="rtl"
+      dir="inherit"
       className="min-h-screen overflow-hidden bg-[#fbf8ff] font-['Tajawal',Tahoma,Arial,sans-serif] text-[#36205d]"
     >
       <div className="relative isolate overflow-hidden">
@@ -75,12 +75,12 @@ export default function HomePage() {
           <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-4 sm:px-8 lg:px-12">
             <Link href="/" aria-label="الصفحة الرئيسية" className="shrink-0">
               <Image
-                src="/da-mark.png"
+                src="/da-logo.png"
                 alt="DA - دار الأميرات"
-                width={90}
-                height={78}
+                width={150}
+                height={72}
                 priority
-                className="h-[58px] w-auto object-contain sm:h-[66px]"
+                className="h-[54px] w-auto object-contain sm:h-[62px]"
               />
             </Link>
 

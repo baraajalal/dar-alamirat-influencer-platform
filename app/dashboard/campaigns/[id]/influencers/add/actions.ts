@@ -38,6 +38,7 @@ const assignmentSchema = z
     campaignId: z.string().uuid(),
     influencerId: z.string().uuid("اختاري مؤثرًا أولًا"),
     executionType: z.enum(["home", "in_branch", "remote"]),
+    collaborationMode: z.enum(["home", "in_branch", "multiple", "remote"]).optional().default("home"),
     otherExecutionDetails: z.string().trim().max(3000).optional().default(""),
     requiresContent: z.boolean(),
     contentDueAtIso: z.string().trim().optional().default(""),
@@ -175,7 +176,7 @@ const assignmentSchema = z
       }
     }
 
-    if (value.executionType === "home") {
+    if (value.collaborationMode === "home" || value.collaborationMode === "multiple") {
       if (!value.orderNumber) {
         context.addIssue({
           code: "custom",
@@ -194,7 +195,7 @@ const assignmentSchema = z
       }
     }
 
-    if (value.executionType === "in_branch" && !value.branchName) {
+    if ((value.collaborationMode === "in_branch" || value.collaborationMode === "multiple") && !value.branchName) {
       context.addIssue({
         code: "custom",
         path: ["branchName"],
@@ -202,7 +203,7 @@ const assignmentSchema = z
       });
     }
 
-    if (value.executionType === "remote" && !value.otherExecutionDetails) {
+    if (value.collaborationMode === "remote" && !value.otherExecutionDetails) {
       context.addIssue({
         code: "custom",
         path: ["otherExecutionDetails"],
@@ -296,6 +297,7 @@ export async function createCampaignAssignment(
     campaignId: String(formData.get("campaign_id") ?? ""),
     influencerId: String(formData.get("influencer_id") ?? ""),
     executionType: String(formData.get("execution_type") ?? ""),
+    collaborationMode: String(formData.get("collaboration_mode") ?? formData.get("execution_type") ?? "home"),
     otherExecutionDetails: String(formData.get("other_execution_details") ?? ""),
     requiresContent: formData.get("requires_content") === "true",
     contentDueAtIso: String(formData.get("content_due_at_iso") ?? ""),
@@ -345,11 +347,11 @@ export async function createCampaignAssignment(
     {
       p_campaign_id: value.campaignId,
       p_influencer_id: value.influencerId,
-      p_execution_type: value.executionType,
-      p_other_execution_details: value.otherExecutionDetails || null,
+      p_execution_type: value.collaborationMode === "multiple" ? "remote" : value.executionType,
+      p_other_execution_details: value.collaborationMode === "multiple" ? "MULTIPLE_HOME_IN_BRANCH" : value.otherExecutionDetails || null,
       p_requires_content: value.requiresContent,
-      p_content_due_at: value.contentDueAtIso || null,
-      p_publishing_date: value.publishingDate || null,
+      p_content_due_at: null,
+      p_publishing_date: null,
       p_branch_name: value.branchName || null,
       p_attendance_at: value.attendanceAtIso || null,
       p_order_number: value.orderNumber || null,

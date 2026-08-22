@@ -16,21 +16,24 @@ export function DashboardStatCard({
   accent?: "blue" | "violet" | "gold" | "green";
 }) {
   const styles = {
-    blue: "from-[#6679D1] to-[#4F63BC] text-white",
-    violet: "from-[#A9B9E6] to-[#7E8DD8] text-white",
-    gold: "from-[#FFF2CB] to-[#F6C85D] text-[#6B5521]",
-    green: "from-[#E6F8ED] to-[#BFE8CF] text-[#26734A]",
+    blue: "bg-[#F4ECF7] text-[#7F568E]",
+    violet: "bg-[#EFE2F3] text-[#9566AF]",
+    gold: "bg-[#FFF5DF] text-[#A8750D]",
+    green: "bg-[#EAF7EF] text-[#2E7B50]",
   }[accent];
+
   return (
-    <article className="group relative overflow-hidden rounded-[24px] border border-white/85 bg-white/92 p-5 shadow-[0_16px_45px_rgba(69,83,151,0.09)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_52px_rgba(69,83,151,0.13)]">
-      <div className={`absolute -left-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br opacity-[0.12] ${styles}`} />
+    <article className="group relative overflow-hidden rounded-[22px] border border-[#EEE4F2] bg-white p-5 shadow-[0_10px_30px_rgba(64,36,77,.055)] transition duration-200 hover:-translate-y-0.5 hover:border-[#E2D1E8] hover:shadow-[0_18px_40px_rgba(64,36,77,.085)]">
+      <div className="pointer-events-none absolute -left-12 -top-14 h-28 w-28 rounded-full bg-[#F7F0F9]" />
       <div className="relative flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-extrabold text-[#8D95AD]">{label}</p>
-          <p className="mt-2 text-2xl font-black tracking-tight text-[#304176] sm:text-3xl">{value}</p>
-          {helper ? <p className="mt-2 text-[11px] font-bold text-[#98A0B6]">{helper}</p> : null}
+          <p className="text-xs font-extrabold text-[#8F8495]">{label}</p>
+          <p className="mt-2 text-2xl font-black tracking-tight text-[#302437] sm:text-3xl">{value}</p>
+          {helper ? <p className="mt-2 text-[11px] font-semibold text-[#9A8FA0]">{helper}</p> : null}
         </div>
-        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm ${styles}`}><DashboardIcon name={icon} className="h-5 w-5" /></span>
+        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${styles}`}>
+          <DashboardIcon name={icon} className="h-5 w-5" />
+        </span>
       </div>
     </article>
   );
@@ -50,10 +53,12 @@ export function DashboardPanel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-[26px] border border-white/90 bg-white/92 p-5 shadow-[0_18px_55px_rgba(69,83,151,0.08)] sm:p-6 ${className}`}>
+    <section className={`rounded-[24px] border border-[#EEE4F2] bg-white p-5 shadow-[0_12px_34px_rgba(64,36,77,.055)] sm:p-6 ${className}`}>
       <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-base font-black text-[#34457E] sm:text-lg">{title}</h2>
-        {actionHref && actionLabel ? <Link href={actionHref} className="text-xs font-extrabold text-[#5B6EC6] transition hover:text-[#4154AD]">{actionLabel}</Link> : null}
+        <h2 className="text-base font-black text-[#302437] sm:text-lg">{title}</h2>
+        {actionHref && actionLabel ? (
+          <Link href={actionHref} className="text-xs font-extrabold text-[#8F61A0] transition hover:text-[#5F3B6C]">{actionLabel}</Link>
+        ) : null}
       </div>
       {children}
     </section>
@@ -61,5 +66,9 @@ export function DashboardPanel({
 }
 
 export function DashboardEmpty({ text }: { text: string }) {
-  return <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-[#DDE2F3] bg-[#FAFBFF] px-4 text-center text-sm font-bold text-[#929AB1]">{text}</div>;
+  return (
+    <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-[#E2D1E8] bg-[#FCF9FD] px-4 text-center text-sm font-bold text-[#8F8495]">
+      {text}
+    </div>
+  );
 }

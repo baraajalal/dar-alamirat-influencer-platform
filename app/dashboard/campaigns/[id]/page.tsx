@@ -145,7 +145,7 @@ export default async function CampaignDetailsPage({
       {query.created === "1" ? <SuccessMessage>{copy.details.createdSuccess}</SuccessMessage> : null}
       {query.assignment ? <SuccessMessage>{copy.details.assignmentSuccess}</SuccessMessage> : null}
 
-      <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#687AD1] via-[#5B6FC7] to-[#8492DA] p-6 text-white shadow-[0_24px_65px_rgba(74,88,162,0.22)] sm:p-8">
+      <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#A775C0] via-[#5B6FC7] to-[#8492DA] p-6 text-white shadow-[0_24px_65px_rgba(74,88,162,0.22)] sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex flex-wrap gap-2">
@@ -188,20 +188,20 @@ export default async function CampaignDetailsPage({
       <CampaignPanel title={locale === "ar" ? "أهداف الحملة والتارقت" : "Campaign targets"}>
         {targets.length ? <div className="space-y-3">{targets.map((target) => {
           const pct = Math.min(100, Math.max(0, Number(target.current_value) / Math.max(1, Number(target.target_value)) * 100));
-          return <article key={target.id} className="rounded-2xl border border-[#E1E5F3] bg-[#FAFBFF] p-4">
+          return <article key={target.id} className="rounded-2xl border border-[#EEE2F2] bg-[#FDFBFE] p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-black text-[#36477F]">{target.target_label}</p><p className="mt-1 text-xs font-bold text-[#8B94AE]">{Number(target.current_value).toLocaleString()} / {Number(target.target_value).toLocaleString()} · {Math.round(pct)}%</p></div><div className="flex gap-2">{target.is_primary ? <span className="rounded-full bg-[#EEEAFE] px-3 py-1 text-[11px] font-black text-[#705CC5]">{locale === "ar" ? "رئيسي" : "Primary"}</span> : null}{target.completed_at ? <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-black text-emerald-700">{locale === "ar" ? "متحقق" : "Achieved"}</span> : null}</div></div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#E8EBF5]"><div className="h-full rounded-full bg-[#6375CA]" style={{ width: `${pct}%` }} /></div>
-            {canManage && target.measurement_source !== "automatic" ? <form action={updateCampaignTargetValue} className="mt-3 flex flex-wrap gap-2"><input type="hidden" name="campaign_id" value={id}/><input type="hidden" name="target_id" value={target.id}/><input name="current_value" type="number" min="0" step="0.01" defaultValue={target.current_value} className="h-10 w-36 rounded-xl border border-[#DDE2F3] px-3 text-sm font-bold"/><button className="rounded-xl bg-[#6375CA] px-4 text-xs font-black text-white">{locale === "ar" ? "تحديث القيمة" : "Update"}</button></form> : null}
+            {canManage && target.measurement_source !== "automatic" ? <form action={updateCampaignTargetValue} className="mt-3 flex flex-wrap gap-2"><input type="hidden" name="campaign_id" value={id}/><input type="hidden" name="target_id" value={target.id}/><input name="current_value" type="number" min="0" step="0.01" defaultValue={target.current_value} className="h-10 w-36 rounded-xl border border-[#ECE1F1] px-3 text-sm font-bold"/><button className="rounded-xl bg-[#6375CA] px-4 text-xs font-black text-white">{locale === "ar" ? "تحديث القيمة" : "Update"}</button></form> : null}
             {canManage ? <form action={deleteCampaignTarget} className="mt-2"><input type="hidden" name="campaign_id" value={id}/><input type="hidden" name="target_id" value={target.id}/><button className="text-xs font-black text-rose-600">{locale === "ar" ? "تعطيل الهدف" : "Disable target"}</button></form> : null}
           </article>;
         })}</div> : <EmptyCampaignState text={locale === "ar" ? "لم تتم إضافة أهداف للحملة بعد." : "No campaign targets yet."} />}
         {canManage ? <form action={addCampaignTarget} className="mt-5 grid gap-3 rounded-2xl border border-dashed border-[#C9D0E8] p-4 md:grid-cols-2 xl:grid-cols-4">
-          <input type="hidden" name="campaign_id" value={id}/><input name="target_label" required placeholder={locale === "ar" ? "اسم الهدف" : "Target label"} className="h-11 rounded-xl border border-[#DDE2F3] px-3 text-sm font-bold"/>
-          <select name="target_type" className="h-11 rounded-xl border border-[#DDE2F3] px-3 text-sm font-bold" defaultValue="published_content_count"><option value="influencers_count">{locale === "ar" ? "عدد المؤثرين" : "Influencers"}</option><option value="accepted_influencers_count">{locale === "ar" ? "المؤثرون المقبولون" : "Accepted influencers"}</option><option value="approved_content_count">{locale === "ar" ? "المحتوى المعتمد" : "Approved content"}</option><option value="published_content_count">{locale === "ar" ? "المحتوى المنشور" : "Published content"}</option><option value="views">{locale === "ar" ? "المشاهدات" : "Views"}</option><option value="engagement">{locale === "ar" ? "التفاعل" : "Engagement"}</option><option value="sales_amount">{locale === "ar" ? "المبيعات" : "Sales"}</option><option value="custom">{locale === "ar" ? "مخصص" : "Custom"}</option></select>
-          <input name="target_value" required type="number" min="0.01" step="0.01" placeholder={locale === "ar" ? "القيمة المستهدفة" : "Target value"} className="h-11 rounded-xl border border-[#DDE2F3] px-3 text-sm font-bold"/>
-          <input name="current_value" type="number" min="0" step="0.01" defaultValue="0" className="h-11 rounded-xl border border-[#DDE2F3] px-3 text-sm font-bold"/>
-          <select name="measurement_source" className="h-11 rounded-xl border border-[#DDE2F3] px-3 text-sm font-bold" defaultValue="automatic"><option value="automatic">{locale === "ar" ? "تلقائي" : "Automatic"}</option><option value="manual">{locale === "ar" ? "يدوي" : "Manual"}</option><option value="external_import">{locale === "ar" ? "استيراد خارجي" : "External import"}</option></select>
-          <label className="flex items-center gap-2 text-xs font-black text-[#59688F]"><input name="is_required" type="checkbox" defaultChecked/>{locale === "ar" ? "هدف مطلوب" : "Required"}</label><label className="flex items-center gap-2 text-xs font-black text-[#59688F]"><input name="is_primary" type="checkbox"/>{locale === "ar" ? "هدف رئيسي" : "Primary"}</label>
+          <input type="hidden" name="campaign_id" value={id}/><input name="target_label" required placeholder={locale === "ar" ? "اسم الهدف" : "Target label"} className="h-11 rounded-xl border border-[#ECE1F1] px-3 text-sm font-bold"/>
+          <select name="target_type" className="h-11 rounded-xl border border-[#ECE1F1] px-3 text-sm font-bold" defaultValue="published_content_count"><option value="influencers_count">{locale === "ar" ? "عدد المؤثرين" : "Influencers"}</option><option value="accepted_influencers_count">{locale === "ar" ? "المؤثرون المقبولون" : "Accepted influencers"}</option><option value="approved_content_count">{locale === "ar" ? "المحتوى المعتمد" : "Approved content"}</option><option value="published_content_count">{locale === "ar" ? "المحتوى المنشور" : "Published content"}</option><option value="views">{locale === "ar" ? "المشاهدات" : "Views"}</option><option value="engagement">{locale === "ar" ? "التفاعل" : "Engagement"}</option><option value="sales_amount">{locale === "ar" ? "المبيعات" : "Sales"}</option><option value="custom">{locale === "ar" ? "مخصص" : "Custom"}</option></select>
+          <input name="target_value" required type="number" min="0.01" step="0.01" placeholder={locale === "ar" ? "القيمة المستهدفة" : "Target value"} className="h-11 rounded-xl border border-[#ECE1F1] px-3 text-sm font-bold"/>
+          <input name="current_value" type="number" min="0" step="0.01" defaultValue="0" className="h-11 rounded-xl border border-[#ECE1F1] px-3 text-sm font-bold"/>
+          <select name="measurement_source" className="h-11 rounded-xl border border-[#ECE1F1] px-3 text-sm font-bold" defaultValue="automatic"><option value="automatic">{locale === "ar" ? "تلقائي" : "Automatic"}</option><option value="manual">{locale === "ar" ? "يدوي" : "Manual"}</option><option value="external_import">{locale === "ar" ? "استيراد خارجي" : "External import"}</option></select>
+          <label className="flex items-center gap-2 text-xs font-black text-[#756A7A]"><input name="is_required" type="checkbox" defaultChecked/>{locale === "ar" ? "هدف مطلوب" : "Required"}</label><label className="flex items-center gap-2 text-xs font-black text-[#756A7A]"><input name="is_primary" type="checkbox"/>{locale === "ar" ? "هدف رئيسي" : "Primary"}</label>
           <button className="h-11 rounded-xl bg-[#6375CA] px-5 text-sm font-black text-white">{locale === "ar" ? "إضافة الهدف" : "Add target"}</button>
         </form> : null}
       </CampaignPanel>
@@ -238,22 +238,22 @@ export default async function CampaignDetailsPage({
           </CampaignPanel>
 
           <CampaignPanel title={copy.details.manager}>
-            <div className="flex items-center gap-3 rounded-2xl bg-[#F8F9FF] p-4">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#6877C8] text-white"><DashboardIcon name="users" className="h-5 w-5" /></span>
-              <div><p className="font-black text-[#405080]">{managerResult.data?.full_name ?? copy.common.unspecified}</p><p className="mt-1 text-xs font-semibold text-[#929AAF]">{copy.details.manager}</p></div>
+            <div className="flex items-center gap-3 rounded-2xl bg-[#FCF9FD] p-4">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#A170BA] text-white"><DashboardIcon name="users" className="h-5 w-5" /></span>
+              <div><p className="font-black text-[#513865]">{managerResult.data?.full_name ?? copy.common.unspecified}</p><p className="mt-1 text-xs font-semibold text-[#95849D]">{copy.details.manager}</p></div>
             </div>
           </CampaignPanel>
 
           <CampaignPanel title={copy.details.hashtags}>
             <div className="flex flex-wrap gap-2">
-              {campaign.hashtags?.length ? campaign.hashtags.map((tag: string) => <span key={tag} className="rounded-full bg-[#EEF0FF] px-3 py-2 text-xs font-black text-[#596BC4]">{tag}</span>) : <span className="text-sm font-semibold text-[#929AAF]">{copy.common.noData}</span>}
+              {campaign.hashtags?.length ? campaign.hashtags.map((tag: string) => <span key={tag} className="rounded-full bg-[#F6EFF9] px-3 py-2 text-xs font-black text-[#9362AD]">{tag}</span>) : <span className="text-sm font-semibold text-[#95849D]">{copy.common.noData}</span>}
             </div>
           </CampaignPanel>
 
           <CampaignPanel title={copy.details.references}>
             {campaign.reference_links?.length ? (
-              <div className="space-y-2">{campaign.reference_links.map((url: string) => <a key={url} href={url} target="_blank" rel="noreferrer" dir="ltr" className="block truncate rounded-xl bg-[#F8F9FF] px-3 py-2 text-left text-xs font-bold text-[#596BC4] hover:underline">{url}</a>)}</div>
-            ) : <span className="text-sm font-semibold text-[#929AAF]">{copy.common.noData}</span>}
+              <div className="space-y-2">{campaign.reference_links.map((url: string) => <a key={url} href={url} target="_blank" rel="noreferrer" dir="ltr" className="block truncate rounded-xl bg-[#FCF9FD] px-3 py-2 text-left text-xs font-bold text-[#9362AD] hover:underline">{url}</a>)}</div>
+            ) : <span className="text-sm font-semibold text-[#95849D]">{copy.common.noData}</span>}
           </CampaignPanel>
 
           <CampaignPanel title={copy.details.internalNotes}>
@@ -263,7 +263,7 @@ export default async function CampaignDetailsPage({
       </div>
 
       <div>
-        <Link href="/dashboard/campaigns" className="inline-flex items-center gap-2 rounded-2xl border border-[#DDE2F3] bg-white px-4 py-3 text-sm font-black text-[#5D6EC3] shadow-sm transition hover:bg-[#F4F6FF]">
+        <Link href="/dashboard/campaigns" className="inline-flex items-center gap-2 rounded-2xl border border-[#ECE1F1] bg-white px-4 py-3 text-sm font-black text-[#5D6EC3] shadow-sm transition hover:bg-[#FAF6FC]">
           <DashboardIcon name="arrow" className="h-4 w-4" />
           {copy.details.back}
         </Link>
@@ -274,16 +274,16 @@ export default async function CampaignDetailsPage({
 
 function ProgressCard({ label, value }: { label: string; value: number }) {
   const safe = Math.min(100, Math.max(0, value));
-  return <div className="rounded-3xl border border-[#E1E5F3] bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><p className="text-sm font-black text-[#52608D]">{label}</p><span className="text-xl font-black text-[#5165BE]">{Math.round(safe)}%</span></div><div className="mt-4 h-3 overflow-hidden rounded-full bg-[#E9ECF6]"><div className="h-full rounded-full bg-gradient-to-r from-[#7888D6] to-[#5265BE]" style={{ width: `${safe}%` }}/></div></div>;
+  return <div className="rounded-3xl border border-[#EEE2F2] bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><p className="text-sm font-black text-[#52608D]">{label}</p><span className="text-xl font-black text-[#5165BE]">{Math.round(safe)}%</span></div><div className="mt-4 h-3 overflow-hidden rounded-full bg-[#E9ECF6]"><div className="h-full rounded-full bg-gradient-to-r from-[#7888D6] to-[#5265BE]" style={{ width: `${safe}%` }}/></div></div>;
 }
 
 function AssignmentCard({ assignment, coordinatorName, locale, copy, labels, campaignId }: { assignment: AssignmentRow; coordinatorName: string | null; locale: CampaignLocale; copy: ReturnType<typeof getCampaignCopy>; labels: ReturnType<typeof getAssignmentLabels>; campaignId: string }) {
   return (
-    <article className="rounded-[22px] border border-[#E3E7F3] bg-[#FAFBFF] p-4 transition hover:border-[#CDD4EE] hover:bg-white">
+    <article className="rounded-[22px] border border-[#F1EAF5] bg-[#FDFBFE] p-4 transition hover:border-[#E5D5EC] hover:bg-white">
       <div className="grid gap-4 md:grid-cols-[1.4fr_1fr_auto_auto] md:items-center">
         <div>
-          <p className="font-black text-[#35467E]">{assignment.influencers?.full_name ?? copy.common.unspecified}</p>
-          <p dir="ltr" className="mt-1 text-start text-xs font-semibold text-[#929AAF]">{assignment.influencers?.mobile_e164 ?? "—"}</p>
+          <p className="font-black text-[#4C335F]">{assignment.influencers?.full_name ?? copy.common.unspecified}</p>
+          <p dir="ltr" className="mt-1 text-start text-xs font-semibold text-[#95849D]">{assignment.influencers?.mobile_e164 ?? "—"}</p>
         </div>
 
         <div>
@@ -293,7 +293,7 @@ function AssignmentCard({ assignment, coordinatorName, locale, copy, labels, cam
 
         <StatusBadge status={assignment.status} label={labels.status[assignment.status] ?? assignment.status} />
 
-        <Link href={`/dashboard/campaigns/${campaignId}/influencers/${assignment.id}`} className="rounded-xl border border-[#D9DEF0] bg-white px-4 py-2.5 text-center text-xs font-black text-[#5D6EC3] transition hover:bg-[#F3F5FF]">
+        <Link href={`/dashboard/campaigns/${campaignId}/influencers/${assignment.id}`} className="rounded-xl border border-[#E9DDEF] bg-white px-4 py-2.5 text-center text-xs font-black text-[#5D6EC3] transition hover:bg-[#F3F5FF]">
           {locale === "ar" ? "فتح" : "Open"}
         </Link>
       </div>
@@ -324,10 +324,10 @@ function HeroMetric({ label, value }: { label: string; value: string }) {
   return <div className="rounded-2xl border border-white/15 bg-white/10 px-3 py-4 backdrop-blur"><p className="text-[10px] font-bold text-white/65">{label}</p><p className="mt-2 truncate text-sm font-black text-white">{value}</p></div>;
 }
 function Mini({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-xl bg-white p-3"><p className="text-[10px] font-bold text-[#9AA1B5]">{label}</p><p className="mt-1 truncate text-xs font-black text-[#4D5A86]">{value}</p></div>;
+  return <div className="rounded-xl bg-white p-3"><p className="text-[10px] font-bold text-[#9C8CA4]">{label}</p><p className="mt-1 truncate text-xs font-black text-[#624B72]">{value}</p></div>;
 }
 function TimelineItem({ label, value, last = false }: { label: string; value: string; last?: boolean }) {
-  return <div className="flex gap-3"><div className="flex flex-col items-center"><span className="mt-1 h-3 w-3 rounded-full bg-[#6877C8]" />{!last ? <span className="h-11 w-px bg-[#D8DDF7]" /> : null}</div><div><p className="text-xs font-bold text-[#929AAF]">{label}</p><p className="mt-1 text-sm font-black text-[#52608B]">{value}</p></div></div>;
+  return <div className="flex gap-3"><div className="flex flex-col items-center"><span className="mt-1 h-3 w-3 rounded-full bg-[#A170BA]" />{!last ? <span className="h-11 w-px bg-[#EBDDF2]" /> : null}</div><div><p className="text-xs font-bold text-[#95849D]">{label}</p><p className="mt-1 text-sm font-black text-[#52608B]">{value}</p></div></div>;
 }
 function formatDate(value: string | null, locale: CampaignLocale) {
   if (!value) return locale === "ar" ? "غير محدد" : "Not set";

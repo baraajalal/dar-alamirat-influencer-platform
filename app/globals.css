@@ -1,20 +1,29 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Tajawal:wght@400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
+
 :root {
-  --background: #f4f1f7;
-  --foreground: #1d1726;
-  --brand-950: #24152f;
-  --brand-900: #321d43;
-  --brand-800: #4a2d60;
-  --brand-700: #684286;
-  --brand-600: #8057a3;
-  --brand-500: #9970bb;
-  --brand-100: #f0e8f6;
-  --brand-50: #f8f4fb;
-  --border: #e8e0ed;
-  --muted: #756d7d;
+  --background: #faf6fc;
+  --foreground: #2f2138;
+  --brand-950: #2a1638;
+  --brand-900: #3f2255;
+  --brand-800: #5a3473;
+  --brand-700: #754a93;
+  --brand-600: #9566af;
+  --brand-500: #ad79c5;
+  --brand-400: #c59bd5;
+  --brand-300: #dac0e5;
+  --brand-200: #ead9f0;
+  --brand-100: #f3e9f7;
+  --brand-50: #fbf7fd;
+  --surface: #ffffff;
+  --surface-soft: #f9f3fb;
+  --border: #e9dbef;
+  --muted: #7b6a82;
+  --brand-gradient: linear-gradient(135deg, #b77dca 0%, #9664b1 50%, #754a93 100%);
+  --brand-gradient-soft: linear-gradient(135deg, #fff 0%, #fbf6fd 50%, #f1e5f6 100%);
 }
+
 
 html {
   scroll-behavior: smooth;
@@ -31,8 +40,9 @@ body {
 
 body {
   background-image:
-    radial-gradient(circle at 12% 10%, rgba(153, 112, 187, 0.09), transparent 30%),
-    radial-gradient(circle at 90% 28%, rgba(104, 66, 134, 0.07), transparent 25%);
+    radial-gradient(circle at 10% 8%, rgba(197, 155, 213, 0.22), transparent 31%),
+    radial-gradient(circle at 90% 22%, rgba(173, 121, 197, 0.16), transparent 28%),
+    linear-gradient(180deg, #fdfbfe 0%, #faf6fc 100%);
 }
 
 * {
@@ -443,9 +453,9 @@ textarea {
 
 .input-v4 {
   width: 100%;
-  border: 1px solid #dfe4f4;
+  border: 1px solid #EEE4F2;
   border-radius: 1rem;
-  background: #fbfcff;
+  background: #fefcff;
   padding: 0.875rem 1rem;
   color: #2d3e72;
   outline: none;
@@ -453,7 +463,7 @@ textarea {
 }
 
 .input-v4::placeholder {
-  color: #a2a9bc;
+  color: #A79AAA;
 }
 
 .input-v4:focus {
@@ -467,19 +477,19 @@ textarea {
    Dar Al Amirat — Influencer Registration Design System
    Visual-only layer. No API, database, or business logic.
    Palette from the approved reference:
-   Primary   #6877C8
-   Secondary #A9B9E6
-   Light     #D8DDF7
-   Off White #F5F6FB
+   Primary   #A170BA
+   Secondary #D8BDE3
+   Light     #EBDDF2
+   Off White #FAF7FC
    Accent    #F7D27A
    ========================================================= */
 
 .da-registration-page {
-  --da-primary: #6877c8;
+  --da-primary: #a170ba;
   --da-primary-dark: #5263b6;
-  --da-secondary: #a9b9e6;
-  --da-light: #d8ddf7;
-  --da-offwhite: #f5f6fb;
+  --da-secondary: #d8bde3;
+  --da-light: #ebddf2;
+  --da-offwhite: #faf7fc;
   --da-accent: #f7d27a;
   --da-ink: #26376d;
   --da-muted: #7d87a5;
@@ -492,7 +502,7 @@ textarea {
   background:
     radial-gradient(circle at 8% 12%, rgba(169, 185, 230, 0.28), transparent 25rem),
     radial-gradient(circle at 92% 36%, rgba(216, 221, 247, 0.72), transparent 30rem),
-    linear-gradient(180deg, #fbfcff 0%, var(--da-offwhite) 58%, #f7f8fc 100%);
+    linear-gradient(180deg, #fefcff 0%, var(--da-offwhite) 58%, #FBF7FC 100%);
   font-family: "Tajawal", Tahoma, Arial, sans-serif;
 }
 
@@ -883,7 +893,7 @@ textarea {
   align-items: center;
   gap: 7px;
   margin-bottom: 8px;
-  color: #35467b;
+  color: #4C335F;
   font-size: 0.84rem;
   font-weight: 800;
 }
@@ -896,10 +906,10 @@ textarea {
 
 .da-registration-page .input-v4 {
   min-height: 50px;
-  border: 1px solid #dfe4f4;
+  border: 1px solid #EEE4F2;
   border-radius: 13px;
   color: #2f3f73;
-  background: #fbfcff;
+  background: #fefcff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
@@ -916,11 +926,11 @@ textarea {
 
 .da-choice-button {
   min-height: 50px;
-  border: 1px solid #dfe4f4;
+  border: 1px solid #EEE4F2;
   border-radius: 13px;
   padding: 0.75rem 1rem;
   color: #65708f;
-  background: #fbfcff;
+  background: #fefcff;
   font-size: 0.83rem;
   font-weight: 800;
   transition: all 160ms ease;
@@ -940,7 +950,7 @@ textarea {
 
 .da-preference-title {
   margin: 0 0 14px;
-  color: #35467b;
+  color: #4C335F;
   font-size: 0.95rem;
   font-weight: 900;
 }
@@ -952,11 +962,11 @@ textarea {
 }
 
 .da-preference-chip {
-  border: 1px solid #dfe4f4;
+  border: 1px solid #EEE4F2;
   border-radius: 999px;
   padding: 0.64rem 0.92rem;
   color: #6c7693;
-  background: #fafbff;
+  background: #fdfbfe;
   font-size: 0.79rem;
   font-weight: 700;
   transition: all 160ms ease;
@@ -986,24 +996,24 @@ textarea {
 }
 
 .da-portal-card {
-  background: linear-gradient(135deg, #fafbff, #f2f4fc);
+  background: linear-gradient(135deg, #fdfbfe, #f9f5fb);
 }
 
 .da-registration-page .rounded-3xl.border,
 .da-registration-page #social-account-editor {
   border-color: #e1e5f5 !important;
-  background: #fafbff !important;
+  background: #fdfbfe !important;
   box-shadow: 0 10px 30px rgba(67, 82, 143, 0.045);
 }
 
-.da-registration-page button.bg-\[\#5f73d5\],
-.da-registration-page a.bg-\[\#5f73d5\] {
+.da-registration-page button.bg-\[\#9c68b9\],
+.da-registration-page a.bg-\[\#9c68b9\] {
   background: linear-gradient(135deg, var(--da-primary-dark), var(--da-primary)) !important;
   box-shadow: 0 12px 28px rgba(104, 119, 200, 0.2) !important;
 }
 
-.da-registration-page button.bg-\[\#5f73d5\]:hover,
-.da-registration-page a.bg-\[\#5f73d5\]:hover {
+.da-registration-page button.bg-\[\#9c68b9\]:hover,
+.da-registration-page a.bg-\[\#9c68b9\]:hover {
   background: linear-gradient(135deg, #4759aa, #5d6fc2) !important;
 }
 
@@ -1040,9 +1050,9 @@ textarea {
 
 .da-footer {
   margin-top: 28px;
-  border-top: 1px solid #e5e8f5;
+  border-top: 1px solid #f2ecf6;
   padding: 28px 16px;
-  color: #8790aa;
+  color: #8c7b94;
   background: rgba(255, 255, 255, 0.72);
   text-align: center;
   font-size: 0.78rem;
@@ -1149,3 +1159,12 @@ textarea {
     height: 43px;
   }
 }
+
+
+/* Dar Al Ameerat unified lavender visual system */
+::selection { background: #ead9f0; color: #3f2255; }
+.brand-surface { background: var(--brand-gradient-soft); }
+.brand-panel { background: rgba(255,255,255,.94); border: 1px solid var(--border); box-shadow: 0 18px 46px rgba(90,52,115,.08); }
+.brand-primary { background: var(--brand-gradient); color: #fff; box-shadow: 0 12px 28px rgba(117,74,147,.22); }
+.brand-primary:hover { filter: brightness(.98); transform: translateY(-1px); }
+.brand-focus:focus { outline: none; box-shadow: 0 0 0 4px rgba(173,121,197,.16); border-color: var(--brand-500); }

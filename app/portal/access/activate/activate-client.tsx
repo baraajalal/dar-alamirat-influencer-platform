@@ -159,23 +159,23 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
 
   return (
     <main
-      dir="rtl"
-      className="min-h-screen bg-[linear-gradient(135deg,#F7F8FD,#EEF1FA)] px-4 py-10 text-[#33447F]"
+      dir="inherit"
+      className="min-h-screen bg-[linear-gradient(135deg,#F7F8FD,#EEF1FA)] px-4 py-10 text-[#432A57]"
     >
       <div className="mx-auto max-w-xl rounded-[30px] border bg-white p-7 shadow-[0_25px_70px_rgba(67,82,155,.12)] sm:p-9">
-        <p className="text-sm font-black text-[#6877C8]">منصة مؤثري دار الأميرات</p>
+        <p className="text-sm font-black text-[#A170BA]">منصة مؤثري دار الأميرات</p>
         <h1 className="mt-2 text-3xl font-black">تفعيل الحساب</h1>
 
         {loading ? (
-          <div className="mt-7 rounded-2xl bg-[#F6F8FD] p-5 text-sm font-bold text-[#68738F]">
+          <div className="mt-7 rounded-2xl bg-[#FCF9FD] p-5 text-sm font-bold text-[#756A7A]">
             جاري التحقق من رابط التفعيل...
           </div>
         ) : info ? (
           <form onSubmit={submit} className="mt-7 space-y-4">
-            <div className="rounded-2xl bg-[#F6F8FD] p-4 text-sm font-bold leading-7">
+            <div className="rounded-2xl bg-[#FCF9FD] p-4 text-sm font-bold leading-7">
               <p>مرحبًا {info.fullName || "بك"}</p>
               {info.email ? (
-                <p dir="ltr" className="text-left text-[#7D86A7]">
+                <p dir="ltr" className="text-left text-[#806F8A]">
                   {info.email}
                 </p>
               ) : null}
@@ -205,13 +205,13 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
             <button
               type="submit"
               disabled={submitting}
-              className="h-14 w-full rounded-2xl bg-[linear-gradient(135deg,#6575CB,#4F60B6)] font-black text-white transition disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-14 w-full rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] font-black text-white transition disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? "جاري التفعيل..." : "تفعيل الحساب"}
             </button>
           </form>
         ) : (
-          <div className="mt-7 rounded-2xl bg-[#F6F8FD] p-5 text-sm font-bold leading-7 text-[#68738F]">
+          <div className="mt-7 rounded-2xl bg-[#FCF9FD] p-5 text-sm font-bold leading-7 text-[#756A7A]">
             تعذر فتح رابط التفعيل. أغلق الرسالة للعودة إلى الصفحة الرئيسية.
           </div>
         )}
@@ -249,7 +249,7 @@ function Password({
         minLength={8}
         required
         autoComplete={autoComplete}
-        className="h-14 w-full rounded-2xl border border-[#D9DEF0] bg-[#FBFCFF] px-4 font-bold outline-none focus:border-[#6877C8]"
+        className="h-14 w-full rounded-2xl border border-[#E9DDEF] bg-[#FEFCFF] px-4 font-bold outline-none focus:border-[#A170BA]"
         dir="ltr"
       />
     </label>

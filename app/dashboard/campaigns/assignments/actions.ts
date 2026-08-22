@@ -24,7 +24,7 @@ export async function sendAssignmentInvitation(formData: FormData) {
   const { supabase, user } = await requirePermission("campaigns", "update");
   const { data: assignment, error } = await supabase
     .from("campaign_assignments")
-    .select("id,campaign_id,influencer_id,execution_type,content_due_at,publishing_date,status")
+    .select("id,campaign_id,influencer_id,execution_type,other_execution_details,status")
     .eq("id", assignmentId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -47,12 +47,15 @@ export async function sendAssignmentInvitation(formData: FormData) {
       return `${deliverable.quantity ?? 1} × ${deliverable.contentType ?? deliverable.content_type ?? "محتوى"}`;
     })
     .join("، ") || "حسب البريف";
-  const execution = assignment.execution_type === "home" ? "منزلي" : assignment.execution_type === "in_branch" ? "حضوري" : "عن بُعد";
+  const execution = assignment.execution_type === "home"
+    ? "منزلي"
+    : assignment.execution_type === "in_branch"
+      ? "حضوري"
+      : assignment.other_execution_details === "MULTIPLE_HOME_IN_BRANCH"
+        ? "منزلي + حضوري"
+        : "تعاون آخر";
   const briefUrl = campaign.brief_public_url || campaign.brief_file_path || "سيتم إرسال البريف من المنسق";
-  const due = assignment.content_due_at ? new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium", timeZone: "Asia/Riyadh" }).format(new Date(assignment.content_due_at)) : "حسب الاتفاق";
-  const publish = assignment.publishing_date ? new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium", timeZone: "Asia/Riyadh" }).format(new Date(assignment.publishing_date)) : "حسب الاتفاق";
-
-  const message = `مرحبًا ${influencer.full_name} 🌸\n\nيسعدنا دعوتك للتعاون معنا في حملة:\n${campaign.name}\n\nالعلامة التجارية:\n${campaign.brand || "دار الأميرات"}\n\nنوع التعاون:\n${execution}\n\nالمطلوب:\n${deliverables}\n\nموعد تسليم المحتوى:\n${due}\n\nموعد النشر:\n${publish}\n\nتفاصيل الحملة والبريف:\n${briefUrl}\n\nيسعدنا تأكيد مشاركتك بالتواصل مع المنسق.\n\nشركة دار الأميرات`;
+  const message = `مرحبًا ${influencer.full_name} 🌸\n\nيسعدنا دعوتك للتعاون معنا في حملة:\n${campaign.name}\n\nالعلامة التجارية:\n${campaign.brand || "دار الأميرات"}\n\nنوع التعاون:\n${execution}\n\nالمطلوب:\n${deliverables}\n\nتفاصيل الحملة والبريف:\n${briefUrl}\n\nيسعدنا تأكيد مشاركتك بالتواصل مع المنسق.\n\nشركة دار الأميرات`;
 
   const now = new Date().toISOString();
   const { error: inviteError } = await supabase.from("assignment_invitations").insert({

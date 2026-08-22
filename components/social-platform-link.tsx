@@ -32,7 +32,7 @@ export default function SocialPlatformLink({ platform, platformLabel, url, compa
   if (!href) {
     return (
       <span className="inline-flex items-center gap-2 font-black text-[#5363AA]">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF1FF] text-[11px] font-black text-[#5668BE]">{meta.short}</span>
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F7F0FA] text-[11px] font-black text-[#5668BE]">{meta.short}</span>
         {!compact ? <span>{label}</span> : null}
       </span>
     );
@@ -45,9 +45,9 @@ export default function SocialPlatformLink({ platform, platformLabel, url, compa
       rel="noopener noreferrer"
       title={`فتح حساب ${label}`}
       aria-label={`فتح حساب ${label}`}
-      className="group inline-flex items-center gap-2 font-black text-[#5363AA] transition hover:text-[#4053A8]"
+      className="group inline-flex items-center gap-2 font-black text-[#5363AA] transition hover:text-[#754A93]"
     >
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF1FF] text-[11px] font-black text-[#5668BE] ring-1 ring-[#DEE4FA] transition group-hover:-translate-y-0.5 group-hover:bg-[#E5E9FF] group-hover:shadow-sm">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F7F0FA] text-[11px] font-black text-[#5668BE] ring-1 ring-[#DEE4FA] transition group-hover:-translate-y-0.5 group-hover:bg-[#E5E9FF] group-hover:shadow-sm">
         {meta.short}
       </span>
       {!compact ? <span className="group-hover:underline">{label}</span> : null}

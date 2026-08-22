@@ -217,8 +217,8 @@ export default async function VouchersPage({ searchParams }: { searchParams?: Pr
   }
 
   return (
-    <div dir="rtl" className="space-y-6">
-      <section className="rounded-[30px] bg-[linear-gradient(135deg,#5368C3,#91A0E5)] p-7 text-white shadow-[0_24px_64px_rgba(70,86,180,.22)]">
+    <div dir="inherit" className="space-y-6">
+      <section className="rounded-[30px] bg-[linear-gradient(135deg,#9566AF,#C5A2D5)] p-7 text-white shadow-[0_24px_64px_rgba(70,86,180,.22)]">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm font-black text-white/70">المقابل غير النقدي</p>
@@ -229,9 +229,9 @@ export default async function VouchersPage({ searchParams }: { searchParams?: Pr
         </div>
       </section>
 
-      <nav className="grid gap-3 rounded-[24px] border border-[#E2E6F4] bg-white p-3 shadow-[0_12px_36px_rgba(67,82,155,.06)] sm:grid-cols-2">
-        <Link href="?stage=approval" className={`rounded-2xl px-5 py-4 text-center text-sm font-black ${stage === "approval" ? "bg-[#596BC4] text-white" : "bg-[#F5F7FD] text-[#53618B]"}`}>1. اعتماد وترحيل القسائم</Link>
-        <Link href="?stage=preparation" className={`rounded-2xl px-5 py-4 text-center text-sm font-black ${stage === "preparation" ? "bg-[#596BC4] text-white" : "bg-[#F5F7FD] text-[#53618B]"}`}>2. تجهيز قسائم الموقع</Link>
+      <nav className="grid gap-3 rounded-[24px] border border-[#F0E8F4] bg-white p-3 shadow-[0_12px_36px_rgba(67,82,155,.06)] sm:grid-cols-2">
+        <Link href="?stage=approval" className={`rounded-2xl px-5 py-4 text-center text-sm font-black ${stage === "approval" ? "bg-[#9362AD] text-white" : "bg-[#FCF9FD] text-[#75677B]"}`}>1. اعتماد وترحيل القسائم</Link>
+        <Link href="?stage=preparation" className={`rounded-2xl px-5 py-4 text-center text-sm font-black ${stage === "preparation" ? "bg-[#9362AD] text-white" : "bg-[#FCF9FD] text-[#75677B]"}`}>2. تجهيز قسائم الموقع</Link>
       </nav>
 
       {params.success && messages[params.success] ? <Notice tone="success" text={messages[params.success]} /> : null}
@@ -239,29 +239,29 @@ export default async function VouchersPage({ searchParams }: { searchParams?: Pr
 
       {stage === "approval" ? (
         <>
-          <form className="rounded-[24px] border border-[#E2E6F4] bg-white p-4 shadow-[0_12px_36px_rgba(67,82,155,.06)]">
+          <form className="rounded-[24px] border border-[#F0E8F4] bg-white p-4 shadow-[0_12px_36px_rgba(67,82,155,.06)]">
             <input type="hidden" name="stage" value="approval" />
-            <p className="mb-3 text-sm font-black text-[#4A5A87]">فلترة القسائم</p>
+            <p className="mb-3 text-sm font-black text-[#604A70]">فلترة القسائم</p>
             <div className="flex flex-wrap items-center gap-4">
               {Object.entries(sourceLabels).map(([value, label]) => (
-                <label key={value} className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#F6F7FC] px-4 py-3 text-sm font-black text-[#53618B]">
-                  <input type="checkbox" name="source" value={value} defaultChecked={selectedSources.includes(value)} className="h-4 w-4 accent-[#596BC4]" />
+                <label key={value} className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#FBF8FD] px-4 py-3 text-sm font-black text-[#75677B]">
+                  <input type="checkbox" name="source" value={value} defaultChecked={selectedSources.includes(value)} className="h-4 w-4 accent-[#9362AD]" />
                   {label}
                 </label>
               ))}
-              <button className="rounded-xl bg-[#596BC4] px-5 py-3 text-sm font-black text-white">تطبيق الفلتر</button>
+              <button className="rounded-xl bg-[#9362AD] px-5 py-3 text-sm font-black text-white">تطبيق الفلتر</button>
             </div>
           </form>
 
           <form action={transferWebsiteVouchers} className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-[#DDE3F5] bg-[#F9FAFE] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-[#DDE3F5] bg-[#FCFAFD] p-4">
               <div>
                 <p className="text-sm font-black text-[#3F4F7C]">الترحيل إلى تجهيز الأكواد</p>
-                <p className="mt-1 text-xs font-bold text-[#8A93AE]">يمكن تحديد قسائم الموقع الإلكتروني المنتظرة فقط. قسائم الفروع والطلبات للاستعراض حاليًا.</p>
+                <p className="mt-1 text-xs font-bold text-[#8D7B95]">يمكن تحديد قسائم الموقع الإلكتروني المنتظرة فقط. قسائم الفروع والطلبات للاستعراض حاليًا.</p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <VoucherSelectAll eligibleCount={eligibleWebsiteCount} />
-                <button className="rounded-xl bg-[#344578] px-5 py-3 text-sm font-black text-white">ترحيل القسائم المحددة</button>
+                <button className="rounded-xl bg-[#4A315C] px-5 py-3 text-sm font-black text-white">ترحيل القسائم المحددة</button>
               </div>
             </div>
 
@@ -273,18 +273,18 @@ export default async function VouchersPage({ searchParams }: { searchParams?: Pr
                 const campaign = assignment ? campaignMap.get(assignment.campaign_id) : undefined;
                 const eligible = issue.source_type === "website" && issue.status === "pending";
                 return (
-                  <article key={issue.id} className="grid gap-4 rounded-[24px] border border-[#E1E6F5] bg-white p-5 shadow-[0_12px_36px_rgba(67,82,155,.05)] lg:grid-cols-[auto_1.3fr_.8fr_.7fr_.6fr] lg:items-center">
+                  <article key={issue.id} className="grid gap-4 rounded-[24px] border border-[#F0E7F4] bg-white p-5 shadow-[0_12px_36px_rgba(67,82,155,.05)] lg:grid-cols-[auto_1.3fr_.8fr_.7fr_.6fr] lg:items-center">
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" name="issue_ids" value={issue.id} disabled={!eligible} data-website-voucher-select={eligible ? "true" : undefined} className="h-5 w-5 accent-[#596BC4] disabled:opacity-30" />
+                      <input type="checkbox" name="issue_ids" value={issue.id} disabled={!eligible} data-website-voucher-select={eligible ? "true" : undefined} className="h-5 w-5 accent-[#9362AD] disabled:opacity-30" />
                       <span className={`rounded-full px-3 py-1 text-[11px] font-black ${issue.source_type === "website" ? "bg-emerald-50 text-emerald-700" : issue.source_type === "branch" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-600"}`}>{sourceLabels[issue.source_type] ?? issue.source_type}</span>
                     </div>
                     <div>
-                      <h2 className="text-base font-black text-[#3D4D7D]">{influencer?.full_name ?? "مؤثر"}</h2>
-                      <p className="mt-1 text-xs font-bold text-[#8A93AE]" dir="ltr">{influencer?.mobile_e164 ?? "—"}</p>
+                      <h2 className="text-base font-black text-[#4F3762]">{influencer?.full_name ?? "مؤثر"}</h2>
+                      <p className="mt-1 text-xs font-bold text-[#8D7B95]" dir="ltr">{influencer?.mobile_e164 ?? "—"}</p>
                     </div>
-                    <div><p className="text-xs font-black text-[#8A93AE]">الحملة</p><p className="mt-1 text-sm font-black text-[#4A5A87]">{campaign?.name ?? "—"}</p></div>
-                    <div><p className="text-xs font-black text-[#8A93AE]">الحالة</p><p className="mt-1 text-sm font-black text-[#4A5A87]">{statusLabels[issue.status] ?? issue.status}</p></div>
-                    <div className="lg:text-left"><p className="text-xs font-black text-[#8A93AE]">القيمة</p><p className="mt-1 text-lg font-black text-[#344578]">{money(num(issue.amount))}</p></div>
+                    <div><p className="text-xs font-black text-[#8D7B95]">الحملة</p><p className="mt-1 text-sm font-black text-[#604A70]">{campaign?.name ?? "—"}</p></div>
+                    <div><p className="text-xs font-black text-[#8D7B95]">الحالة</p><p className="mt-1 text-sm font-black text-[#604A70]">{statusLabels[issue.status] ?? issue.status}</p></div>
+                    <div className="lg:text-left"><p className="text-xs font-black text-[#8D7B95]">القيمة</p><p className="mt-1 text-lg font-black text-[#4A315C]">{money(num(issue.amount))}</p></div>
                   </article>
                 );
               })}
@@ -294,29 +294,29 @@ export default async function VouchersPage({ searchParams }: { searchParams?: Pr
         </>
       ) : (
         <>
-          <form className="rounded-[24px] border border-[#E2E6F4] bg-white p-4 shadow-[0_12px_36px_rgba(67,82,155,.06)]">
+          <form className="rounded-[24px] border border-[#F0E8F4] bg-white p-4 shadow-[0_12px_36px_rgba(67,82,155,.06)]">
             <input type="hidden" name="stage" value="preparation" />
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-sm font-black text-[#4A5A87]">فلترة قسائم التجهيز حسب الحالة</p>
-                <p className="mt-1 text-xs font-bold text-[#8A93AE]">يمكن اختيار حالة واحدة أو عدة حالات، ثم تطبيق الفلتر.</p>
+                <p className="text-sm font-black text-[#604A70]">فلترة قسائم التجهيز حسب الحالة</p>
+                <p className="mt-1 text-xs font-bold text-[#8D7B95]">يمكن اختيار حالة واحدة أو عدة حالات، ثم تطبيق الفلتر.</p>
               </div>
-              <button className="rounded-xl bg-[#596BC4] px-5 py-3 text-sm font-black text-white">تطبيق الفلتر</button>
+              <button className="rounded-xl bg-[#9362AD] px-5 py-3 text-sm font-black text-white">تطبيق الفلتر</button>
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               {["preparing", "ready", "sent", "redeemed", "cancelled"].map((value) => (
-                <label key={value} className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#F6F7FC] px-4 py-3 text-sm font-black text-[#53618B]">
-                  <input type="checkbox" name="status" value={value} defaultChecked={selectedStatuses.includes(value)} className="h-4 w-4 accent-[#596BC4]" />
+                <label key={value} className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#FBF8FD] px-4 py-3 text-sm font-black text-[#75677B]">
+                  <input type="checkbox" name="status" value={value} defaultChecked={selectedStatuses.includes(value)} className="h-4 w-4 accent-[#9362AD]" />
                   {statusLabels[value]}
                 </label>
               ))}
             </div>
           </form>
 
-          <section className="overflow-hidden rounded-[26px] border border-[#E1E6F5] bg-white shadow-[0_16px_48px_rgba(67,82,155,.07)]">
-          <div className="border-b border-[#EDF0F8] p-5">
-            <h2 className="text-lg font-black text-[#3D4D7D]">تجهيز أكواد قسائم الموقع الإلكتروني</h2>
-            <p className="mt-1 text-xs font-bold text-[#8A93AE]">مرتبة من أعلى مبلغ إلى الأقل. تبدأ صلاحية 30 يومًا عند إدخال الكود لأول مرة.</p>
+          <section className="overflow-hidden rounded-[26px] border border-[#F0E7F4] bg-white shadow-[0_16px_48px_rgba(67,82,155,.07)]">
+          <div className="border-b border-[#F6EFF9] p-5">
+            <h2 className="text-lg font-black text-[#4F3762]">تجهيز أكواد قسائم الموقع الإلكتروني</h2>
+            <p className="mt-1 text-xs font-bold text-[#8D7B95]">مرتبة من أعلى مبلغ إلى الأقل. تبدأ صلاحية 30 يومًا عند إدخال الكود لأول مرة.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-[1450px] w-full text-right">
@@ -333,7 +333,7 @@ export default async function VouchersPage({ searchParams }: { searchParams?: Pr
                   <th className="p-4">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EDF0F8]">
+              <tbody className="divide-y divide-[#F6EFF9]">
                 {issues.map((issue) => {
                   const influencer = influencerMap.get(issue.influencer_id);
                   const payment = paymentMap.get(issue.payment_id);
@@ -352,34 +352,34 @@ export default async function VouchersPage({ searchParams }: { searchParams?: Pr
                   const canSend = Boolean(issue.voucher_code && days !== null && days > 0 && phone);
                   const waUrl = canSend ? whatsappUrl(phone, issue.voucher_code!, num(issue.amount), days!) : "#";
                   return (
-                    <tr key={issue.id} className="align-top text-sm font-bold text-[#4A5A87]">
-                      <td className="p-4"><span className="inline-flex rounded-full bg-[#EEF1FB] px-3 py-1 text-xs font-black text-[#5368B2]">{statusLabels[issue.status] ?? issue.status}</span></td>
-                      <td className="p-4 font-black text-[#344578]">{influencer?.full_name ?? "—"}</td>
+                    <tr key={issue.id} className="align-top text-sm font-bold text-[#604A70]">
+                      <td className="p-4"><span className="inline-flex rounded-full bg-[#F7F0F9] px-3 py-1 text-xs font-black text-[#5368B2]">{statusLabels[issue.status] ?? issue.status}</span></td>
+                      <td className="p-4 font-black text-[#4A315C]">{influencer?.full_name ?? "—"}</td>
                       <td className="p-4" dir="ltr">{influencer?.mobile_e164 ?? "—"}</td>
-                      <td className="p-4">{postUrl ? <a href={postUrl} target="_blank" rel="noreferrer" className="font-black text-[#596BC4] underline">فتح الإعلان</a> : "—"}</td>
+                      <td className="p-4">{postUrl ? <a href={postUrl} target="_blank" rel="noreferrer" className="font-black text-[#9362AD] underline">فتح الإعلان</a> : "—"}</td>
                       <td className="p-4">{campaign?.name ?? "—"}</td>
                       <td className="p-4">{branchName}</td>
-                      <td className="p-4 text-base font-black text-[#344578]">{money(num(issue.amount))}</td>
+                      <td className="p-4 text-base font-black text-[#4A315C]">{money(num(issue.amount))}</td>
                       <td className="p-4">
                         <form action={updateVoucherPreparation} className="min-w-[260px] space-y-2">
                           <input type="hidden" name="issue_id" value={issue.id} />
-                          <input name="voucher_code" defaultValue={issue.voucher_code ?? ""} placeholder="اكتب صيغة الكود" className="w-full rounded-xl border border-[#DDE2F2] bg-white px-3 py-2.5 text-sm font-black outline-none focus:border-[#7988CE]" />
-                          <select name="status" defaultValue={issue.status} className="w-full rounded-xl border border-[#DDE2F2] bg-white px-3 py-2.5 text-sm font-bold">
+                          <input name="voucher_code" defaultValue={issue.voucher_code ?? ""} placeholder="اكتب صيغة الكود" className="w-full rounded-xl border border-[#ECE1F1] bg-white px-3 py-2.5 text-sm font-black outline-none focus:border-[#7988CE]" />
+                          <select name="status" defaultValue={issue.status} className="w-full rounded-xl border border-[#ECE1F1] bg-white px-3 py-2.5 text-sm font-bold">
                             <option value="preparing">قيد تجهيز الكود</option>
                             <option value="ready">جاهزة للتوزيع</option>
                             <option value="sent">تم الإرسال</option>
                             <option value="redeemed">تم الاستخدام</option>
                             <option value="cancelled">ملغاة</option>
                           </select>
-                          <input name="notes" defaultValue={issue.notes ?? ""} placeholder="ملاحظات مختصرة" className="w-full rounded-xl border border-[#DDE2F2] bg-white px-3 py-2.5 text-xs font-bold outline-none" />
-                          <div className="rounded-lg bg-[#F6F7FC] px-3 py-2 text-xs font-black text-[#687394]">{days === null ? "تبدأ الصلاحية عند تجهيز الكود" : `المتبقي: ${days} يوم`}</div>
-                          <button className="w-full rounded-xl bg-[#596BC4] px-3 py-2.5 text-xs font-black text-white">حفظ القسيمة</button>
+                          <input name="notes" defaultValue={issue.notes ?? ""} placeholder="ملاحظات مختصرة" className="w-full rounded-xl border border-[#ECE1F1] bg-white px-3 py-2.5 text-xs font-bold outline-none" />
+                          <div className="rounded-lg bg-[#FBF8FD] px-3 py-2 text-xs font-black text-[#687394]">{days === null ? "تبدأ الصلاحية عند تجهيز الكود" : `المتبقي: ${days} يوم`}</div>
+                          <button className="w-full rounded-xl bg-[#9362AD] px-3 py-2.5 text-xs font-black text-white">حفظ القسيمة</button>
                         </form>
                       </td>
                       <td className="p-4">
                         <div className="min-w-[180px] space-y-2">
                           <a href={waUrl} target="_blank" rel="noreferrer" aria-disabled={!canSend} className={`block rounded-xl px-4 py-3 text-center text-xs font-black ${canSend ? "bg-emerald-600 text-white" : "pointer-events-none bg-slate-100 text-slate-400"}`}>فتح واتساب</a>
-                          <p className="text-[11px] font-bold leading-5 text-[#929AB1]">بعد الإرسال الفعلي غيّر الحالة إلى «تم الإرسال» واحفظ.</p>
+                          <p className="text-[11px] font-bold leading-5 text-[#95849D]">بعد الإرسال الفعلي غيّر الحالة إلى «تم الإرسال» واحفظ.</p>
                         </div>
                       </td>
                     </tr>
@@ -401,5 +401,5 @@ function Notice({ tone, text }: { tone: "success" | "error"; text: string }) {
 }
 
 function Empty({ text }: { text: string }) {
-  return <div className="rounded-[22px] border border-dashed border-[#CDD4EE] bg-white p-8 text-center text-sm font-black text-[#8A93AE]">{text}</div>;
+  return <div className="rounded-[22px] border border-dashed border-[#E5D5EC] bg-white p-8 text-center text-sm font-black text-[#8D7B95]">{text}</div>;
 }

@@ -257,8 +257,8 @@ export default function ContentSubmitPage() {
   if (isLoading) {
     return (
       <main
-        dir="rtl"
-        className="min-h-screen bg-[#F7F5FA] px-4 py-10 text-[#241D35]"
+        dir="inherit"
+        className="min-h-screen bg-[#F7F5FA] px-4 py-10 text-[#3B264B]"
       >
         <div className="mx-auto max-w-3xl rounded-3xl bg-white p-8 text-center shadow-sm">
           <p className="text-lg font-bold">جاري تحميل بيانات الاتفاق...</p>
@@ -269,18 +269,18 @@ export default function ContentSubmitPage() {
 
   return (
     <main
-      dir="rtl"
-      className="min-h-screen bg-[#F7F5FA] px-4 py-8 text-[#241D35]"
+      dir="inherit"
+      className="min-h-screen bg-[#F7F5FA] px-4 py-8 text-[#3B264B]"
     >
       <div className="mx-auto max-w-4xl">
         <header className="mb-6 rounded-3xl bg-white p-6 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F1EAFB] text-3xl">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F2E6F6] text-3xl">
             ✨
           </div>
 
           <h1 className="text-2xl font-extrabold">{pageTitle}</h1>
 
-          <p className="mt-3 text-sm leading-7 text-[#6B6478]">
+          <p className="mt-3 text-sm leading-7 text-[#74617B]">
             يرجى تعبئة بيانات المحتوى المنشور حسب المنصات المتفق عليها في
             الحملة. سعدنا بالتعاون معكم.
           </p>
@@ -294,19 +294,19 @@ export default function ContentSubmitPage() {
 
         {isSubmitted && !successPopup && (
           <section className="rounded-3xl bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F1EAFB] text-3xl text-[#6F4EB0]">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F2E6F6] text-3xl text-[#8752A0]">
               ✓
             </div>
 
-            <h2 className="text-2xl font-extrabold text-[#241D35]">
+            <h2 className="text-2xl font-extrabold text-[#3B264B]">
               تم إرسال المحتوى
             </h2>
 
-            <p className="mt-4 leading-8 text-[#5F5870]">
+            <p className="mt-4 leading-8 text-[#69566F]">
               شكرًا لكم، تم استلام محتوى الحملة بنجاح.
             </p>
 
-            <p className="mt-2 leading-8 text-[#5F5870]">
+            <p className="mt-2 leading-8 text-[#69566F]">
               يمكنكم الآن إغلاق الصفحة.
             </p>
           </section>
@@ -315,7 +315,7 @@ export default function ContentSubmitPage() {
         {!hasAssignment && !successPopup && !isSubmitted && (
           <section className="rounded-3xl bg-white p-6 text-center shadow-sm">
             <h2 className="text-xl font-extrabold">الرابط غير صحيح</h2>
-            <p className="mt-3 text-[#6B6478]">
+            <p className="mt-3 text-[#74617B]">
               لم نتمكن من العثور على بيانات الاتفاق. يرجى التواصل مع منسق
               الحملة.
             </p>
@@ -328,15 +328,15 @@ export default function ContentSubmitPage() {
               <h2 className="text-lg font-extrabold">بيانات الحملة</h2>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl bg-[#F8F5FC] p-4">
-                  <p className="text-xs font-bold text-[#8E6CCB]">
+                <div className="rounded-2xl bg-[#F8F1FA] p-4">
+                  <p className="text-xs font-bold text-[#AD79C5]">
                     اسم الحملة
                   </p>
                <p className="mt-1 font-bold">{assignment?.campaignName || "-"}</p>
                 </div>
 
-                <div className="rounded-2xl bg-[#F8F5FC] p-4">
-                  <p className="text-xs font-bold text-[#8E6CCB]">
+                <div className="rounded-2xl bg-[#F8F1FA] p-4">
+                  <p className="text-xs font-bold text-[#AD79C5]">
                     اسم المؤثر
                   </p>
                   <p className="mt-1 font-bold">{assignment?.influencerName || "-"}</p>
@@ -352,7 +352,7 @@ export default function ContentSubmitPage() {
                 >
                   <div className="mb-5 flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-bold text-[#8E6CCB]">
+                      <p className="text-xs font-bold text-[#AD79C5]">
                         المنصة المتفق عليها
                       </p>
                       <h3 className="text-xl font-extrabold">
@@ -360,7 +360,7 @@ export default function ContentSubmitPage() {
                       </h3>
                     </div>
 
-                    <span className="rounded-full bg-[#F1EAFB] px-4 py-2 text-xs font-bold text-[#6F4EB0]">
+                    <span className="rounded-full bg-[#F2E6F6] px-4 py-2 text-xs font-bold text-[#8752A0]">
                       مطلوب
                     </span>
                   </div>
@@ -377,7 +377,7 @@ export default function ContentSubmitPage() {
                         }
                         placeholder="https://..."
                         dir="ltr"
-                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#8E6CCB]"
+                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#AD79C5]"
                       />
                     </label>
 
@@ -391,7 +391,7 @@ export default function ContentSubmitPage() {
                           updateItem(index, "promoCode", event.target.value)
                         }
                         placeholder="مثال: DAR20"
-                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#8E6CCB]"
+                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#AD79C5]"
                       />
                     </label>
 
@@ -404,7 +404,7 @@ export default function ContentSubmitPage() {
                         onChange={(event) =>
                           updateItem(index, "contentType", event.target.value)
                         }
-                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#8E6CCB]"
+                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#AD79C5]"
                       >
                         <option value="">اختاري نوع المحتوى</option>
                         {CONTENT_TYPES.map((type) => (
@@ -430,7 +430,7 @@ export default function ContentSubmitPage() {
                         }
                         placeholder="رابط Google Drive / Dropbox / WeTransfer"
                         dir="ltr"
-                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#8E6CCB]"
+                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#AD79C5]"
                       />
                       <p className="mt-2 text-xs leading-6 text-[#8B8498]">
                         في هذه النسخة نستخدم رابط ملف عالي الجودة، ورفع الملفات
@@ -453,7 +453,7 @@ export default function ContentSubmitPage() {
                         }
                         placeholder="رابط صورة أو ملف"
                         dir="ltr"
-                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#8E6CCB]"
+                        className="w-full rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#AD79C5]"
                       />
                     </label>
 
@@ -471,8 +471,8 @@ export default function ContentSubmitPage() {
                           }
                           className={`rounded-2xl border px-4 py-3 font-bold transition ${
                             item.canReuseInAds === "Yes"
-                              ? "border-[#8E6CCB] bg-[#F1EAFB] text-[#6F4EB0]"
-                              : "border-[#E6DFF1] bg-white text-[#6B6478]"
+                              ? "border-[#AD79C5] bg-[#F2E6F6] text-[#8752A0]"
+                              : "border-[#E6DFF1] bg-white text-[#74617B]"
                           }`}
                         >
                           نعم، مسموح
@@ -485,8 +485,8 @@ export default function ContentSubmitPage() {
                           }
                           className={`rounded-2xl border px-4 py-3 font-bold transition ${
                             item.canReuseInAds === "No"
-                              ? "border-[#8E6CCB] bg-[#F1EAFB] text-[#6F4EB0]"
-                              : "border-[#E6DFF1] bg-white text-[#6B6478]"
+                              ? "border-[#AD79C5] bg-[#F2E6F6] text-[#8752A0]"
+                              : "border-[#E6DFF1] bg-white text-[#74617B]"
                           }`}
                         >
                           لا، غير مسموح
@@ -509,7 +509,7 @@ export default function ContentSubmitPage() {
                         }
                         placeholder="مثال: مسموح استخدام المحتوى لمدة 3 أشهر في حسابات الشركة فقط."
                         rows={3}
-                        className="w-full resize-none rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#8E6CCB]"
+                        className="w-full resize-none rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#AD79C5]"
                       />
                     </label>
                   </div>
@@ -533,8 +533,8 @@ export default function ContentSubmitPage() {
                       onClick={() => setCoordinatorServiceRating(rating)}
                       className={`h-12 w-12 rounded-2xl border text-lg font-extrabold transition ${
                         coordinatorServiceRating === rating
-                          ? "border-[#8E6CCB] bg-[#8E6CCB] text-white"
-                          : "border-[#E6DFF1] bg-white text-[#6B6478]"
+                          ? "border-[#AD79C5] bg-[#AD79C5] text-white"
+                          : "border-[#E6DFF1] bg-white text-[#74617B]"
                       }`}
                     >
                       {rating}
@@ -554,7 +554,7 @@ export default function ContentSubmitPage() {
                   }
                   placeholder="اكتبي أي ملاحظات أو اقتراحات..."
                   rows={4}
-                  className="w-full resize-none rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#8E6CCB]"
+                  className="w-full resize-none rounded-2xl border border-[#E6DFF1] bg-white px-4 py-3 outline-none focus:border-[#AD79C5]"
                 />
               </label>
             </section>
@@ -563,7 +563,7 @@ export default function ContentSubmitPage() {
               type="button"
               onClick={submitContent}
               disabled={isSaving}
-              className="mt-6 w-full rounded-3xl bg-[#8E6CCB] px-6 py-4 text-lg font-extrabold text-white shadow-sm transition hover:bg-[#7C5DBC] disabled:opacity-60"
+              className="mt-6 w-full rounded-3xl bg-[#AD79C5] px-6 py-4 text-lg font-extrabold text-white shadow-sm transition hover:bg-[#9564AE] disabled:opacity-60"
             >
               {isSaving ? "جاري الإرسال..." : "إرسال بيانات المحتوى"}
             </button>
@@ -574,19 +574,19 @@ export default function ContentSubmitPage() {
       {successPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 text-center shadow-2xl">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F1EAFB] text-3xl text-[#6F4EB0]">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F2E6F6] text-3xl text-[#8752A0]">
               ✓
             </div>
 
-            <h2 className="text-2xl font-extrabold text-[#241D35]">
+            <h2 className="text-2xl font-extrabold text-[#3B264B]">
               شكرًا لكم
             </h2>
 
-            <p className="mt-4 leading-8 text-[#5F5870]">
+            <p className="mt-4 leading-8 text-[#69566F]">
               {successPopup.message}
             </p>
 
-            <p className="mt-3 leading-8 text-[#5F5870]">
+            <p className="mt-3 leading-8 text-[#69566F]">
               نأمل أن تكون خدمتنا قد نالت رضاكم، ونتطلع إلى تعاون مستمر ومثمر
               بإذن الله.
             </p>
@@ -594,7 +594,7 @@ export default function ContentSubmitPage() {
             <button
               type="button"
               onClick={() => setSuccessPopup(null)}
-              className="mt-6 w-full rounded-2xl bg-[#8E6CCB] px-5 py-3 font-bold text-white transition hover:bg-[#7C5DBC]"
+              className="mt-6 w-full rounded-2xl bg-[#AD79C5] px-5 py-3 font-bold text-white transition hover:bg-[#9564AE]"
             >
               إغلاق
             </button>

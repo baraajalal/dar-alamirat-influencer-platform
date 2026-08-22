@@ -145,21 +145,21 @@ export default async function CampaignsPage({
               name="q"
               defaultValue={params.q ?? ""}
               placeholder={copy.list.searchPlaceholder}
-              className="h-12 w-full rounded-2xl border border-[#DDE2F3] bg-[#FAFBFF] px-12 text-sm font-bold text-[#405080] outline-none transition placeholder:text-[#A1A8BC] focus:border-[#6877C8] focus:bg-white focus:ring-4 focus:ring-[#6877C8]/10"
+              className="h-12 w-full rounded-2xl border border-[#ECE1F1] bg-[#FDFBFE] px-12 text-sm font-bold text-[#513865] outline-none transition placeholder:text-[#A1A8BC] focus:border-[#A170BA] focus:bg-white focus:ring-4 focus:ring-[#A170BA]/10"
             />
           </label>
           <select
             name="status"
             defaultValue={params.status ?? ""}
             aria-label={copy.list.filterStatus}
-            className="h-12 rounded-2xl border border-[#DDE2F3] bg-[#FAFBFF] px-4 text-sm font-bold text-[#56628D] outline-none focus:border-[#6877C8] focus:bg-white focus:ring-4 focus:ring-[#6877C8]/10"
+            className="h-12 rounded-2xl border border-[#ECE1F1] bg-[#FDFBFE] px-4 text-sm font-bold text-[#56628D] outline-none focus:border-[#A170BA] focus:bg-white focus:ring-4 focus:ring-[#A170BA]/10"
           >
             <option value="">{copy.list.allStatuses}</option>
             {(Object.keys(copy.statuses) as CampaignStatus[]).map((status) => (
               <option key={status} value={status}>{statusLabel(status)}</option>
             ))}
           </select>
-          <button className="h-12 rounded-2xl bg-[#6877C8] px-6 text-sm font-black text-white transition hover:bg-[#586AC1]">
+          <button className="h-12 rounded-2xl bg-[#A170BA] px-6 text-sm font-black text-white transition hover:bg-[#915FA9]">
             {copy.common.search}
           </button>
         </form>
@@ -173,7 +173,7 @@ export default async function CampaignsPage({
             <div className="hidden overflow-x-auto xl:block">
               <table className="w-full min-w-[1050px] border-separate border-spacing-y-2 text-sm">
                 <thead>
-                  <tr className="text-xs font-black text-[#929AAF]">
+                  <tr className="text-xs font-black text-[#95849D]">
                     <Th>{copy.list.campaign}</Th>
                     <Th>{copy.list.manager}</Th>
                     <Th>{copy.list.dates}</Th>
@@ -191,13 +191,13 @@ export default async function CampaignsPage({
                     const progress = count ? Math.round((completed / count) * 100) : 0;
                     const committed = committedByCampaign.get(campaign.id) ?? 0;
                     return (
-                      <tr key={campaign.id} className="group bg-[#FAFBFF] transition hover:bg-[#F6F8FF]">
+                      <tr key={campaign.id} className="group bg-[#FDFBFE] transition hover:bg-[#F6F8FF]">
                         <Td first>
                           <div className="min-w-52">
-                            <Link href={`/dashboard/campaigns/${campaign.id}`} className="font-black text-[#34457E] hover:text-[#586AC1]">
+                            <Link href={`/dashboard/campaigns/${campaign.id}`} className="font-black text-[#4A315C] hover:text-[#915FA9]">
                               {campaign.name}
                             </Link>
-                            <p className="mt-1 text-xs font-semibold text-[#929AAF]">
+                            <p className="mt-1 text-xs font-semibold text-[#95849D]">
                               {[campaign.brand, campaign.product].filter(Boolean).join(" · ") || copy.common.unspecified}
                             </p>
                           </div>
@@ -205,22 +205,22 @@ export default async function CampaignsPage({
                         <Td>{campaign.manager_id ? managerMap.get(campaign.manager_id) ?? copy.common.unspecified : copy.common.unspecified}</Td>
                         <Td>
                           <p className="font-bold text-[#5F6B90]">{formatDate(campaign.start_date, locale)}</p>
-                          <p className="mt-1 text-xs text-[#9AA1B5]">{formatDate(campaign.end_date, locale)}</p>
+                          <p className="mt-1 text-xs text-[#9C8CA4]">{formatDate(campaign.end_date, locale)}</p>
                         </Td>
                         <Td><span className="font-black text-[#465483]">{count}</span></Td>
                         <Td>
                           <div className="min-w-28">
                             <div className="mb-1 flex items-center justify-between text-[11px] font-black text-[#7781A0]"><span>{progress}%</span><span>{completed}/{count}</span></div>
-                            <div className="h-2 overflow-hidden rounded-full bg-[#E8EBF5]"><div className="h-full rounded-full bg-gradient-to-r from-[#6877C8] to-[#9CAAE4]" style={{ width: `${progress}%` }} /></div>
+                            <div className="h-2 overflow-hidden rounded-full bg-[#E8EBF5]"><div className="h-full rounded-full bg-gradient-to-r from-[#A170BA] to-[#9CAAE4]" style={{ width: `${progress}%` }} /></div>
                           </div>
                         </Td>
                         <Td>
                           <p className="font-black text-[#465483]">{formatMoney(campaign.budget, locale)}</p>
-                          <p className="mt-1 text-[11px] text-[#9AA1B5]">{formatMoney(committed, locale)}</p>
+                          <p className="mt-1 text-[11px] text-[#9C8CA4]">{formatMoney(committed, locale)}</p>
                         </Td>
                         <Td><StatusBadge status={campaign.status} label={statusLabel(campaign.status)} /></Td>
                         <Td last>
-                          <Link href={`/dashboard/campaigns/${campaign.id}`} className="inline-flex rounded-xl border border-[#DDE2F3] bg-white px-3 py-2 text-xs font-black text-[#5D6EC3] transition hover:border-[#A9B9E6] hover:bg-[#F4F6FF]">
+                          <Link href={`/dashboard/campaigns/${campaign.id}`} className="inline-flex rounded-xl border border-[#ECE1F1] bg-white px-3 py-2 text-xs font-black text-[#5D6EC3] transition hover:border-[#D8BDE3] hover:bg-[#FAF6FC]">
                             {copy.common.view}
                           </Link>
                         </Td>
@@ -237,11 +237,11 @@ export default async function CampaignsPage({
                 const completed = completedAssignmentCounts.get(campaign.id) ?? 0;
                 const progress = count ? Math.round((completed / count) * 100) : 0;
                 return (
-                  <article key={campaign.id} className="rounded-[22px] border border-[#E5E8F3] bg-[#FAFBFF] p-5">
+                  <article key={campaign.id} className="rounded-[22px] border border-[#F2ECF5] bg-[#FDFBFE] p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <Link href={`/dashboard/campaigns/${campaign.id}`} className="font-black text-[#34457E]">{campaign.name}</Link>
-                        <p className="mt-1 text-xs font-semibold text-[#929AAF]">{campaign.brand || copy.common.unspecified}</p>
+                        <Link href={`/dashboard/campaigns/${campaign.id}`} className="font-black text-[#4A315C]">{campaign.name}</Link>
+                        <p className="mt-1 text-xs font-semibold text-[#95849D]">{campaign.brand || copy.common.unspecified}</p>
                       </div>
                       <StatusBadge status={campaign.status} label={statusLabel(campaign.status)} />
                     </div>
@@ -253,7 +253,7 @@ export default async function CampaignsPage({
                     </div>
                     <div className="mt-4">
                       <div className="mb-1 flex justify-between text-[11px] font-black text-[#7C86A4]"><span>{copy.list.progress}</span><span>{progress}%</span></div>
-                      <div className="h-2 overflow-hidden rounded-full bg-[#E7EAF4]"><div className="h-full rounded-full bg-[#6877C8]" style={{ width: `${progress}%` }} /></div>
+                      <div className="h-2 overflow-hidden rounded-full bg-[#E7EAF4]"><div className="h-full rounded-full bg-[#A170BA]" style={{ width: `${progress}%` }} /></div>
                     </div>
                   </article>
                 );
@@ -289,5 +289,5 @@ function Td({ children, first = false, last = false }: { children: React.ReactNo
 }
 
 function Mini({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-xl bg-white p-3"><p className="text-[10px] font-bold text-[#99A0B4]">{label}</p><p className="mt-1 truncate font-black text-[#4D5A86]">{value}</p></div>;
+  return <div className="rounded-xl bg-white p-3"><p className="text-[10px] font-bold text-[#99A0B4]">{label}</p><p className="mt-1 truncate font-black text-[#624B72]">{value}</p></div>;
 }

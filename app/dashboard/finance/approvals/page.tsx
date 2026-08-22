@@ -14,31 +14,31 @@ export default async function FinanceApprovalsPage() {
   ]);
 
   return (
-    <div dir="rtl" className="space-y-6">
-      <section className="rounded-[30px] bg-[linear-gradient(135deg,#596BC4,#91A0E5)] p-7 text-white shadow-[0_24px_64px_rgba(70,86,180,.22)]">
+    <div dir="inherit" className="space-y-6">
+      <section className="rounded-[30px] bg-[linear-gradient(135deg,#9362AD,#C5A2D5)] p-7 text-white shadow-[0_24px_64px_rgba(70,86,180,.22)]">
         <p className="text-sm font-black text-white/70">المرحلة الأولى</p>
         <h1 className="mt-2 text-3xl font-black">الاعتمادات المالية</h1>
         <p className="mt-3 text-sm font-bold leading-7 text-white/82">راجعي ملف البنك أولًا، ثم اعتمدي مستحق الإعلان أو أعيدي الملاحظة للمؤثر.</p>
       </section>
 
       <section className="grid gap-5 lg:grid-cols-2">
-        <Link href="/dashboard/finance/bank-profiles" className="rounded-[28px] border border-[#E1E6F5] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.08)] transition hover:-translate-y-1">
+        <Link href="/dashboard/finance/bank-profiles" className="rounded-[28px] border border-[#F0E7F4] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.08)] transition hover:-translate-y-1">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black text-[#8A93AE]">الملفات البنكية</p>
-              <h2 className="mt-2 text-2xl font-black text-[#3D4D7D]">اعتماد بيانات البنك</h2>
-              <p className="mt-3 text-sm font-bold leading-7 text-[#7E88A8]">الآيبان، اسم الحساب، الهوية أو الإقامة أو السجل التجاري، وشهادة الآيبان.</p>
+              <p className="text-xs font-black text-[#8D7B95]">الملفات البنكية</p>
+              <h2 className="mt-2 text-2xl font-black text-[#4F3762]">اعتماد بيانات البنك</h2>
+              <p className="mt-3 text-sm font-bold leading-7 text-[#82718C]">الآيبان، اسم الحساب، الهوية أو الإقامة أو السجل التجاري، وشهادة الآيبان.</p>
             </div>
-            <span className="flex h-16 min-w-16 items-center justify-center rounded-2xl bg-[#EEF1FF] text-2xl font-black text-[#596BC4]">{bankCount ?? 0}</span>
+            <span className="flex h-16 min-w-16 items-center justify-center rounded-2xl bg-[#F7F0FA] text-2xl font-black text-[#9362AD]">{bankCount ?? 0}</span>
           </div>
         </Link>
 
-        <Link href="/dashboard/finance/ad-approvals" className="rounded-[28px] border border-[#E1E6F5] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.08)] transition hover:-translate-y-1">
+        <Link href="/dashboard/finance/ad-approvals" className="rounded-[28px] border border-[#F0E7F4] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.08)] transition hover:-translate-y-1">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black text-[#8A93AE]">مستحقات الإعلانات</p>
-              <h2 className="mt-2 text-2xl font-black text-[#3D4D7D]">اعتماد التحويل</h2>
-              <p className="mt-3 text-sm font-bold leading-7 text-[#7E88A8]">رابط النشر المعتمد أو عقد الدفع المسبق، المبلغ، وحالة بيانات البنك.</p>
+              <p className="text-xs font-black text-[#8D7B95]">مستحقات الإعلانات</p>
+              <h2 className="mt-2 text-2xl font-black text-[#4F3762]">اعتماد التحويل</h2>
+              <p className="mt-3 text-sm font-bold leading-7 text-[#82718C]">رابط النشر المعتمد أو عقد الدفع المسبق، المبلغ، وحالة بيانات البنك.</p>
             </div>
             <span className="flex h-16 min-w-16 items-center justify-center rounded-2xl bg-amber-50 text-2xl font-black text-amber-700">{duesCount ?? 0}</span>
           </div>

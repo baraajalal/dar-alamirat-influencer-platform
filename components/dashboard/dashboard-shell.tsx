@@ -25,23 +25,42 @@ export function DashboardShell({
   const direction = locale === "ar" ? "rtl" : "ltr";
 
   return (
-    <div dir={direction} className="min-h-screen bg-[radial-gradient(circle_at_12%_8%,rgba(216,221,247,.58),transparent_30%),radial-gradient(circle_at_88%_85%,rgba(169,185,230,.28),transparent_25%),#F5F7FC] font-['Tajawal',Tahoma,Arial,sans-serif] text-[#33447F]">
+    <div dir={direction} className="da-page-shell min-h-screen bg-[#FAF7FB] text-[#4C4052]">
       <div className="flex min-h-screen">
-        <div className="hidden shrink-0 lg:block"><div className="sticky top-0 h-screen"><DashboardSidebar role={role} locale={locale} dictionary={dictionary} /></div></div>
+        <div className="hidden shrink-0 lg:block">
+          <div className="sticky top-0 h-screen">
+            <DashboardSidebar role={role} locale={locale} dictionary={dictionary} />
+          </div>
+        </div>
 
         {mobileOpen ? (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)} className="absolute inset-0 bg-[#1D2854]/45 backdrop-blur-sm" />
-            <div className={`absolute inset-y-0 ${locale === "ar" ? "right-0" : "left-0"}`}><DashboardSidebar role={role} locale={locale} dictionary={dictionary} onNavigate={() => setMobileOpen(false)} /></div>
+            <button
+              type="button"
+              aria-label="Close menu"
+              onClick={() => setMobileOpen(false)}
+              className="absolute inset-0 bg-[#2F1938]/35 backdrop-blur-sm"
+            />
+            <div className={`absolute inset-y-0 ${locale === "ar" ? "right-0" : "left-0"}`}>
+              <DashboardSidebar role={role} locale={locale} dictionary={dictionary} onNavigate={() => setMobileOpen(false)} />
+            </div>
           </div>
         ) : null}
 
         <div className="min-w-0 flex-1">
-          <DashboardHeader profileName={profileName} roleLabel={roleLabel} locale={locale} dictionary={dictionary} onOpenMenu={() => setMobileOpen(true)} />
-          <div className="relative min-h-[calc(100vh-78px)] overflow-hidden">
-            <div className="pointer-events-none absolute -left-16 bottom-0 h-72 w-72 rounded-full bg-[#D8DDF7]/22 blur-3xl" />
-            <div className="pointer-events-none absolute -right-20 top-8 h-64 w-64 rounded-full bg-[#A9B9E6]/18 blur-3xl" />
-            <div className="employee-dashboard-content relative px-4 py-5 sm:px-6 sm:py-7 xl:px-8">
+          <DashboardHeader
+            profileName={profileName}
+            roleLabel={roleLabel}
+            locale={locale}
+            dictionary={dictionary}
+            onOpenMenu={() => setMobileOpen(true)}
+          />
+
+          <div className="relative min-h-[calc(100vh-76px)] overflow-hidden">
+            <div className="pointer-events-none absolute -left-24 top-6 h-72 w-72 rounded-full bg-[#E7D6EC]/35 blur-3xl" />
+            <div className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-[#F0E4F4]/60 blur-3xl" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,0))]" />
+            <div className="employee-dashboard-content relative mx-auto w-full max-w-[1680px] px-4 py-5 sm:px-6 sm:py-7 xl:px-8 2xl:px-10">
               <UntranslatedPageTranslator locale={locale} />
               {children}
             </div>

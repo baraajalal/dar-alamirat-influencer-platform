@@ -258,15 +258,15 @@ const now = Date.now();
       <section className="flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
         <div>
           <p className="text-xs font-extrabold text-[#7984A8]">DA / INFLUENCERS</p>
-          <h2 className="mt-1 text-2xl font-black text-[#304176] sm:text-3xl">{t.title}</h2>
+          <h2 className="mt-1 text-2xl font-black text-[#3D274F] sm:text-3xl">{t.title}</h2>
           <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-[#8B94AD]">{t.subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/" className="inline-flex items-center gap-2 rounded-2xl border border-[#DDE2F4] bg-white px-4 py-3 text-sm font-extrabold text-[#5365B8] shadow-sm">
+          <Link href="/" className="inline-flex items-center gap-2 rounded-2xl border border-[#DDE2F4] bg-white px-4 py-3 text-sm font-extrabold text-[#8A5AA3] shadow-sm">
             <DashboardIcon name="arrow" className="h-4 w-4" /> {t.registration}
           </Link>
           {canCreate ? (
-            <Link href="/dashboard/influencers/new" className="inline-flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#6679D1,#4F63BC)] px-4 py-3 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(79,99,188,.25)]">
+            <Link href="/dashboard/influencers/new" className="inline-flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#A170BA,#7F568E)] px-4 py-3 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(79,99,188,.25)]">
               <DashboardIcon name="plus" className="h-4 w-4" /> {t.add}
             </Link>
           ) : null}
@@ -284,7 +284,7 @@ const now = Date.now();
         <form className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           <label className="relative xl:col-span-2">
             <DashboardIcon name="influencers" className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7785C9]" />
-            <input name="q" defaultValue={params.q} placeholder={t.search} className="h-12 w-full rounded-2xl border border-[#E0E5F5] bg-[#FAFBFF] ps-11 pe-4 text-sm font-bold text-[#35467F] outline-none transition focus:border-[#7A8AD7] focus:ring-4 focus:ring-[#D8DDF7]/55" />
+            <input name="q" defaultValue={params.q} placeholder={t.search} className="h-12 w-full rounded-2xl border border-[#E0E5F5] bg-[#FDFBFE] ps-11 pe-4 text-sm font-bold text-[#35467F] outline-none transition focus:border-[#7A8AD7] focus:ring-4 focus:ring-[#EBDDF2]/55" />
           </label>
           <FilterSelect name="city" value={params.city} label={t.allCities} options={cities.map((value) => [value, value])} />
           <FilterSelect name="gender" value={params.gender} label={t.allGenders} options={[["female", t.female], ["male", t.male]]} />
@@ -301,7 +301,7 @@ const now = Date.now();
       <section className="overflow-hidden rounded-[28px] border border-white/90 bg-white/94 shadow-[0_18px_55px_rgba(69,83,151,.08)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1180px] border-collapse text-sm">
-            <thead className="bg-[#F4F6FD] text-[#66739D]">
+            <thead className="bg-[#FAF6FC] text-[#66739D]">
               <tr>
                 {[t.influencer, t.social, t.location, t.completion, t.availability, t.account, t.actions].map((label) => <th key={label} className="p-4 text-start text-xs font-black">{label}</th>)}
               </tr>
@@ -311,12 +311,12 @@ const now = Date.now();
                 const accounts = socialMap.get(influencer.id) ?? [];
                 const availability = availabilityMap.get(influencer.id) ?? { state: "available" as const };
                 return (
-                  <tr key={influencer.id} className="border-t border-[#EEF1F8] transition hover:bg-[#FAFBFF]">
+                  <tr key={influencer.id} className="border-t border-[#EEF1F8] transition hover:bg-[#FDFBFE]">
                     <td className="p-4 align-top">
                       <div className="flex items-center gap-3">
                         <Avatar name={influencer.full_name} />
                         <div className="min-w-0">
-                          <Link href={`/dashboard/influencers/${influencer.id}`} className="font-black text-[#33447F] hover:text-[#5669C4]">{influencer.full_name}</Link>
+                          <Link href={`/dashboard/influencers/${influencer.id}`} className="font-black text-[#432A57] hover:text-[#5669C4]">{influencer.full_name}</Link>
                           <p dir="ltr" className="mt-1 text-start text-xs font-bold text-[#8E96AC]">{influencer.mobile_e164}</p>
                           <div className="mt-2 flex flex-wrap gap-1.5">
                             {influencer.mawthooq_status ? <Pill tone="green">{t.verified}</Pill> : null}
@@ -328,7 +328,7 @@ const now = Date.now();
                     <td className="p-4 align-top">
                       <div className="flex max-w-[290px] flex-wrap gap-2">
                         {accounts.slice(0, 4).map((account) => (
-                          <span key={account.id} className="rounded-xl border border-[#E5E8F5] bg-[#FAFBFF] px-2.5 py-1.5 text-xs font-bold text-[#536297]">{account.platform} · @{account.username}</span>
+                          <span key={account.id} className="rounded-xl border border-[#F2ECF6] bg-[#FDFBFE] px-2.5 py-1.5 text-xs font-bold text-[#536297]">{account.platform} · @{account.username}</span>
                         ))}
                         {accounts.length === 0 ? <span className="text-[#A1A7B8]">—</span> : null}
                       </div>
@@ -339,7 +339,7 @@ const now = Date.now();
                     <td className="p-4 align-top"><AccountBadge status={influencer.account_status} hasUser={Boolean(influencer.user_id)} labels={t} /></td>
                     <td className="p-4 align-top">
                       <div className="flex flex-wrap gap-2">
-                        <Link href={`/dashboard/influencers/${influencer.id}`} className="rounded-xl bg-[#EEF1FF] px-3 py-2 text-xs font-black text-[#5265BC]">{t.details}</Link>
+                        <Link href={`/dashboard/influencers/${influencer.id}`} className="rounded-xl bg-[#F7F0FA] px-3 py-2 text-xs font-black text-[#8C5BA5]">{t.details}</Link>
                         {canApprove && influencer.account_status === "pending_review" ? (
                           <>
                             <DecisionForm id={influencer.id} decision="approve" label={t.approve} className="bg-emerald-50 text-emerald-700" />
@@ -354,28 +354,28 @@ const now = Date.now();
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 ? <div className="p-14 text-center text-sm font-bold text-[#929AB1]">{t.noResults}</div> : null}
+        {filtered.length === 0 ? <div className="p-14 text-center text-sm font-bold text-[#95849D]">{t.noResults}</div> : null}
       </section>
     </main>
   );
 }
 
 function Stat({ label, value, icon }: { label: string; value: number; icon: "influencers" | "sparkles" | "campaigns" | "access" }) {
-  return <article className="rounded-[24px] border border-white/90 bg-white/94 p-5 shadow-[0_16px_45px_rgba(69,83,151,.08)]"><div className="flex items-center justify-between"><div><p className="text-xs font-extrabold text-[#8E96AE]">{label}</p><p className="mt-2 text-3xl font-black text-[#304176]">{value}</p></div><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#DDE3FB,#AAB9E8)] text-[#4F62BA]"><DashboardIcon name={icon} className="h-5 w-5" /></span></div></article>;
+  return <article className="rounded-[24px] border border-white/90 bg-white/94 p-5 shadow-[0_16px_45px_rgba(69,83,151,.08)]"><div className="flex items-center justify-between"><div><p className="text-xs font-extrabold text-[#8E96AE]">{label}</p><p className="mt-2 text-3xl font-black text-[#3D274F]">{value}</p></div><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#DDE3FB,#AAB9E8)] text-[#4F62BA]"><DashboardIcon name={icon} className="h-5 w-5" /></span></div></article>;
 }
 
 function FilterSelect({ name, value, label, options }: { name: string; value?: string; label: string; options: string[][] }) {
-  return <select name={name} defaultValue={value ?? ""} className="h-12 rounded-2xl border border-[#E0E5F5] bg-[#FAFBFF] px-4 text-sm font-bold text-[#53608A] outline-none focus:border-[#7A8AD7]"><option value="">{label}</option>{options.map(([optionValue, optionLabel]) => <option key={optionValue} value={optionValue}>{optionLabel}</option>)}</select>;
+  return <select name={name} defaultValue={value ?? ""} className="h-12 rounded-2xl border border-[#E0E5F5] bg-[#FDFBFE] px-4 text-sm font-bold text-[#53608A] outline-none focus:border-[#7A8AD7]"><option value="">{label}</option>{options.map(([optionValue, optionLabel]) => <option key={optionValue} value={optionValue}>{optionLabel}</option>)}</select>;
 }
 
 function Avatar({ name }: { name: string }) {
   const initials = name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("");
-  return <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#6578CF,#A9B9E6)] text-sm font-black text-white shadow-sm">{initials || "DA"}</span>;
+  return <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#A978C3,#D8BDE3)] text-sm font-black text-white shadow-sm">{initials || "DA"}</span>;
 }
 
 function Completion({ value }: { value: number }) {
   const safe = Math.max(0, Math.min(100, value));
-  return <div className="w-36"><div className="mb-1.5 flex justify-between text-xs font-black"><span className="text-[#40528E]">{safe}%</span></div><div className="h-2 overflow-hidden rounded-full bg-[#E9ECF7]"><div className={`h-full rounded-full ${safe >= 80 ? "bg-emerald-500" : safe >= 50 ? "bg-[#6578CF]" : "bg-amber-400"}`} style={{ width: `${safe}%` }} /></div></div>;
+  return <div className="w-36"><div className="mb-1.5 flex justify-between text-xs font-black"><span className="text-[#40528E]">{safe}%</span></div><div className="h-2 overflow-hidden rounded-full bg-[#F4EFF8]"><div className={`h-full rounded-full ${safe >= 80 ? "bg-emerald-500" : safe >= 50 ? "bg-[#A978C3]" : "bg-amber-400"}`} style={{ width: `${safe}%` }} /></div></div>;
 }
 
 function AvailabilityBadge({ availability, locale, labels }: { availability: Availability; locale: string; labels: typeof ar }) {
@@ -388,11 +388,11 @@ function AvailabilityBadge({ availability, locale, labels }: { availability: Ava
 function AccountBadge({ status, hasUser, labels }: { status: string | null; hasUser: boolean; labels: typeof ar }) {
   const key = status === "active" ? "approved" : status === "rejected" ? "rejected" : status === "suspended" ? "suspended" : status === "pending_review" ? "pending" : "unclaimed";
   const tones = { approved: "green", rejected: "red", suspended: "red", pending: "amber", unclaimed: "blue" } as const;
-  return <div><Pill tone={tones[key]}>{labels[key]}</Pill><p className="mt-1.5 text-xs font-bold text-[#9AA1B4]">{hasUser ? (labels === en ? "Portal enabled" : "بوابة مفعلة") : (labels === en ? "Profile only" : "ملف فقط")}</p></div>;
+  return <div><Pill tone={tones[key]}>{labels[key]}</Pill><p className="mt-1.5 text-xs font-bold text-[#9B8BA3]">{hasUser ? (labels === en ? "Portal enabled" : "بوابة مفعلة") : (labels === en ? "Profile only" : "ملف فقط")}</p></div>;
 }
 
 function Pill({ children, tone }: { children: React.ReactNode; tone: "green" | "red" | "amber" | "blue" }) {
-  const classes = { green: "bg-emerald-50 text-emerald-700", red: "bg-rose-50 text-rose-700", amber: "bg-amber-50 text-amber-700", blue: "bg-[#EEF1FF] text-[#5568C0]" }[tone];
+  const classes = { green: "bg-emerald-50 text-emerald-700", red: "bg-rose-50 text-rose-700", amber: "bg-amber-50 text-amber-700", blue: "bg-[#F7F0FA] text-[#5568C0]" }[tone];
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black ${classes}`}>{children}</span>;
 }
 

@@ -115,9 +115,9 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
 
       <CampaignPanel>
         <CampaignSectionTitle number="03" title={locale === "ar" ? "التقدم والإكمال التلقائي" : "Progress and automatic completion"} description={locale === "ar" ? "يمكن إضافة أهداف الحملة بعد الإنشاء، وسيُحدّث النظام التقدم تلقائيًا." : "Targets can be added after creation and progress will update automatically."} />
-        <label className="mt-6 flex items-center gap-3 rounded-2xl border border-[#DDE2F3] bg-[#FAFBFF] p-4">
+        <label className="mt-6 flex items-center gap-3 rounded-2xl border border-[#ECE1F1] bg-[#FDFBFE] p-4">
           <input name="auto_complete_enabled" type="checkbox" checked={autoComplete} onChange={(event) => setAutoComplete(event.target.checked)} className="h-5 w-5" />
-          <span className="font-black text-[#405080]">{locale === "ar" ? "تفعيل الإكمال التلقائي للحملة" : "Enable automatic campaign completion"}</span>
+          <span className="font-black text-[#513865]">{locale === "ar" ? "تفعيل الإكمال التلقائي للحملة" : "Enable automatic campaign completion"}</span>
         </label>
         <div className="mt-5">
           <Field label={locale === "ar" ? "قاعدة الإكمال" : "Completion rule"}>
@@ -157,7 +157,7 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
             ) : (
               <>
                 <input type="hidden" name="manager_id" value={currentUserId} />
-                <div className={`${inputClass} flex items-center bg-[#F8F9FF] text-[#68749B]`}>{currentManager?.full_name ?? copy.form.you}</div>
+                <div className={`${inputClass} flex items-center bg-[#FCF9FD] text-[#68749B]`}>{currentManager?.full_name ?? copy.form.you}</div>
               </>
             )}
           </Field>
@@ -170,9 +170,9 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
           {statuses.map((option) => {
             const active = status === option.value;
             return (
-              <button key={option.value} type="button" onClick={() => setStatus(option.value)} className={`rounded-[22px] border p-5 text-start transition ${active ? "border-[#6877C8] bg-[#F0F2FF] shadow-[0_0_0_4px_rgba(104,119,200,0.10)]" : "border-[#E1E5F5] bg-[#FAFBFF] hover:border-[#A9B9E6] hover:bg-white"}`}>
-                <span className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${active ? "bg-[#6877C8] text-white" : "bg-white text-[#7B86B5]"}`}>{active ? "✓" : "○"}</span>
-                <span className="block font-black text-[#33447F]">{option.label}</span>
+              <button key={option.value} type="button" onClick={() => setStatus(option.value)} className={`rounded-[22px] border p-5 text-start transition ${active ? "border-[#A170BA] bg-[#F8F2FB] shadow-[0_0_0_4px_rgba(104,119,200,0.10)]" : "border-[#E1E5F5] bg-[#FDFBFE] hover:border-[#D8BDE3] hover:bg-white"}`}>
+                <span className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${active ? "bg-[#A170BA] text-white" : "bg-white text-[#7B86B5]"}`}>{active ? "✓" : "○"}</span>
+                <span className="block font-black text-[#432A57]">{option.label}</span>
                 <span className="mt-1 block text-xs leading-6 text-[#7C86A8]">{option.description}</span>
               </button>
             );
@@ -192,10 +192,10 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
       <div className="sticky bottom-4 z-20 rounded-[24px] border border-white/90 bg-white/94 p-4 shadow-[0_20px_55px_rgba(62,72,130,0.16)] backdrop-blur-xl">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
-            <p className="font-black text-[#33447F]">{copy.form.createButton}</p>
+            <p className="font-black text-[#432A57]">{copy.form.createButton}</p>
             <p className="mt-1 text-xs font-semibold text-[#8A92AA]">{copy.form.nextStep}</p>
           </div>
-          <button disabled={pending} className="inline-flex min-h-13 min-w-52 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#6877C8] to-[#5265BC] px-6 font-black text-white shadow-[0_14px_30px_rgba(79,98,185,0.22)] transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-65">
+          <button disabled={pending} className="inline-flex min-h-13 min-w-52 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#A170BA] to-[#8C5BA5] px-6 font-black text-white shadow-[0_14px_30px_rgba(79,98,185,0.22)] transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-65">
             <DashboardIcon name={pending ? "sparkles" : "plus"} className="h-5 w-5" />
             {pending ? copy.form.creating : copy.form.createButton}
           </button>
@@ -205,7 +205,7 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
   );
 }
 
-const inputClass = "h-14 w-full rounded-2xl border border-[#DDE2F3] bg-[#FAFBFF] px-4 text-sm font-bold text-[#33447F] outline-none transition placeholder:text-[#A4ABC3] hover:border-[#A9B9E6] focus:border-[#6877C8] focus:bg-white focus:shadow-[0_0_0_4px_rgba(104,119,200,0.10)]";
+const inputClass = "h-14 w-full rounded-2xl border border-[#ECE1F1] bg-[#FDFBFE] px-4 text-sm font-bold text-[#432A57] outline-none transition placeholder:text-[#AA9AAF] hover:border-[#D8BDE3] focus:border-[#A170BA] focus:bg-white focus:shadow-[0_0_0_4px_rgba(104,119,200,0.10)]";
 const textareaClass = `${inputClass} min-h-32 resize-y py-4 leading-7`;
 
 function Field({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {

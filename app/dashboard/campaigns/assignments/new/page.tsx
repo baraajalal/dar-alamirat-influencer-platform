@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { requirePermission } from "@/lib/auth/require-user";
-import { normalizeDashboardLocale } from "@/lib/i18n/dashboard";
 import AssignmentForm from "../../[id]/influencers/add/assignment-form";
 
 type BudgetRow = {
@@ -20,33 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function NewAssignmentWorkspacePage({ searchParams }: { searchParams: Promise<{ campaign_id?: string }> }) {
   const query = await searchParams;
   const campaignId = query.campaign_id ?? "";
-  const cookieStore = await cookies();
-  const locale = normalizeDashboardLocale(cookieStore.get("dashboard_locale")?.value);
-  const ar = locale === "ar";
-  const direction = ar ? "rtl" : "ltr";
   const { supabase } = await requirePermission("campaigns", "update");
-
-  const copy = ar
-    ? {
-        workspace: "مساحة عمل المنسق",
-        chooseTitle: "اختيار الحملة لإضافة مؤثر",
-        chooseDescription: "اختر الحملة أولًا، ثم ابحث عن المؤثر أو أنشئ ملفًا أوليًا جديدًا.",
-        noBrand: "بدون براند",
-        progress: "تقدم الحملة",
-        addTitle: "إضافة مؤثر لحملة",
-        addDescription: "ابحث عن مؤثر موجود أو أنشئ مؤثرًا جديدًا ثم أكمل التكليف.",
-        changeCampaign: "تغيير الحملة",
-      }
-    : {
-        workspace: "Coordinator workspace",
-        chooseTitle: "Choose a campaign to add an influencer",
-        chooseDescription: "Choose the campaign first, then find an influencer or create a new preliminary profile.",
-        noBrand: "No brand",
-        progress: "Campaign progress",
-        addTitle: "Add influencer to campaign",
-        addDescription: "Find an existing influencer or create a new one, then complete the assignment.",
-        changeCampaign: "Change campaign",
-      };
 
   if (!campaignId) {
     const { data: campaigns, error } = await supabase.from("campaigns")
@@ -55,19 +27,19 @@ export default async function NewAssignmentWorkspacePage({ searchParams }: { sea
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return (
-      <div className="space-y-6" dir={direction}>
+      <div className="space-y-6" dir="inherit">
         <div>
-          <p className="text-sm font-black text-[#6578CF]">{copy.workspace}</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-900">{copy.chooseTitle}</h1>
-          <p className="mt-2 text-sm font-bold text-slate-500">{copy.chooseDescription}</p>
+          <p className="text-sm font-black text-[#A978C3]">مساحة عمل المنسق</p>
+          <h1 className="mt-2 text-3xl font-black text-slate-900">اختيار الحملة لإضافة مؤثر</h1>
+          <p className="mt-2 text-sm font-bold text-slate-500">اختر الحملة أولًا، ثم ابحث عن المؤثر أو أنشئ ملفًا أوليًا جديدًا.</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {(campaigns ?? []).map((campaign) => (
-            <Link key={campaign.id} href={`/dashboard/campaigns/assignments/new?campaign_id=${campaign.id}`} className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#6578CF] hover:shadow-lg">
-              <span className="rounded-full bg-[#EEF1FF] px-3 py-1 text-xs font-black text-[#5368C3]">{campaign.brand || copy.noBrand}</span>
+            <Link key={campaign.id} href={`/dashboard/campaigns/assignments/new?campaign_id=${campaign.id}`} className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#A978C3] hover:shadow-lg">
+              <span className="rounded-full bg-[#F7F0FA] px-3 py-1 text-xs font-black text-[#9566AF]">{campaign.brand || "بدون براند"}</span>
               <h2 className="mt-4 text-lg font-black text-slate-900">{campaign.name}</h2>
-              <p className="mt-3 text-sm font-bold text-slate-500">{copy.progress}: {Math.round(Number(campaign.progress_percentage ?? 0))}%</p>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#6578CF]" style={{ width: `${Math.min(100, Number(campaign.progress_percentage ?? 0))}%` }} /></div>
+              <p className="mt-3 text-sm font-bold text-slate-500">تقدم الحملة: {Math.round(Number(campaign.progress_percentage ?? 0))}%</p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#A978C3]" style={{ width: `${Math.min(100, Number(campaign.progress_percentage ?? 0))}%` }} /></div>
             </Link>
           ))}
         </div>
@@ -88,17 +60,17 @@ export default async function NewAssignmentWorkspacePage({ searchParams }: { sea
   const budget = (budgetResult.data?.[0] ?? null) as BudgetRow | null;
 
   return (
-    <div className="space-y-6" dir={direction}>
+    <div className="space-y-6" dir="inherit">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-black text-[#6578CF]">{copy.addTitle}</p>
+          <p className="text-sm font-black text-[#A978C3]">إضافة مؤثر لحملة</p>
           <h1 className="mt-2 text-3xl font-black text-slate-900">{campaign.name}</h1>
-          <p className="mt-2 text-sm font-bold text-slate-500">{copy.addDescription}</p>
+          <p className="mt-2 text-sm font-bold text-slate-500">ابحث عن مؤثر موجود أو أنشئ مؤثرًا جديدًا ثم أكمل التكليف.</p>
         </div>
-        <Link href="/dashboard/campaigns/assignments/new" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700">{copy.changeCampaign}</Link>
+        <Link href="/dashboard/campaigns/assignments/new" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700">تغيير الحملة</Link>
       </div>
       <AssignmentForm
-        locale={locale}
+        locale="ar"
         campaignId={campaign.id}
         campaignName={campaign.name}
         defaultContentDueLocal={toLocalDateTime(campaign.content_due_at)}

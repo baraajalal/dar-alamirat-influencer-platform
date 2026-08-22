@@ -303,36 +303,36 @@ export default async function PaymentsPage({
             name="q"
             defaultValue={params.q}
             placeholder={t.search}
-            className="h-12 rounded-2xl border border-[#E1E5F3] bg-[#FAFBFF] px-4 text-sm font-bold text-[#3D4E83] outline-none transition focus:border-[#8392D8] focus:ring-4 focus:ring-[#8392D8]/10"
+            className="h-12 rounded-2xl border border-[#EEE2F2] bg-[#FDFBFE] px-4 text-sm font-bold text-[#503863] outline-none transition focus:border-[#8392D8] focus:ring-4 focus:ring-[#8392D8]/10"
           />
-          <select name="status" defaultValue={params.status ?? ""} className="h-12 rounded-2xl border border-[#E1E5F3] bg-[#FAFBFF] px-4 text-sm font-bold text-[#4B5C91] outline-none">
+          <select name="status" defaultValue={params.status ?? ""} className="h-12 rounded-2xl border border-[#EEE2F2] bg-[#FDFBFE] px-4 text-sm font-bold text-[#4B5C91] outline-none">
             <option value="">{t.allStatuses}</option>
             {Object.entries(statusText).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
-          <select name="type" defaultValue={params.type ?? ""} className="h-12 rounded-2xl border border-[#E1E5F3] bg-[#FAFBFF] px-4 text-sm font-bold text-[#4B5C91] outline-none">
+          <select name="type" defaultValue={params.type ?? ""} className="h-12 rounded-2xl border border-[#EEE2F2] bg-[#FDFBFE] px-4 text-sm font-bold text-[#4B5C91] outline-none">
             <option value="">{t.allTypes}</option>
             {Object.entries(typeText).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
-          <select name="campaign" defaultValue={params.campaign ?? ""} className="h-12 rounded-2xl border border-[#E1E5F3] bg-[#FAFBFF] px-4 text-sm font-bold text-[#4B5C91] outline-none">
+          <select name="campaign" defaultValue={params.campaign ?? ""} className="h-12 rounded-2xl border border-[#EEE2F2] bg-[#FDFBFE] px-4 text-sm font-bold text-[#4B5C91] outline-none">
             <option value="">{t.allCampaigns}</option>
             {campaigns.map((campaign) => <option key={campaign.id} value={campaign.id}>{campaign.name}</option>)}
           </select>
-          <button className="h-12 rounded-2xl bg-[#596CC5] px-5 text-sm font-black text-white shadow-[0_10px_24px_rgba(75,94,184,.22)] transition hover:bg-[#485BB5]">{t.filter}</button>
-          <Link href="/dashboard/payments" className="flex h-12 items-center justify-center rounded-2xl border border-[#DDE2F2] px-5 text-sm font-black text-[#68749A] transition hover:bg-[#F5F7FF]">{t.clear}</Link>
+          <button className="h-12 rounded-2xl bg-[#9463AE] px-5 text-sm font-black text-white shadow-[0_10px_24px_rgba(75,94,184,.22)] transition hover:bg-[#485BB5]">{t.filter}</button>
+          <Link href="/dashboard/payments" className="flex h-12 items-center justify-center rounded-2xl border border-[#ECE1F1] px-5 text-sm font-black text-[#705E7B] transition hover:bg-[#F8F3FA]">{t.clear}</Link>
         </form>
       </section>
 
       <section className="overflow-hidden rounded-[28px] border border-white/90 bg-white/95 shadow-[0_20px_60px_rgba(69,83,151,.09)]">
         <div className="overflow-x-auto">
           <table className="min-w-[980px] w-full text-sm">
-            <thead className="bg-[#F4F6FD] text-[#69749B]">
+            <thead className="bg-[#FAF6FC] text-[#715F7C]">
               <tr>
                 {[t.influencer, t.campaign, t.type, t.amount, t.paidAmount, t.status, t.due, t.action].map((label) => (
                   <th key={label} className="px-5 py-4 text-start text-xs font-black">{label}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EEF0F7]">
+            <tbody className="divide-y divide-[#F5EFF7]">
               {filtered.map((payment) => {
                 const assignment = assignmentMap.get(payment.assignment_id);
                 const campaign = assignment ? campaignMap.get(assignment.campaign_id) : undefined;
@@ -342,32 +342,32 @@ export default async function PaymentsPage({
                 const timing = assignment?.payment_timing === "before_publish" ? t.beforePublish : assignment?.payment_timing === "after_publish" ? t.afterPublish : t.byAgreement;
 
                 return (
-                  <tr key={payment.id} className="text-[#455582] transition hover:bg-[#FBFCFF]">
+                  <tr key={payment.id} className="text-[#455582] transition hover:bg-[#FEFCFF]">
                     <td className="px-5 py-4">
-                      <p className="font-black text-[#33447F]">{influencer?.full_name ?? "—"}</p>
-                      <p dir="ltr" className="mt-1 text-start text-xs font-bold text-[#9AA1B4]">{influencer?.mobile_e164 ?? "—"}</p>
+                      <p className="font-black text-[#432A57]">{influencer?.full_name ?? "—"}</p>
+                      <p dir="ltr" className="mt-1 text-start text-xs font-bold text-[#9B8BA3]">{influencer?.mobile_e164 ?? "—"}</p>
                     </td>
                     <td className="px-5 py-4">
                       <p className="font-extrabold">{campaign?.name ?? "—"}</p>
-                      <p className="mt-1 text-xs font-bold text-[#9AA1B4]">{campaign?.brand ?? "—"}</p>
+                      <p className="mt-1 text-xs font-bold text-[#9B8BA3]">{campaign?.brand ?? "—"}</p>
                       {assignment?.has_contract ? <span className="mt-2 inline-flex rounded-full bg-[#FFF5D8] px-2.5 py-1 text-[10px] font-black text-[#8A6A1F]">{t.contract} · {timing}</span> : null}
                     </td>
                     <td className="px-5 py-4 font-extrabold">{typeText[payment.type as keyof typeof typeText] ?? payment.type}</td>
                     <td className="px-5 py-4 font-black">{money.format(expected)}</td>
                     <td className="px-5 py-4">
                       <p className="font-black text-emerald-700">{money.format(paid)}</p>
-                      {paid < expected ? <p className="mt-1 text-[11px] font-bold text-[#9AA1B4]">{money.format(expected - paid)}</p> : null}
+                      {paid < expected ? <p className="mt-1 text-[11px] font-bold text-[#9B8BA3]">{money.format(expected - paid)}</p> : null}
                     </td>
                     <td className="px-5 py-4"><span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-black ring-1 ${tone(payment.status)}`}>{statusText[payment.status as keyof typeof statusText] ?? payment.status}</span></td>
-                    <td className="px-5 py-4 text-xs font-bold text-[#69749B]">{paymentDueAt(payment) ? date.format(new Date(paymentDueAt(payment)!)) : "—"}</td>
-                    <td className="px-5 py-4"><Link href={`/dashboard/payments/${payment.id}`} className="inline-flex rounded-xl bg-[#EEF1FF] px-3.5 py-2 text-xs font-black text-[#5568BF] transition hover:bg-[#E1E6FF]">{t.details}</Link></td>
+                    <td className="px-5 py-4 text-xs font-bold text-[#715F7C]">{paymentDueAt(payment) ? date.format(new Date(paymentDueAt(payment)!)) : "—"}</td>
+                    <td className="px-5 py-4"><Link href={`/dashboard/payments/${payment.id}`} className="inline-flex rounded-xl bg-[#F7F0FA] px-3.5 py-2 text-xs font-black text-[#5568BF] transition hover:bg-[#E1E6FF]">{t.details}</Link></td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 ? <div className="p-10 text-center text-sm font-bold text-[#929AB1]">{t.noResults}</div> : null}
+        {filtered.length === 0 ? <div className="p-10 text-center text-sm font-bold text-[#95849D]">{t.noResults}</div> : null}
       </section>
     </main>
   );

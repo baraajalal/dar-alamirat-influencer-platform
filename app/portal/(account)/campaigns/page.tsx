@@ -13,6 +13,7 @@ type AssignmentRow = {
   id: string;
   status: string;
   execution_type: string | null;
+  other_execution_details: string | null;
   content_due_at: string | null;
   publishing_date: string | null;
   branch: string | null;
@@ -26,7 +27,7 @@ export default async function InfluencerCampaignsPage() {
   const { data: assignments } = await admin
     .from("campaign_assignments")
     .select(
-      "id,status,execution_type,content_due_at,publishing_date,branch,order_number,created_at,campaigns(name,brand,product,brief,start_date,end_date)",
+      "id,status,execution_type,other_execution_details,branch,order_number,created_at,campaigns(name,brand,product,brief,start_date,end_date)",
     )
     .eq("influencer_id", influencer.id)
     .order("created_at", { ascending: false });
@@ -58,22 +59,21 @@ export default async function InfluencerCampaignsPage() {
                       {campaign?.brand ? <Tag>{campaign.brand}</Tag> : null}
                       {campaign?.product ? <Tag>{campaign.product}</Tag> : null}
                     </div>
-                    <h2 className="mt-3 text-xl font-black text-[#304176]">
+                    <h2 className="mt-3 text-xl font-black text-[#3D274F]">
                       {campaign?.name ?? "حملة"}
                     </h2>
                     <p className="mt-2 max-w-3xl text-sm font-semibold leading-7 text-[#7C85A0]">
                       {campaign?.brief || "تفاصيل التكليف متاحة في رابط الحملة."}
                     </p>
                   </div>
-                  <span className="rounded-full bg-[#EEF1FF] px-4 py-2 text-xs font-black text-[#5E72CF]">
+                  <span className="rounded-full bg-[#F7F0FA] px-4 py-2 text-xs font-black text-[#5E72CF]">
                     {statusLabel(String(assignment.status))}
                   </span>
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <Info label="نوع التنفيذ" value={executionLabel(assignment.execution_type)} />
+                  <Info label="نوع التنفيذ" value={executionLabel(assignment.execution_type, assignment.other_execution_details)} />
                   <Info label="موعد المحتوى" value={formatDate(assignment.content_due_at)} />
-                  <Info label="موعد النشر" value={formatDate(assignment.publishing_date)} />
                   <Info
                     label="الموقع أو الطلب"
                     value={assignment.branch || assignment.order_number || "غير محدد"}
@@ -98,7 +98,7 @@ function Header({
   description: string;
 }) {
   return (
-    <section className="rounded-[28px] bg-[linear-gradient(135deg,#5F73D5,#8290E2)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
+    <section className="rounded-[28px] bg-[linear-gradient(135deg,#9C68B9,#BE95D0)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
       <p className="text-sm font-black text-white/70">{eyebrow}</p>
       <h1 className="mt-2 text-2xl font-black">{title}</h1>
       <p className="mt-3 max-w-3xl text-sm font-semibold leading-7 text-white/78">
@@ -110,7 +110,7 @@ function Header({
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full bg-[#EEF1FF] px-3 py-1.5 text-xs font-black text-[#596BC4]">
+    <span className="rounded-full bg-[#F7F0FA] px-3 py-1.5 text-xs font-black text-[#9362AD]">
       {children}
     </span>
   );
@@ -118,16 +118,16 @@ function Tag({ children }: { children: React.ReactNode }) {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[#E8EBF7] bg-[#FAFBFF] p-4">
-      <p className="text-xs font-bold text-[#9199B3]">{label}</p>
-      <p className="mt-2 text-sm font-black text-[#465681]">{value}</p>
+    <div className="rounded-2xl border border-[#E8EBF7] bg-[#FDFBFE] p-4">
+      <p className="text-xs font-bold text-[#94839C]">{label}</p>
+      <p className="mt-2 text-sm font-black text-[#5C456B]">{value}</p>
     </div>
   );
 }
 
 function Empty({ text }: { text: string }) {
   return (
-    <div className="rounded-[28px] border border-dashed border-[#DCE1F4] bg-white/75 px-4 py-14 text-center text-sm text-[#8790AA]">
+    <div className="rounded-[28px] border border-dashed border-[#EADFF0] bg-white/75 px-4 py-14 text-center text-sm text-[#8C7B94]">
       {text}
     </div>
   );

@@ -30,10 +30,10 @@ export default async function StaffSetPasswordPage({
   };
 
   return (
-    <main dir="rtl" className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#F4F6FF] px-4 py-10 font-['Tajawal',Tahoma,Arial,sans-serif]">
-      <div aria-hidden="true" className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#DCE3FF] blur-3xl" />
+    <main dir="inherit" className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FAF6FC] px-4 py-10 font-['Tajawal',Tahoma,Arial,sans-serif]">
+      <div aria-hidden="true" className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#E9D9EE] blur-3xl" />
       <section className="relative grid w-full max-w-5xl overflow-hidden rounded-[34px] border border-white bg-white shadow-[0_30px_90px_rgba(71,88,160,0.18)] lg:grid-cols-[0.8fr_1.2fr]">
-        <aside className="hidden min-h-[620px] bg-[linear-gradient(150deg,#6E7FD1,#5063BA_60%,#4053A8)] p-10 text-white lg:flex lg:flex-col lg:justify-between">
+        <aside className="hidden min-h-[620px] bg-[linear-gradient(150deg,#B682C5,#9566AF_60%,#754A93)] p-10 text-white lg:flex lg:flex-col lg:justify-between">
           <img src="/da-logo.png" alt="دار الأميرات" className="h-28 w-32 object-contain brightness-0 invert" />
           <div>
             <p className="text-sm font-bold tracking-[0.18em] text-white/70">EMPLOYEE ACTIVATION</p>
@@ -46,19 +46,19 @@ export default async function StaffSetPasswordPage({
         <div className="flex min-h-[620px] items-center justify-center p-6 sm:p-10 lg:p-14">
           <div className="w-full max-w-md">
             <div className="mb-7 text-center">
-              <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-[28px] bg-[linear-gradient(145deg,#7180D2,#5668BC)] shadow-[0_22px_45px_rgba(86,104,188,0.28)] ring-8 ring-[#EDF0FF]"><img src="/da-logo.png" alt="دار الأميرات" className="h-20 w-20 object-contain" /></div>
-              <p className="text-sm font-extrabold text-[#6877C8]">قبول دعوة الموظف</p>
-              <h2 className="mt-2 text-3xl font-black text-[#2F4075]">مرحبًا {profile.full_name}</h2>
-              <p className="mt-3 text-sm font-medium leading-7 text-[#8189A8]">أنشئ كلمة المرور الخاصة بحسابك الوظيفي<br /><span dir="ltr" className="font-bold text-[#6575CB]">{profile.email ?? user.email}</span></p>
+              <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-[28px] bg-[linear-gradient(145deg,#AD7EC4,#9566AF)] shadow-[0_22px_45px_rgba(86,104,188,0.28)] ring-8 ring-[#F4ECF7]"><img src="/da-logo.png" alt="دار الأميرات" className="h-20 w-20 object-contain" /></div>
+              <p className="text-sm font-extrabold text-[#A170BA]">قبول دعوة الموظف</p>
+              <h2 className="mt-2 text-3xl font-black text-[#402A4B]">مرحبًا {profile.full_name}</h2>
+              <p className="mt-3 text-sm font-medium leading-7 text-[#75677B]">أنشئ كلمة المرور الخاصة بحسابك الوظيفي<br /><span dir="ltr" className="font-bold text-[#A06DB9]">{profile.email ?? user.email}</span></p>
             </div>
 
             {errorCode ? <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{messages[errorCode] ?? "حدث خطأ غير متوقع."}</div> : null}
 
             <form action={setStaffPassword} className="space-y-4">
-              <label className="block"><span className="mb-2 block text-sm font-black text-[#35467B]">كلمة المرور الجديدة</span><input name="password" type="password" minLength={8} required autoComplete="new-password" className="h-14 w-full rounded-2xl border border-[#D8DDF7] bg-[#FBFCFF] px-4 font-bold text-[#33447F] outline-none focus:border-[#6877C8] focus:ring-4 focus:ring-[#6877C8]/10" dir="ltr" /></label>
-              <label className="block"><span className="mb-2 block text-sm font-black text-[#35467B]">تأكيد كلمة المرور</span><input name="confirm_password" type="password" minLength={8} required autoComplete="new-password" className="h-14 w-full rounded-2xl border border-[#D8DDF7] bg-[#FBFCFF] px-4 font-bold text-[#33447F] outline-none focus:border-[#6877C8] focus:ring-4 focus:ring-[#6877C8]/10" dir="ltr" /></label>
-              <div className="rounded-2xl bg-[#F6F7FF] px-4 py-3 text-xs font-semibold leading-6 text-[#727C98]">8 أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز خاص مثل ! أو @.</div>
-              <button type="submit" className="h-14 w-full rounded-2xl bg-[linear-gradient(135deg,#6575CB,#4F60B6)] font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)] transition hover:-translate-y-0.5">تفعيل الحساب والانتقال لتسجيل الدخول</button>
+              <label className="block"><span className="mb-2 block text-sm font-black text-[#4C4052]">كلمة المرور الجديدة</span><input name="password" type="password" minLength={8} required autoComplete="new-password" className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FEFCFF] px-4 font-bold text-[#432A57] outline-none focus:border-[#A170BA] focus:ring-4 focus:ring-[#A170BA]/10" dir="ltr" /></label>
+              <label className="block"><span className="mb-2 block text-sm font-black text-[#4C4052]">تأكيد كلمة المرور</span><input name="confirm_password" type="password" minLength={8} required autoComplete="new-password" className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FEFCFF] px-4 font-bold text-[#432A57] outline-none focus:border-[#A170BA] focus:ring-4 focus:ring-[#A170BA]/10" dir="ltr" /></label>
+              <div className="rounded-2xl bg-[#F8F3FA] px-4 py-3 text-xs font-semibold leading-6 text-[#727C98]">8 أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز خاص مثل ! أو @.</div>
+              <button type="submit" className="h-14 w-full rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)] transition hover:-translate-y-0.5">تفعيل الحساب والانتقال لتسجيل الدخول</button>
             </form>
           </div>
         </div>

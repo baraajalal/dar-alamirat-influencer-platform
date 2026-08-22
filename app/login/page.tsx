@@ -14,8 +14,8 @@ export default async function LoginPage({
   const registered = params.registered === "1";
 
   const errorMessages: Record<string, string> = {
-    missing_credentials: "يرجى إدخال البريد الإلكتروني وكلمة المرور.",
-    invalid_credentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    missing_credentials: "يرجى إدخال البريد الإلكتروني أو رقم الجوال وكلمة المرور.",
+    invalid_credentials: "البريد الإلكتروني أو رقم الجوال أو كلمة المرور غير صحيحة.",
     profile_not_found: "الحساب غير مربوط بملف مؤثر داخل النظام.",
     account_disabled: "تم تعطيل هذا الحساب. يرجى التواصل مع الإدارة.",
     invalid_activation_session:

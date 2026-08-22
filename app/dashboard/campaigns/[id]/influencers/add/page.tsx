@@ -58,7 +58,7 @@ export default async function AddCampaignInfluencerPage({
         actionIcon="arrow"
       />
 
-      <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#687AD1] via-[#5B6FC7] to-[#8492DA] p-6 text-white shadow-[0_24px_65px_rgba(74,88,162,0.22)] sm:p-8">
+      <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#A775C0] via-[#5B6FC7] to-[#8492DA] p-6 text-white shadow-[0_24px_65px_rgba(74,88,162,0.22)] sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-black">{campaign.brand || copy.common.unspecified}</span>

@@ -471,7 +471,7 @@ export default function CoordinatorPage() {
   const isInfluencerBlocked = eligibility !== null && !eligibility.eligible;
 
   return (
-    <main className="min-h-screen bg-[#F5F5F7] text-[#1B1B1F]" dir="rtl">
+    <main className="min-h-screen bg-[#F5F5F7] text-[#2E2335]" dir="inherit">
       <header className="header-lavender px-5 py-6 md:px-10">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
@@ -501,7 +501,7 @@ export default function CoordinatorPage() {
           <button
             type="button"
             onClick={logout}
-            className="rounded-2xl bg-white px-5 py-3 text-sm font-bold text-[#6F4EB0]"
+            className="rounded-2xl bg-white px-5 py-3 text-sm font-bold text-[#8752A0]"
           >
             تسجيل خروج
           </button>
@@ -511,7 +511,7 @@ export default function CoordinatorPage() {
       <section className="mx-auto max-w-7xl px-4 py-8">
         <div className="card">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-[#241D35]">
+            <h2 className="text-2xl font-bold text-[#3B264B]">
               ربط مؤثر بحملة
             </h2>
             <p className="mt-1 text-sm text-[#777]">
@@ -522,7 +522,7 @@ export default function CoordinatorPage() {
           <div className="grid gap-5 md:grid-cols-2">
             <label className="block">
               <div className="mb-2">
-                <div className="text-sm font-semibold text-[#25252A]">
+                <div className="text-sm font-semibold text-[#3A2C40]">
                   الحملة
                 </div>
                 <div className="text-xs text-[#777]">Campaign</div>
@@ -552,13 +552,13 @@ export default function CoordinatorPage() {
               </select>
             </label>
 
-            <div className="rounded-2xl bg-[#F8F5FC] p-4">
-              <div className="text-sm font-bold text-[#6F4EB0]">
+            <div className="rounded-2xl bg-[#F8F1FA] p-4">
+              <div className="text-sm font-bold text-[#8752A0]">
                 بيانات الحملة المختارة
               </div>
 
               {selectedCampaign ? (
-                <div className="mt-3 space-y-1 text-sm text-[#4A4358]">
+                <div className="mt-3 space-y-1 text-sm text-[#6B596F]">
                   <div>
                     <span className="font-semibold">الحملة:</span>{" "}
                     {selectedCampaign.campaignName}
@@ -580,8 +580,8 @@ export default function CoordinatorPage() {
             </div>
           </div>
 
-          <div className="mt-8 rounded-2xl border border-[#EEE9F7] bg-white p-5">
-            <h3 className="text-lg font-bold text-[#241D35]">
+          <div className="mt-8 rounded-2xl border border-[#E9DBEF] bg-white p-5">
+            <h3 className="text-lg font-bold text-[#3B264B]">
               البحث عن المؤثر
             </h3>
 
@@ -604,14 +604,14 @@ export default function CoordinatorPage() {
                 type="button"
                 onClick={searchInfluencer}
                 disabled={isSearchingInfluencer}
-                className="rounded-2xl bg-[#8E6CCB] px-6 py-3 font-bold text-white transition hover:bg-[#7C5DBC] disabled:opacity-60"
+                className="rounded-2xl bg-[#AD79C5] px-6 py-3 font-bold text-white transition hover:bg-[#9564AE] disabled:opacity-60"
               >
                 {isSearchingInfluencer ? "جاري البحث..." : "بحث"}
               </button>
             </div>
 
             {influencerMessage && (
-              <div className="mt-4 rounded-2xl bg-[#F8F5FC] px-4 py-3 text-sm font-semibold text-[#6F4EB0]">
+              <div className="mt-4 rounded-2xl bg-[#F8F1FA] px-4 py-3 text-sm font-semibold text-[#8752A0]">
                 {influencerMessage}
               </div>
             )}
@@ -637,12 +637,12 @@ export default function CoordinatorPage() {
 
             {influencer && (
               <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                <div className="rounded-2xl bg-[#F8F5FC] p-4">
-                  <div className="text-sm font-bold text-[#6F4EB0]">
+                <div className="rounded-2xl bg-[#F8F1FA] p-4">
+                  <div className="text-sm font-bold text-[#8752A0]">
                     بيانات المؤثر
                   </div>
 
-                  <div className="mt-3 space-y-1 text-sm text-[#4A4358]">
+                  <div className="mt-3 space-y-1 text-sm text-[#6B596F]">
                     <div>
                       <span className="font-semibold">الاسم:</span>{" "}
                       {influencer.fullName || "غير محدد"}
@@ -662,9 +662,9 @@ export default function CoordinatorPage() {
                   </div>
                 </div>
 
-                <div className="block rounded-2xl bg-[#FCFBFE] p-4">
+                <div className="block rounded-2xl bg-[#FDF9FE] p-4">
                   <div className="mb-2">
-                    <div className="text-sm font-semibold text-[#25252A]">
+                    <div className="text-sm font-semibold text-[#3A2C40]">
                       منصات الإعلان
                     </div>
                     <div className="text-xs text-[#777]">
@@ -679,10 +679,10 @@ export default function CoordinatorPage() {
                       return (
                         <label
                           key={getSocialAccountKey(account, index)}
-                          className="flex cursor-pointer items-center justify-between rounded-2xl border border-[#EEE9F7] bg-white px-4 py-3"
+                          className="flex cursor-pointer items-center justify-between rounded-2xl border border-[#E9DBEF] bg-white px-4 py-3"
                         >
                           <div>
-                            <div className="font-semibold text-[#241D35]">
+                            <div className="font-semibold text-[#3B264B]">
                               {account.platform}
                               {account.username ? ` - ${account.username}` : ""}
                             </div>
@@ -721,8 +721,8 @@ export default function CoordinatorPage() {
             {influencer &&
               selectedSocialAccountIds.length > 0 &&
               !isInfluencerBlocked && (
-                <div className="mt-6 rounded-2xl border border-[#EEE9F7] bg-[#FCFBFE] p-5">
-                  <h3 className="text-lg font-bold text-[#241D35]">
+                <div className="mt-6 rounded-2xl border border-[#E9DBEF] bg-[#FDF9FE] p-5">
+                  <h3 className="text-lg font-bold text-[#3B264B]">
                     بيانات الإعلان والاتفاق
                   </h3>
 
@@ -774,8 +774,8 @@ export default function CoordinatorPage() {
                               onClick={() => togglePaymentType(value)}
                               className={`rounded-2xl border px-4 py-3 text-sm font-bold transition ${
                                 checked
-                                  ? "border-[#8E6CCB] bg-[#F1EAFB] text-[#6F4EB0]"
-                                  : "border-[#EEE9F7] bg-white text-[#4A4358]"
+                                  ? "border-[#AD79C5] bg-[#F2E6F6] text-[#8752A0]"
+                                  : "border-[#E9DBEF] bg-white text-[#6B596F]"
                               }`}
                             >
                               {label}
@@ -952,7 +952,7 @@ export default function CoordinatorPage() {
                     type="button"
                     onClick={saveAssignment}
                     disabled={isSavingAssignment || isInfluencerBlocked}
-                    className="mt-6 w-full rounded-2xl bg-[#8E6CCB] px-6 py-4 font-bold text-white shadow-lg shadow-[#8E6CCB]/25 transition hover:bg-[#7C5DBC] disabled:opacity-60"
+                    className="mt-6 w-full rounded-2xl bg-[#AD79C5] px-6 py-4 font-bold text-white shadow-lg shadow-[#AD79C5]/25 transition hover:bg-[#9564AE] disabled:opacity-60"
                   >
                     {isSavingAssignment
                       ? "جاري الحفظ..."
@@ -967,11 +967,11 @@ export default function CoordinatorPage() {
       {successPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 text-center shadow-2xl">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#F1EAFB] text-2xl">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#F2E6F6] text-2xl">
               ✓
             </div>
 
-            <h2 className="text-2xl font-extrabold text-[#241D35]">
+            <h2 className="text-2xl font-extrabold text-[#3B264B]">
               تم الحفظ بنجاح
             </h2>
 
@@ -979,16 +979,16 @@ export default function CoordinatorPage() {
               {successPopup.message}
             </p>
 
-            <p className="mt-2 text-sm font-semibold text-[#6F4EB0]">
+            <p className="mt-2 text-sm font-semibold text-[#8752A0]">
               قومي بنسخ رابط محتوى المؤثر الذي قمتِ بإضافته، ثم أرسليه للمؤثر لاستخدامه عند رفع رابط النشر والمادة الإعلانية.
             </p>
 
             {successPopup.submissionLink ? (
               <div
-                className="mt-5 rounded-2xl border border-[#EEE9F7] bg-[#F8F5FC] p-3 text-left"
+                className="mt-5 rounded-2xl border border-[#E9DBEF] bg-[#F8F1FA] p-3 text-left"
                 dir="ltr"
               >
-                <div className="break-all text-sm text-[#241D35]">
+                <div className="break-all text-sm text-[#3B264B]">
                   {successPopup.submissionLink}
                 </div>
               </div>
@@ -1003,7 +1003,7 @@ export default function CoordinatorPage() {
                 type="button"
                 onClick={copySubmissionLink}
                 disabled={!successPopup.submissionLink}
-                className="rounded-2xl bg-[#8E6CCB] px-5 py-3 font-bold text-white transition hover:bg-[#7C5DBC] disabled:opacity-50"
+                className="rounded-2xl bg-[#AD79C5] px-5 py-3 font-bold text-white transition hover:bg-[#9564AE] disabled:opacity-50"
               >
                 نسخ الرابط
               </button>
@@ -1011,7 +1011,7 @@ export default function CoordinatorPage() {
               <button
                 type="button"
                 onClick={() => setSuccessPopup(null)}
-                className="rounded-2xl border border-[#D7C7EE] bg-white px-5 py-3 font-bold text-[#6F4EB0]"
+                className="rounded-2xl border border-[#DEC7E8] bg-white px-5 py-3 font-bold text-[#8752A0]"
               >
                 إغلاق
               </button>

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function EmployeeDashboardLayout({ children }: { children: ReactNode }) {
   const { profile } = await requireRole(["admin", "coordinator", "finance", "reviewer", "viewer"]);
   const cookieStore = await cookies();
-  const locale = normalizeDashboardLocale(cookieStore.get("dashboard_locale")?.value);
+  const locale = normalizeDashboardLocale(cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value);
   const dictionary = getDashboardDictionary(locale);
   const roleLabel = dictionary.roles[profile.role as keyof typeof dictionary.roles] ?? profile.role;
 

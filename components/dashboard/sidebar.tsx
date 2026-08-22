@@ -82,14 +82,14 @@ export function DashboardSidebar({
     const label = dictionary.navigation[item.label];
     const content = (
       <>
-        <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${active ? "bg-[#5368C3] text-white shadow-sm" : "bg-white/8 text-white/78 group-hover:bg-white/12 group-hover:text-white"}`}>
+        <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${active ? "bg-[#8F61A0] text-white shadow-sm" : "bg-[#F7F0F9] text-[#8F61A0] group-hover:bg-[#F1E5F5] group-hover:text-[#5F3B6C]"}`}>
           <DashboardIcon name={item.icon} className="h-[19px] w-[19px]" />
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-extrabold">{label}</span>
-        {item.disabled ? <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-bold text-white/58">{dictionary.common.soon}</span> : null}
+        {item.disabled ? <span className="rounded-full bg-[#F4ECF7] px-2 py-1 text-[10px] font-bold text-[#8F61A0]">{dictionary.common.soon}</span> : null}
       </>
     );
-    const className = `group flex min-h-12 items-center gap-3 rounded-2xl px-3 py-2.5 transition ${active ? "bg-white text-[#4056A8] shadow-[0_12px_28px_rgba(24,38,105,0.18)]" : item.disabled ? "cursor-default text-white/55" : "text-white/82 hover:bg-white/10 hover:text-white"}`;
+    const className = `group flex min-h-12 items-center gap-3 rounded-2xl px-3 py-2.5 transition ${active ? "bg-[#F4ECF7] text-[#5F3B6C] ring-1 ring-[#E5D3EB]" : item.disabled ? "cursor-default text-[#B0A6B4]" : "text-[#5D5263] hover:bg-[#FCF9FD] hover:text-[#5F3B6C]"}`;
 
     return item.disabled
       ? <div key={item.href} className={className}>{content}</div>
@@ -101,17 +101,17 @@ export function DashboardSidebar({
     const groupActive = pathname.startsWith("/dashboard/campaigns");
     return (
       <div key={parent.href} className="space-y-1.5">
-        <div className={`group flex min-h-12 items-center rounded-2xl transition ${groupActive ? "bg-white text-[#4056A8] shadow-[0_12px_28px_rgba(24,38,105,0.18)]" : "text-white/82 hover:bg-white/10 hover:text-white"}`}>
+        <div className={`group flex min-h-12 items-center rounded-2xl transition ${groupActive ? "bg-[#F4ECF7] text-[#5F3B6C] ring-1 ring-[#E5D3EB]" : "text-[#5D5263] hover:bg-[#FCF9FD] hover:text-[#5F3B6C]"}`}>
           <Link href={parent.href} onClick={() => { setCampaignOpen(true); onNavigate?.(); }} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${groupActive ? "bg-[#5368C3] text-white" : "bg-white/8 text-white/78"}`}><DashboardIcon name={parent.icon} className="h-[19px] w-[19px]" /></span>
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${groupActive ? "bg-[#9566AF] text-white" : "bg-[#F7F0F9] text-[#8F61A0]"}`}><DashboardIcon name={parent.icon} className="h-[19px] w-[19px]" /></span>
             <span className="min-w-0 flex-1 truncate text-sm font-extrabold">{dictionary.navigation[parent.label]}</span>
           </Link>
           <button type="button" onClick={() => setCampaignOpen((v) => !v)} className="mx-2 flex h-9 w-9 items-center justify-center rounded-xl" aria-expanded={campaignOpen}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`h-4 w-4 transition-transform ${campaignOpen ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
           </button>
         </div>
-        {campaignOpen ? <div className={`space-y-1 border-white/15 ${locale === "ar" ? "mr-6 border-r pr-3" : "ml-6 border-l pl-3"}`}>
-          {campaignChildren.map((child) => { const active = pathname.startsWith(child.href); return <Link key={child.href} href={child.href} onClick={onNavigate} className={`group flex min-h-10 items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-extrabold transition ${active ? "bg-white/18 text-white" : "text-white/68 hover:bg-white/10 hover:text-white"}`}><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/7"><DashboardIcon name={child.icon} className="h-4 w-4" /></span><span>{dictionary.navigation[child.label]}</span></Link>; })}
+        {campaignOpen ? <div className={`space-y-1 border-[#E7DDEF] ${locale === "ar" ? "mr-6 border-r pr-3" : "ml-6 border-l pl-3"}`}>
+          {campaignChildren.map((child) => { const active = pathname.startsWith(child.href); return <Link key={child.href} href={child.href} onClick={onNavigate} className={`group flex min-h-10 items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-extrabold transition ${active ? "bg-[#F1E5F5] text-[#5F3B6C]" : "text-[#7E7284] hover:bg-[#FCF9FD] hover:text-[#5F3B6C]"}`}><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F7F0F9]"><DashboardIcon name={child.icon} className="h-4 w-4" /></span><span>{dictionary.navigation[child.label]}</span></Link>; })}
         </div> : null}
       </div>
     );
@@ -122,7 +122,7 @@ export function DashboardSidebar({
 
     return (
       <div key={parent.href} className="space-y-1.5">
-        <div className={`group flex min-h-12 items-center rounded-2xl transition ${financeActive ? "bg-white text-[#4056A8] shadow-[0_12px_28px_rgba(24,38,105,0.18)]" : "text-white/82 hover:bg-white/10 hover:text-white"}`}>
+        <div className={`group flex min-h-12 items-center rounded-2xl transition ${financeActive ? "bg-[#F4ECF7] text-[#5F3B6C] ring-1 ring-[#E5D3EB]" : "text-[#5D5263] hover:bg-[#FCF9FD] hover:text-[#5F3B6C]"}`}>
           <Link
             href={parent.href}
             onClick={() => {
@@ -131,7 +131,7 @@ export function DashboardSidebar({
             }}
             className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5"
           >
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${financeActive ? "bg-[#5368C3] text-white shadow-sm" : "bg-white/8 text-white/78 group-hover:bg-white/12 group-hover:text-white"}`}>
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${financeActive ? "bg-[#8F61A0] text-white shadow-sm" : "bg-[#F7F0F9] text-[#8F61A0] group-hover:bg-[#F1E5F5] group-hover:text-[#5F3B6C]"}`}>
               <DashboardIcon name={parent.icon} className="h-[19px] w-[19px]" />
             </span>
             <span className="min-w-0 flex-1 truncate text-sm font-extrabold">{parentLabel}</span>
@@ -142,7 +142,7 @@ export function DashboardSidebar({
             aria-label={financeOpen ? "Collapse finance menu" : "Expand finance menu"}
             aria-expanded={financeOpen}
             onClick={() => setFinanceOpen((current) => !current)}
-            className={`mx-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${financeActive ? "text-[#4056A8] hover:bg-[#EEF1FF]" : "text-white/75 hover:bg-white/10 hover:text-white"}`}
+            className={`mx-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${financeActive ? "text-[#74478F] hover:bg-[#F7F0F9]" : "text-[#7E7284] hover:bg-[#FCF9FD] hover:text-[#5F3B6C]"}`}
           >
             <svg
               viewBox="0 0 24 24"
@@ -160,7 +160,7 @@ export function DashboardSidebar({
         </div>
 
         {financeOpen ? (
-          <div className={`space-y-1 border-white/15 ${locale === "ar" ? "mr-6 border-r pr-3" : "ml-6 border-l pl-3"}`}>
+          <div className={`space-y-1 border-[#E7DDEF] ${locale === "ar" ? "mr-6 border-r pr-3" : "ml-6 border-l pl-3"}`}>
             {financeChildren.map((child) => {
               const childActive = pathname.startsWith(child.href);
               return (
@@ -168,9 +168,9 @@ export function DashboardSidebar({
                   key={child.href}
                   href={child.href}
                   onClick={onNavigate}
-                  className={`group flex min-h-10 items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-extrabold transition ${childActive ? "bg-white/18 text-white shadow-sm ring-1 ring-white/12" : "text-white/68 hover:bg-white/10 hover:text-white"}`}
+                  className={`group flex min-h-10 items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-extrabold transition ${childActive ? "bg-[#F1E5F5] text-[#5F3B6C] shadow-sm ring-1 ring-white/12" : "text-[#7E7284] hover:bg-[#FCF9FD] hover:text-[#5F3B6C]"}`}
                 >
-                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${childActive ? "bg-white/15 text-white" : "bg-white/7 text-white/65 group-hover:text-white"}`}>
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${childActive ? "bg-[#E9D9EE] text-[#5F3B6C]" : "bg-[#F7F0F9] text-white/65 group-hover:text-white"}`}>
                     <DashboardIcon name={child.icon} className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1 truncate">{dictionary.navigation[child.label]}</span>
@@ -185,26 +185,26 @@ export function DashboardSidebar({
 
   return (
     <aside
-      className="flex h-full w-[286px] flex-col overflow-hidden bg-[linear-gradient(180deg,#6578CF_0%,#5368C3_48%,#4056B2_100%)] text-white shadow-[0_22px_65px_rgba(42,60,145,0.28)]"
+      className="flex h-full w-[286px] flex-col overflow-hidden border-e border-[#EEE4F2] bg-white text-[#4C4052] shadow-[12px_0_40px_rgba(64,36,77,.035)]"
       dir={locale === "ar" ? "rtl" : "ltr"}
     >
-      <div className="relative border-b border-white/12 px-6 pb-5 pt-7">
-        <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full border border-white/10" />
-        <div className="pointer-events-none absolute left-3 top-6 h-28 w-28 opacity-15 [background:radial-gradient(circle_at_50%_50%,white_0_1px,transparent_2px)] [background-size:14px_14px]" />
+      <div className="relative border-b border-[#EEE4F2] px-5 pb-5 pt-6">
+        <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full border border-[#F4ECF7]" />
+        <div className="pointer-events-none absolute left-3 top-6 h-28 w-28 opacity-30 [background:radial-gradient(circle_at_50%_50%,#D8B9E1_0_1px,transparent_2px)] [background-size:14px_14px]" />
         <Link href="/dashboard" onClick={onNavigate} className="relative flex items-center gap-3">
-          <div className="flex h-[70px] w-[92px] shrink-0 items-center justify-center rounded-2xl bg-white/10 p-2 ring-1 ring-white/14 backdrop-blur-sm">
+          <div className="flex h-[64px] w-[88px] shrink-0 items-center justify-center rounded-2xl bg-[#FCF9FD] p-2 ring-1 ring-[#EEE4F2]">
             <Image src="/da-logo.png" alt={dictionary.brand.name} width={115} height={72} className="h-14 w-auto object-contain" priority />
           </div>
           <div>
-            <p className="text-xs font-bold text-white/65">{dictionary.brand.employeePortal}</p>
-            <h2 className="mt-1 text-base font-black leading-6">{dictionary.brand.system}</h2>
+            <p className="text-xs font-bold text-[#9A8FA0]">{dictionary.brand.employeePortal}</p>
+            <h2 className="mt-1 text-base font-black leading-6 text-[#302437]">{dictionary.brand.system}</h2>
           </div>
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-4 py-5 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,.25)_transparent]">
+      <nav className="flex-1 overflow-y-auto px-4 py-5 [scrollbar-width:thin] [scrollbar-color:rgba(159,112,177,.35)_transparent]">
         <div className="space-y-1.5">
-          <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/42">
+          <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#A398A8]">
             {dictionary.navigation.mainSection}
           </p>
           {mainItems.map((item) => {
@@ -216,8 +216,8 @@ export function DashboardSidebar({
         </div>
 
         {systemItems.length > 0 ? (
-          <div className="mt-6 space-y-1.5 border-t border-white/10 pt-5">
-            <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/42">
+          <div className="mt-6 space-y-1.5 border-t border-[#EEE4F2] pt-5">
+            <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#A398A8]">
               {dictionary.navigation.systemSection}
             </p>
             {systemItems.map(renderStandardItem)}
@@ -225,12 +225,12 @@ export function DashboardSidebar({
         ) : null}
 
         {soonItems.length > 0 ? (
-          <div className="mt-6 space-y-1.5 border-t border-white/10 pt-5">
+          <div className="mt-6 space-y-1.5 border-t border-[#EEE4F2] pt-5">
             <div className="flex items-center justify-between px-3 pb-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/42">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#A398A8]">
                 {dictionary.navigation.soonSection}
               </p>
-              <span className="rounded-full bg-white/8 px-2 py-1 text-[9px] font-black text-white/45">
+              <span className="rounded-full bg-[#F4ECF7] px-2 py-1 text-[9px] font-black text-[#9A8FA0]">
                 {soonItems.length}
               </span>
             </div>
@@ -239,14 +239,14 @@ export function DashboardSidebar({
         ) : null}
       </nav>
 
-      <div className="border-t border-white/12 p-4">
+      <div className="border-t border-[#EEE4F2] p-4">
         <form action={logout}>
-          <button type="submit" className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-extrabold text-white/75 transition hover:bg-white/10 hover:text-white">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/8"><DashboardIcon name="logout" className="h-[19px] w-[19px]" /></span>
+          <button type="submit" className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-extrabold text-[#756A7A] transition hover:bg-[#FCF9FD] hover:text-[#5F3B6C]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F7F0F9]"><DashboardIcon name="logout" className="h-[19px] w-[19px]" /></span>
             {dictionary.common.logout}
           </button>
         </form>
-        <p className="mt-3 px-3 text-[10px] font-semibold text-white/38">Dar Al Amirat · 2026</p>
+        <p className="mt-3 px-3 text-[10px] font-semibold text-[#AAA0AE]">Dar Al Amirat · 2026</p>
       </div>
     </aside>
   );

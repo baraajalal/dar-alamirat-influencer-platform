@@ -75,7 +75,7 @@ export default async function InfluencerPaymentsPage() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[28px] bg-[linear-gradient(135deg,#5F73D5,#8290E2)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
+      <section className="rounded-[28px] bg-[linear-gradient(135deg,#9C68B9,#BE95D0)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
         <p className="text-sm font-black text-white/70">المستحقات</p>
         <h1 className="mt-2 text-2xl font-black">المدفوعات وحالة البنك</h1>
         <p className="mt-3 max-w-3xl text-sm font-semibold leading-7 text-white/78">
@@ -94,13 +94,13 @@ export default async function InfluencerPaymentsPage() {
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-[#6676C9]">الملف المالي</p>
+              <p className="text-sm font-bold text-[#9F6EB8]">الملف المالي</p>
               <h2 className="mt-1 text-xl font-black">بيانات البنك المقنّعة</h2>
             </div>
             <StatusBadge status={financial?.bank_profile_status ?? "incomplete"} />
           </div>
 
-          <div className="mt-5 space-y-4 rounded-2xl bg-[#F8F9FF] p-5">
+          <div className="mt-5 space-y-4 rounded-2xl bg-[#FCF9FD] p-5">
             <Info label="اسم البنك" value={financial?.bank_name || "غير مضاف"} />
             <Info
               label="صاحب الحساب"
@@ -129,14 +129,14 @@ export default async function InfluencerPaymentsPage() {
 
           <Link
             href="/portal/profile/payment-details"
-            className="mt-5 flex h-13 items-center justify-center rounded-2xl bg-[#6072CB] px-5 py-3 text-sm font-black text-white"
+            className="mt-5 flex h-13 items-center justify-center rounded-2xl bg-[#9A68B5] px-5 py-3 text-sm font-black text-white"
           >
             تأكيد أو تحديث بيانات البنك
           </Link>
         </div>
 
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
-          <p className="text-sm font-bold text-[#6676C9]">سجل المستحقات</p>
+          <p className="text-sm font-bold text-[#9F6EB8]">سجل المستحقات</p>
           <h2 className="mt-1 text-xl font-black">الحملات والمدفوعات</h2>
 
           <div className="mt-5 space-y-3">
@@ -150,14 +150,14 @@ export default async function InfluencerPaymentsPage() {
                 return (
                   <article
                     key={payment.id}
-                    className="rounded-2xl border border-[#E7EAF7] bg-[#FBFCFF] p-4"
+                    className="rounded-2xl border border-[#F3EDF7] bg-[#FEFCFF] p-4"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
-                        <p className="font-black text-[#344578]">
+                        <p className="font-black text-[#4A315C]">
                           {campaign?.name ?? "حملة"}
                         </p>
-                        <p className="mt-1 text-xs font-bold text-[#8991AA]">
+                        <p className="mt-1 text-xs font-bold text-[#8D7C94]">
                           {campaign?.brand ?? "دار الأميرات"} · {typeLabel(payment.type)}
                         </p>
                       </div>
@@ -188,7 +188,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[24px] border border-white bg-white/90 p-5 shadow-[0_14px_40px_rgba(68,82,140,0.08)]">
       <p className="text-sm text-[#7D86A1]">{label}</p>
-      <p className="mt-2 text-2xl font-black text-[#304176]">{value}</p>
+      <p className="mt-2 text-2xl font-black text-[#3D274F]">{value}</p>
     </div>
   );
 }
@@ -204,8 +204,8 @@ function Info({
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="text-xs font-bold text-[#9199B3]">{label}</span>
-      <span className="text-sm font-black text-[#465681]" dir={ltr ? "ltr" : "rtl"}>
+      <span className="text-xs font-bold text-[#94839C]">{label}</span>
+      <span className="text-sm font-black text-[#5C456B]" dir={ltr ? "ltr" : "rtl"}>
         {value}
       </span>
     </div>
@@ -216,14 +216,14 @@ function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-white p-3">
       <p className="text-[11px] font-bold text-[#929AB4]">{label}</p>
-      <p className="mt-1 text-sm font-black text-[#465681]">{value}</p>
+      <p className="mt-1 text-sm font-black text-[#5C456B]">{value}</p>
     </div>
   );
 }
 
 function Empty({ text }: { text: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[#DCE1F4] bg-[#FAFBFF] px-4 py-10 text-center text-sm text-[#8790AA]">
+    <div className="rounded-2xl border border-dashed border-[#EADFF0] bg-[#FDFBFE] px-4 py-10 text-center text-sm text-[#8C7B94]">
       {text}
     </div>
   );

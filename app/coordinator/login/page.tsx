@@ -56,7 +56,7 @@ export default function CoordinatorLoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F5F5F7] text-[#1B1B1F]" dir="rtl">
+    <main className="min-h-screen bg-[#F5F5F7] text-[#2E2335]" dir="inherit">
       <header className="header-lavender px-5 py-8 text-center md:px-10 md:py-12">
         <div className="mx-auto flex max-w-4xl flex-col items-center">
           <img
@@ -78,7 +78,7 @@ export default function CoordinatorLoginPage() {
       <section className="mx-auto mt-10 max-w-md px-4">
         <div className="card">
           <div className="mb-6 text-center">
-            <h2 className="text-2xl font-bold text-[#241D35]">
+            <h2 className="text-2xl font-bold text-[#3B264B]">
               تسجيل الدخول
             </h2>
             <p className="mt-1 text-sm text-[#777]">
@@ -119,7 +119,7 @@ export default function CoordinatorLoginPage() {
               type="button"
               onClick={login}
               disabled={isLoading}
-              className="w-full rounded-2xl bg-[#8E6CCB] px-6 py-3 font-bold text-white shadow-lg shadow-[#8E6CCB]/25 transition hover:bg-[#7C5DBC] disabled:opacity-60"
+              className="w-full rounded-2xl bg-[#AD79C5] px-6 py-3 font-bold text-white shadow-lg shadow-[#AD79C5]/25 transition hover:bg-[#9564AE] disabled:opacity-60"
             >
               {isLoading ? "جاري التحقق..." : "دخول / Login"}
             </button>

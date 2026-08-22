@@ -5,7 +5,8 @@ type RateLimitAction =
   | "lookup"
   | "register"
   | "save-profile"
-  | "portal-access-request";
+  | "portal-access-request"
+  | "location-option";
 function clientIp(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
   return (

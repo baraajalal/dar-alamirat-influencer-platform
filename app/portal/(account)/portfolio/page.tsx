@@ -102,7 +102,7 @@ export default async function InfluencerPortfolioPage() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[28px] bg-[linear-gradient(135deg,#5F73D5,#8290E2)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
+      <section className="rounded-[28px] bg-[linear-gradient(135deg,#9C68B9,#BE95D0)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
         <p className="text-sm font-black text-white/70">ملف الأعمال</p>
         <h1 className="mt-2 text-2xl font-black">المحتوى والحملات المعتمدة</h1>
         <p className="mt-3 max-w-3xl text-sm font-semibold leading-7 text-white/78">
@@ -123,7 +123,7 @@ export default async function InfluencerPortfolioPage() {
               className="rounded-[26px] border border-white bg-white/90 p-5 shadow-[0_15px_42px_rgba(68,82,140,0.08)]"
             >
               <div className="flex items-start justify-between gap-3">
-                <span className="rounded-full bg-[#EEF1FF] px-3 py-1.5 text-xs font-black text-[#596BC4]">
+                <span className="rounded-full bg-[#F7F0FA] px-3 py-1.5 text-xs font-black text-[#9362AD]">
                   {platformLabel(publication?.platform || social?.platform || "other")}
                 </span>
                 <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700">
@@ -131,7 +131,7 @@ export default async function InfluencerPortfolioPage() {
                 </span>
               </div>
 
-              <h2 className="mt-4 text-lg font-black text-[#344578]">
+              <h2 className="mt-4 text-lg font-black text-[#4A315C]">
                 {campaign?.name ?? "حملة"}
               </h2>
               <p className="mt-1 text-sm font-bold text-[#78829F]">
@@ -139,7 +139,7 @@ export default async function InfluencerPortfolioPage() {
                 {campaign?.product ? ` · ${campaign.product}` : ""}
               </p>
 
-              <div className="mt-5 space-y-3 rounded-2xl bg-[#F8F9FF] p-4">
+              <div className="mt-5 space-y-3 rounded-2xl bg-[#FCF9FD] p-4">
                 <Info label="نوع المحتوى" value={content.content_type} />
                 <Info label="الحساب" value={social?.username ? `@${social.username}` : "غير محدد"} />
                 <Info
@@ -153,12 +153,12 @@ export default async function InfluencerPortfolioPage() {
                   href={publication.post_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-4 flex h-12 items-center justify-center rounded-2xl bg-[#6072CB] text-sm font-black text-white"
+                  className="mt-4 flex h-12 items-center justify-center rounded-2xl bg-[#9A68B5] text-sm font-black text-white"
                 >
                   فتح المنشور ↗
                 </a>
               ) : (
-                <div className="mt-4 rounded-2xl border border-dashed border-[#DCE1F4] px-4 py-3 text-center text-xs font-bold text-[#8A93AE]">
+                <div className="mt-4 rounded-2xl border border-dashed border-[#EADFF0] px-4 py-3 text-center text-xs font-bold text-[#8D7B95]">
                   رابط النشر لم يعتمد بعد
                 </div>
               )}
@@ -178,7 +178,7 @@ function relation<T>(value: T | T[] | null | undefined): T | null {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="text-xs font-bold text-[#9199B3]">{label}</span>
+      <span className="text-xs font-bold text-[#94839C]">{label}</span>
       <span className="text-xs font-black text-[#4A5984]">{value}</span>
     </div>
   );
@@ -186,7 +186,7 @@ function Info({ label, value }: { label: string; value: string }) {
 
 function Empty({ text }: { text: string }) {
   return (
-    <div className="rounded-[28px] border border-dashed border-[#DCE1F4] bg-white/75 px-4 py-14 text-center text-sm text-[#8790AA]">
+    <div className="rounded-[28px] border border-dashed border-[#EADFF0] bg-white/75 px-4 py-14 text-center text-sm text-[#8C7B94]">
       {text}
     </div>
   );

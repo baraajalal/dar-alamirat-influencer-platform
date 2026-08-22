@@ -115,8 +115,8 @@ export default function CompleteAccountClient({ token }: { token: string }) {
 
   return (
     <main
-      dir="rtl"
-      className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(216,221,247,0.82),transparent_30%),linear-gradient(135deg,#FDFDFF,#F2F4FC)] px-4 py-8 font-['Tajawal',Tahoma,Arial,sans-serif] text-[#33447F]"
+      dir="inherit"
+      className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(216,221,247,0.82),transparent_30%),linear-gradient(135deg,#FFFDFF,#F9F5FB)] px-4 py-8 font-['Tajawal',Tahoma,Arial,sans-serif] text-[#432A57]"
     >
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 flex items-center justify-between rounded-[24px] border border-white/90 bg-white/82 px-5 py-4 shadow-[0_18px_55px_rgba(67,82,155,0.11)] backdrop-blur-xl">
@@ -127,22 +127,22 @@ export default function CompleteAccountClient({ token }: { token: string }) {
               className="h-14 w-14 rounded-2xl object-contain"
             />
             <div>
-              <p className="text-xs font-black text-[#8992AF]">بوابة المؤثر</p>
-              <h1 className="text-lg font-black text-[#33447F]">
+              <p className="text-xs font-black text-[#8F7E98]">بوابة المؤثر</p>
+              <h1 className="text-lg font-black text-[#432A57]">
                 استكمال بيانات الدفع
               </h1>
             </div>
           </div>
           <Link
             href={`/portal/assignments/${encodeURIComponent(token)}`}
-            className="text-sm font-black text-[#6877C8]"
+            className="text-sm font-black text-[#A170BA]"
           >
             العودة للتكليف
           </Link>
         </header>
 
         {loading ? (
-          <div className="rounded-[28px] bg-white/85 p-12 text-center font-black text-[#6877C8] shadow-xl">
+          <div className="rounded-[28px] bg-white/85 p-12 text-center font-black text-[#A170BA] shadow-xl">
             جاري التحقق...
           </div>
         ) : null}
@@ -155,7 +155,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
 
         {!loading && assignment ? (
           <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-            <section className="rounded-[30px] bg-[linear-gradient(145deg,#7180D2,#5364B8)] p-7 text-white shadow-[0_25px_70px_rgba(74,88,162,0.25)]">
+            <section className="rounded-[30px] bg-[linear-gradient(145deg,#AD7EC4,#8959A2)] p-7 text-white shadow-[0_25px_70px_rgba(74,88,162,0.25)]">
               <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black">
                 بعد رفع رابط النشر
               </span>
@@ -186,8 +186,8 @@ export default function CompleteAccountClient({ token }: { token: string }) {
               </div>
             </section>
 
-            <section className="rounded-[30px] border border-[#DDE2F3] bg-white/90 p-6 shadow-[0_20px_60px_rgba(67,82,155,0.10)] sm:p-7">
-              <p className="text-sm font-black text-[#6877C8]">
+            <section className="rounded-[30px] border border-[#ECE1F1] bg-white/90 p-6 shadow-[0_20px_60px_rgba(67,82,155,0.10)] sm:p-7">
+              <p className="text-sm font-black text-[#A170BA]">
                 {assignment.paymentAccount.hasAccount
                   ? "الحساب موجود"
                   : "تفعيل ذاتي بدون انتظار المنسق"}
@@ -199,7 +199,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
               </h2>
 
               {!assignment.paymentAccount.hasAccount ? (
-                <div className="mt-5 rounded-2xl border border-[#DDE2F3] bg-[#F8F9FF] p-5">
+                <div className="mt-5 rounded-2xl border border-[#ECE1F1] bg-[#FCF9FD] p-5">
                   <p className="text-sm font-semibold leading-7 text-[#747E9E]">
                     نطابق آخر 4 أرقام من جوالك مع الرقم المرتبط بالحملة، ثم نرسل
                     OTP إلى البريد. بعد التأكيد تنشئين كلمة مرور وتدخلين بيانات
@@ -207,7 +207,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
                   </p>
                   <Link
                     href={`/portal/activate-account?token=${encodeURIComponent(token)}`}
-                    className="mt-4 flex h-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#6575CB,#4F60B6)] px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)]"
+                    className="mt-4 flex h-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)]"
                   >
                     تفعيل حساب المؤثر عبر البريد
                   </Link>
@@ -215,11 +215,11 @@ export default function CompleteAccountClient({ token }: { token: string }) {
               ) : null}
 
               <div className="my-6 flex items-center gap-3">
-                <span className="h-px flex-1 bg-[#E7EAF5]" />
+                <span className="h-px flex-1 bg-[#F3EDF7]" />
                 <span className="text-xs font-black text-[#99A1B9]">
                   تسجيل الدخول للحساب الحالي
                 </span>
-                <span className="h-px flex-1 bg-[#E7EAF5]" />
+                <span className="h-px flex-1 bg-[#F3EDF7]" />
               </div>
 
               <form onSubmit={login} className="space-y-4">
@@ -230,7 +230,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
                   value={email}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
                   placeholder="البريد الإلكتروني"
-                  className="h-14 w-full rounded-2xl border border-[#D8DDF7] bg-[#FAFBFF] px-4 text-sm font-bold outline-none focus:border-[#6877C8]"
+                  className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 text-sm font-bold outline-none focus:border-[#A170BA]"
                   dir="ltr"
                 />
                 <input
@@ -240,7 +240,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
                   value={password}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
                   placeholder="كلمة المرور"
-                  className="h-14 w-full rounded-2xl border border-[#D8DDF7] bg-[#FAFBFF] px-4 text-sm font-bold outline-none focus:border-[#6877C8]"
+                  className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 text-sm font-bold outline-none focus:border-[#A170BA]"
                   dir="ltr"
                 />
                 {message ? (
@@ -249,7 +249,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="h-14 w-full rounded-2xl border border-[#BBC4EA] bg-white font-black text-[#596BC4] disabled:opacity-50"
+                  className="h-14 w-full rounded-2xl border border-[#BBC4EA] bg-white font-black text-[#9362AD] disabled:opacity-50"
                 >
                   {submitting
                     ? "جاري تسجيل الدخول..."

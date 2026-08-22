@@ -35,8 +35,8 @@ export default async function BankProfilesPage({ searchParams }: { searchParams?
   };
 
   return (
-    <div dir="rtl" className="space-y-6">
-      <section className="rounded-[30px] bg-[linear-gradient(135deg,#5368C3,#91A0E5)] p-7 text-white shadow-[0_24px_64px_rgba(70,86,180,.22)]">
+    <div dir="inherit" className="space-y-6">
+      <section className="rounded-[30px] bg-[linear-gradient(135deg,#9566AF,#C5A2D5)] p-7 text-white shadow-[0_24px_64px_rgba(70,86,180,.22)]">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm font-black text-white/70">الاعتمادات المالية</p>
@@ -50,24 +50,24 @@ export default async function BankProfilesPage({ searchParams }: { searchParams?
       {params.error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-black text-rose-700">{errorMessages[params.error] ?? "تعذر تنفيذ العملية."}</div> : null}
       {params.success ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-black text-emerald-700">تم حفظ قرار المراجعة.</div> : null}
 
-      <section className="rounded-[28px] border border-[#E1E6F5] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.07)]">
+      <section className="rounded-[28px] border border-[#F0E7F4] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.07)]">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black text-[#8A93AE]">البيانات الحالية</p>
-            <h2 className="mt-1 text-xl font-black text-[#3D4D7D]">ملفات تحتاج مراجعة</h2>
+            <p className="text-xs font-black text-[#8D7B95]">البيانات الحالية</p>
+            <h2 className="mt-1 text-xl font-black text-[#4F3762]">ملفات تحتاج مراجعة</h2>
           </div>
-          <span className="rounded-full bg-[#EEF1FF] px-4 py-2 text-sm font-black text-[#596BC4]">{profiles?.length ?? 0}</span>
+          <span className="rounded-full bg-[#F7F0FA] px-4 py-2 text-sm font-black text-[#9362AD]">{profiles?.length ?? 0}</span>
         </div>
 
         <div className="mt-5 grid gap-4 xl:grid-cols-2">
           {(profiles ?? []).map((profile) => {
             const influencer = influencerMap.get(profile.influencer_id);
             return (
-              <article key={profile.influencer_id} className="rounded-2xl border border-[#E3E7F5] bg-[#FAFBFF] p-5">
+              <article key={profile.influencer_id} className="rounded-2xl border border-[#F1EAF5] bg-[#FDFBFE] p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-black text-[#405080]">{influencer?.full_name ?? "مؤثر"}</h3>
-                    <p className="mt-1 text-xs font-bold text-[#8A93AE]" dir="ltr">{influencer?.mobile_e164 ?? "—"}</p>
+                    <h3 className="font-black text-[#513865]">{influencer?.full_name ?? "مؤثر"}</h3>
+                    <p className="mt-1 text-xs font-bold text-[#8D7B95]" dir="ltr">{influencer?.mobile_e164 ?? "—"}</p>
                   </div>
                   <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">{profile.bank_profile_status}</span>
                 </div>
@@ -82,7 +82,7 @@ export default async function BankProfilesPage({ searchParams }: { searchParams?
                 {profile.finance_review_notes ? <p className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-bold text-amber-800">{profile.finance_review_notes}</p> : null}
                 <form action={reviewCurrentBankProfile} className="mt-4 space-y-3">
                   <input type="hidden" name="influencer_id" value={profile.influencer_id} />
-                  <textarea name="notes" rows={2} placeholder="ملاحظة الإرجاع أو الرفض" className="w-full rounded-xl border border-[#DDE2F2] bg-white p-3 text-sm font-bold outline-none" />
+                  <textarea name="notes" rows={2} placeholder="ملاحظة الإرجاع أو الرفض" className="w-full rounded-xl border border-[#ECE1F1] bg-white p-3 text-sm font-bold outline-none" />
                   <div className="grid gap-2 sm:grid-cols-3">
                     <button name="decision" value="approve" className="rounded-xl bg-emerald-600 px-3 py-3 text-sm font-black text-white">اعتماد</button>
                     <button name="decision" value="return" className="rounded-xl bg-amber-500 px-3 py-3 text-sm font-black text-white">إرجاع</button>
@@ -96,11 +96,11 @@ export default async function BankProfilesPage({ searchParams }: { searchParams?
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-[#E1E6F5] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.07)]">
+      <section className="rounded-[28px] border border-[#F0E7F4] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.07)]">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black text-[#8A93AE]">التحديثات</p>
-            <h2 className="mt-1 text-xl font-black text-[#3D4D7D]">طلبات تعديل البيانات البنكية</h2>
+            <p className="text-xs font-black text-[#8D7B95]">التحديثات</p>
+            <h2 className="mt-1 text-xl font-black text-[#4F3762]">طلبات تعديل البيانات البنكية</h2>
           </div>
           <span className="rounded-full bg-amber-50 px-4 py-2 text-sm font-black text-amber-700">{requests?.length ?? 0}</span>
         </div>
@@ -110,8 +110,8 @@ export default async function BankProfilesPage({ searchParams }: { searchParams?
             const influencer = influencerMap.get(request.influencer_id);
             return (
               <article key={request.id} className="rounded-2xl border border-amber-200 bg-amber-50/35 p-5">
-                <h3 className="font-black text-[#405080]">{influencer?.full_name ?? "مؤثر"}</h3>
-                <p className="mt-1 text-xs font-bold text-[#8A93AE]">أُرسل: {dateTime(request.submitted_at)}</p>
+                <h3 className="font-black text-[#513865]">{influencer?.full_name ?? "مؤثر"}</h3>
+                <p className="mt-1 text-xs font-bold text-[#8D7B95]">أُرسل: {dateTime(request.submitted_at)}</p>
                 <div className="mt-4 grid gap-2 text-sm font-bold text-[#56628C] sm:grid-cols-2">
                   <p>البنك: {request.bank_name}</p>
                   <p>صاحب الحساب: {request.account_holder_name}</p>
@@ -137,5 +137,5 @@ export default async function BankProfilesPage({ searchParams }: { searchParams?
 }
 
 function Empty({ text }: { text: string }) {
-  return <div className="rounded-2xl border border-dashed border-[#CDD4EE] bg-[#FAFBFF] p-8 text-center text-sm font-black text-[#8A93AE] xl:col-span-2">{text}</div>;
+  return <div className="rounded-2xl border border-dashed border-[#E5D5EC] bg-[#FDFBFE] p-8 text-center text-sm font-black text-[#8D7B95] xl:col-span-2">{text}</div>;
 }

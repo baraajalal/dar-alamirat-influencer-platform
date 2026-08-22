@@ -92,11 +92,11 @@ export default function QuickInfluencerModal({ open, campaignId, locale, initial
       <div dir={ar ? "rtl" : "ltr"} className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-white p-6 shadow-[0_28px_90px_rgba(25,36,77,0.32)] sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <span className="inline-flex rounded-full bg-[#EEF1FF] px-3 py-1.5 text-[11px] font-black text-[#596BC4]">{ar ? "ملف أولي" : "Initial profile"}</span>
-            <h2 className="mt-3 text-2xl font-black text-[#34457E]">{ar ? "إضافة مؤثر جديد" : "Add a new influencer"}</h2>
-            <p className="mt-2 text-sm font-semibold leading-7 text-[#8790AA]">{ar ? "أدخلي الحد الأدنى للربط بالحملة. يستكمل المؤثر بقية ملفه لاحقًا." : "Enter the minimum details needed for assignment. The influencer can complete the profile later."}</p>
+            <span className="inline-flex rounded-full bg-[#F7F0FA] px-3 py-1.5 text-[11px] font-black text-[#9362AD]">{ar ? "ملف أولي" : "Initial profile"}</span>
+            <h2 className="mt-3 text-2xl font-black text-[#4A315C]">{ar ? "إضافة مؤثر جديد" : "Add a new influencer"}</h2>
+            <p className="mt-2 text-sm font-semibold leading-7 text-[#8C7B94]">{ar ? "أدخلي الحد الأدنى للربط بالحملة. يستكمل المؤثر بقية ملفه لاحقًا." : "Enter the minimum details needed for assignment. The influencer can complete the profile later."}</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-[#E2E6F4] text-[#6D789D]" aria-label={ar ? "إغلاق" : "Close"}>×</button>
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-[#F0E8F4] text-[#6D789D]" aria-label={ar ? "إغلاق" : "Close"}>×</button>
         </div>
 
         {message ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{message}</div> : null}
@@ -116,8 +116,8 @@ export default function QuickInfluencerModal({ open, campaignId, locale, initial
         </div>
 
         <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onClose} className="min-h-12 rounded-2xl border border-[#DDE2F3] px-6 text-sm font-black text-[#68749B]">{ar ? "إلغاء" : "Cancel"}</button>
-          <button type="button" disabled={!canSave || saving} onClick={submit} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#6877C8] to-[#5265BC] px-6 text-sm font-black text-white disabled:opacity-50">
+          <button type="button" onClick={onClose} className="min-h-12 rounded-2xl border border-[#ECE1F1] px-6 text-sm font-black text-[#68749B]">{ar ? "إلغاء" : "Cancel"}</button>
+          <button type="button" disabled={!canSave || saving} onClick={submit} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#A170BA] to-[#8C5BA5] px-6 text-sm font-black text-white disabled:opacity-50">
             <DashboardIcon name="plus" className="h-4 w-4" />{saving ? (ar ? "جاري الإنشاء..." : "Creating...") : (ar ? "إنشاء واختيار المؤثر" : "Create and select influencer")}
           </button>
         </div>
@@ -135,4 +135,4 @@ function platformLabel(value: string) {
   return labels[value] ?? value;
 }
 
-const inputClass = "h-14 w-full rounded-2xl border border-[#DDE2F3] bg-[#FAFBFF] px-4 text-sm font-bold text-[#33447F] outline-none transition focus:border-[#6877C8] focus:bg-white focus:shadow-[0_0_0_4px_rgba(104,119,200,0.10)]";
+const inputClass = "h-14 w-full rounded-2xl border border-[#ECE1F1] bg-[#FDFBFE] px-4 text-sm font-bold text-[#432A57] outline-none transition focus:border-[#A170BA] focus:bg-white focus:shadow-[0_0_0_4px_rgba(104,119,200,0.10)]";

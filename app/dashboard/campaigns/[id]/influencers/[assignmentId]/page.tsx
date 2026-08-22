@@ -177,12 +177,12 @@ export default async function AssignmentManagementPage({
     <div dir="rtl" className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <Link href={`/dashboard/campaigns/${campaignId}`} className="text-sm font-black text-[#6877C8]">← العودة للحملة</Link>
-          <p className="mt-4 text-xs font-black text-[#929AAF]">إدارة تكليف المؤثر</p>
-          <h1 className="mt-1 text-2xl font-black text-[#35467E] sm:text-3xl">{influencer?.full_name ?? "مؤثر"} · {campaign?.name ?? "حملة"}</h1>
-          <p dir="ltr" className="mt-2 text-right text-sm font-bold text-[#8A93AE]">{influencer?.mobile_e164 ?? "—"}</p>
+          <Link href={`/dashboard/campaigns/${campaignId}`} className="text-sm font-black text-[#A170BA]">← العودة للحملة</Link>
+          <p className="mt-4 text-xs font-black text-[#95849D]">إدارة تكليف المؤثر</p>
+          <h1 className="mt-1 text-2xl font-black text-[#4C335F] sm:text-3xl">{influencer?.full_name ?? "مؤثر"} · {campaign?.name ?? "حملة"}</h1>
+          <p dir="ltr" className="mt-2 text-right text-sm font-bold text-[#8D7B95]">{influencer?.mobile_e164 ?? "—"}</p>
         </div>
-        <span className="w-fit rounded-full bg-[#EEF1FF] px-4 py-2 text-xs font-black text-[#596BC4]">{assignmentStatus(assignment.status)}</span>
+        <span className="w-fit rounded-full bg-[#F7F0FA] px-4 py-2 text-xs font-black text-[#9362AD]">{assignmentStatus(assignment.status)}</span>
       </div>
 
       {query.link_created === "1" ? <Banner tone="success">تم إنشاء رابط جديد. انسخيه الآن؛ لن يعرض النظام الرمز السري مرة أخرى بعد مغادرة الصفحة.</Banner> : null}
@@ -246,28 +246,28 @@ export default async function AssignmentManagementPage({
             ) : null}
 
             {activeLink ? (
-              <div className="mt-4 rounded-2xl bg-[#F8F9FF] p-4">
+              <div className="mt-4 rounded-2xl bg-[#FCF9FD] p-4">
                 <Info label="الحالة" value={activeLink.locked_at ? "موقوف بسبب المحاولات" : "نشط"} />
                 <Info label="ينتهي" value={formatDateTime(activeLink.expires_at)} />
                 <Info label="آخر فتح" value={formatDateTime(activeLink.last_opened_at)} />
                 <Info label="المحاولات الخاطئة" value={`${activeLink.failed_attempts}/${activeLink.max_attempts}`} />
-                <p className="mt-3 text-xs font-semibold leading-6 text-[#8A93AE]">لأسباب أمنية لا يمكن استرجاع الرابط السري القديم. إصدار رابط جديد يلغي الرابط الحالي.</p>
+                <p className="mt-3 text-xs font-semibold leading-6 text-[#8D7B95]">لأسباب أمنية لا يمكن استرجاع الرابط السري القديم. إصدار رابط جديد يلغي الرابط الحالي.</p>
               </div>
             ) : <Empty text="لا يوجد رابط نشط لهذا التكليف." />}
 
             {canManageLinks ? (
               <div className="mt-4 space-y-3">
-                <form action={createGuestLink} className="rounded-2xl border border-[#DDE2F3] bg-white p-4">
+                <form action={createGuestLink} className="rounded-2xl border border-[#ECE1F1] bg-white p-4">
                   <input type="hidden" name="campaign_id" value={campaignId} />
                   <input type="hidden" name="assignment_id" value={assignmentId} />
                   <label className="block text-xs font-black text-[#667093]">مدة صلاحية الرابط</label>
-                  <select name="expires_days" defaultValue="14" className="mt-2 h-11 w-full rounded-xl border border-[#D8DDF7] bg-white px-3 text-sm font-bold outline-none">
+                  <select name="expires_days" defaultValue="14" className="mt-2 h-11 w-full rounded-xl border border-[#EBDDF2] bg-white px-3 text-sm font-bold outline-none">
                     <option value="7">7 أيام</option>
                     <option value="14">14 يومًا</option>
                     <option value="30">30 يومًا</option>
                     <option value="60">60 يومًا</option>
                   </select>
-                  <button type="submit" className="mt-3 w-full rounded-xl bg-[#6877C8] px-4 py-3 text-sm font-black text-white">{activeLink ? "إلغاء القديم وإصدار رابط جديد" : "إنشاء رابط المؤثر"}</button>
+                  <button type="submit" className="mt-3 w-full rounded-xl bg-[#A170BA] px-4 py-3 text-sm font-black text-white">{activeLink ? "إلغاء القديم وإصدار رابط جديد" : "إنشاء رابط المؤثر"}</button>
                 </form>
                 {activeLink ? (
                   <form action={revokeGuestLinks}>
@@ -281,19 +281,18 @@ export default async function AssignmentManagementPage({
           </Panel>
 
           <Panel title="تفاصيل التكليف">
-            <Info label="نوع التعاون" value={executionLabel(assignment.execution_type)} />
+            <Info label="نوع التعاون" value={executionLabel(assignment.execution_type, assignment.other_execution_details)} />
             {assignment.branch ? <Info label="الفرع" value={assignment.branch} /> : null}
             {assignment.attendance_at ? <Info label="موعد الحضور" value={formatDateTime(assignment.attendance_at)} /> : null}
             {assignment.order_number ? <Info label="رقم الطلب" value={assignment.order_number} /> : null}
             {assignment.order_code ? <Info label="كود الطلب" value={assignment.order_code} /> : null}
             <Info label="تسليم المحتوى" value={formatDateTime(assignment.content_due_at)} />
-            <Info label="موعد النشر" value={formatDate(assignment.publishing_date)} />
             <Info label="توقيت الدفع" value={paymentTiming(assignment.payment_timing)} />
           </Panel>
 
           <Panel title="معلومات الحملة">
-            <p className="text-sm font-semibold leading-7 text-[#6F7898]">{campaign?.brief || "لا يوجد بريف مكتوب."}</p>
-            {campaign?.hashtags?.length ? <div className="mt-4 flex flex-wrap gap-2">{campaign.hashtags.map((tag) => <span key={tag} className="rounded-full bg-[#EEF1FF] px-3 py-1.5 text-xs font-black text-[#596BC4]">{tag}</span>)}</div> : null}
+            <p className="text-sm font-semibold leading-7 text-[#74637F]">{campaign?.brief || "لا يوجد بريف مكتوب."}</p>
+            {campaign?.hashtags?.length ? <div className="mt-4 flex flex-wrap gap-2">{campaign.hashtags.map((tag) => <span key={tag} className="rounded-full bg-[#F7F0FA] px-3 py-1.5 text-xs font-black text-[#9362AD]">{tag}</span>)}</div> : null}
           </Panel>
         </aside>
       </div>
@@ -316,51 +315,51 @@ function ContentReviewCard({ campaignId, assignmentId, item, platform, username,
   canReview: boolean;
 }) {
   return (
-    <article className="overflow-hidden rounded-[22px] border border-[#E3E7F3] bg-[#FAFBFF]">
+    <article className="overflow-hidden rounded-[22px] border border-[#F1EAF5] bg-[#FDFBFE]">
       <div className="flex flex-col gap-3 border-b border-[#E4E8F5] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div><p className="text-xs font-black text-[#8A93AE]">{platformLabel(platform)}{username ? ` · @${username}` : ""}</p><h3 className="mt-1 font-black text-[#35467E]">{item.content_type} #{item.sequence_no}</h3></div>
+        <div><p className="text-xs font-black text-[#8D7B95]">{platformLabel(platform)}{username ? ` · @${username}` : ""}</p><h3 className="mt-1 font-black text-[#4C335F]">{item.content_type} #{item.sequence_no}</h3></div>
         <Status status={item.status} />
       </div>
       <div className="space-y-5 p-5">
         <div>
-          <p className="mb-2 text-xs font-black text-[#8A93AE]">نسخ المحتوى</p>
+          <p className="mb-2 text-xs font-black text-[#8D7B95]">نسخ المحتوى</p>
           <div className="space-y-2">
             {versions.map((version) => (
-              <div key={version.id} className="flex flex-col justify-between gap-3 rounded-2xl border border-[#E2E6F4] bg-white p-4 sm:flex-row sm:items-center">
-                <div><p className="text-sm font-black text-[#4D5A86]">الإصدار {version.version_no}</p><p className="mt-1 text-xs font-semibold text-[#929AAF]">{formatDateTime(version.submitted_at)} · {contentStatus(version.review_status)}</p>{version.notes ? <p className="mt-2 whitespace-pre-wrap text-xs font-semibold text-[#6F7898]">{version.notes}</p> : null}</div>
-                <div className="flex gap-2">{versionUrlMap.get(version.id) ? <a href={versionUrlMap.get(version.id)} target="_blank" rel="noreferrer" className="rounded-xl bg-[#EEF1FF] px-3 py-2 text-xs font-black text-[#596BC4]">فتح الملف</a> : null}{version.external_url ? <a href={version.external_url} target="_blank" rel="noreferrer" className="rounded-xl bg-[#EEF1FF] px-3 py-2 text-xs font-black text-[#596BC4]">فتح الرابط</a> : null}</div>
+              <div key={version.id} className="flex flex-col justify-between gap-3 rounded-2xl border border-[#F0E8F4] bg-white p-4 sm:flex-row sm:items-center">
+                <div><p className="text-sm font-black text-[#624B72]">الإصدار {version.version_no}</p><p className="mt-1 text-xs font-semibold text-[#95849D]">{formatDateTime(version.submitted_at)} · {contentStatus(version.review_status)}</p>{version.notes ? <p className="mt-2 whitespace-pre-wrap text-xs font-semibold text-[#74637F]">{version.notes}</p> : null}</div>
+                <div className="flex gap-2">{versionUrlMap.get(version.id) ? <a href={versionUrlMap.get(version.id)} target="_blank" rel="noreferrer" className="rounded-xl bg-[#F7F0FA] px-3 py-2 text-xs font-black text-[#9362AD]">فتح الملف</a> : null}{version.external_url ? <a href={version.external_url} target="_blank" rel="noreferrer" className="rounded-xl bg-[#F7F0FA] px-3 py-2 text-xs font-black text-[#9362AD]">فتح الرابط</a> : null}</div>
               </div>
             ))}
             {!versions.length ? <Empty text="لم يرفع المؤثر مسودة بعد." /> : null}
           </div>
         </div>
 
-        {reviews.length ? <div><p className="mb-2 text-xs font-black text-[#8A93AE]">سجل المراجعة</p><div className="space-y-2">{reviews.map((review) => <div key={review.id} className="rounded-2xl bg-white p-3"><div className="flex justify-between gap-3"><p className="text-xs font-black text-[#4D5A86]">{reviewDecision(review.decision)}</p><p className="text-[11px] font-bold text-[#9AA1B5]">{reviewerMap.get(review.reviewer_id) ?? "مراجع"} · {formatDateTime(review.created_at)}</p></div>{review.notes ? <p className="mt-2 whitespace-pre-wrap text-xs font-semibold leading-6 text-[#6F7898]">{review.notes}</p> : null}</div>)}</div></div> : null}
+        {reviews.length ? <div><p className="mb-2 text-xs font-black text-[#8D7B95]">سجل المراجعة</p><div className="space-y-2">{reviews.map((review) => <div key={review.id} className="rounded-2xl bg-white p-3"><div className="flex justify-between gap-3"><p className="text-xs font-black text-[#624B72]">{reviewDecision(review.decision)}</p><p className="text-[11px] font-bold text-[#9C8CA4]">{reviewerMap.get(review.reviewer_id) ?? "مراجع"} · {formatDateTime(review.created_at)}</p></div>{review.notes ? <p className="mt-2 whitespace-pre-wrap text-xs font-semibold leading-6 text-[#74637F]">{review.notes}</p> : null}</div>)}</div></div> : null}
 
         {canReview && versions.length && ["submitted", "under_review"].includes(item.status) ? (
-          <form action={reviewContentItem} className="rounded-2xl border border-[#DDE2F3] bg-white p-4">
+          <form action={reviewContentItem} className="rounded-2xl border border-[#ECE1F1] bg-white p-4">
             <input type="hidden" name="campaign_id" value={campaignId} /><input type="hidden" name="assignment_id" value={assignmentId} /><input type="hidden" name="content_item_id" value={item.id} />
-            <p className="font-black text-[#4D5A86]">قرار مراجعة المحتوى</p>
-            <textarea name="notes" rows={3} placeholder="ملاحظات الاعتماد اختيارية، وملاحظات التعديل أو الرفض مطلوبة" className="mt-3 w-full rounded-xl border border-[#D8DDF7] p-3 text-sm font-bold outline-none focus:border-[#6877C8]" />
+            <p className="font-black text-[#624B72]">قرار مراجعة المحتوى</p>
+            <textarea name="notes" rows={3} placeholder="ملاحظات الاعتماد اختيارية، وملاحظات التعديل أو الرفض مطلوبة" className="mt-3 w-full rounded-xl border border-[#EBDDF2] p-3 text-sm font-bold outline-none focus:border-[#A170BA]" />
             <label className="mt-3 flex items-center gap-2 text-xs font-bold text-[#667093]"><input type="checkbox" name="suitable_for_ads" value="yes" /> مناسب لإعادة الاستخدام في الإعلانات</label>
             <div className="mt-3 flex flex-wrap gap-2"><button type="submit" name="decision" value="approve" className="rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-black text-white">اعتماد</button><button type="submit" name="decision" value="needs_changes" className="rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-black text-white">طلب تعديل</button><button type="submit" name="decision" value="reject" className="rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-black text-white">رفض</button></div>
           </form>
         ) : null}
 
         <div>
-          <p className="mb-2 text-xs font-black text-[#8A93AE]">روابط النشر</p>
+          <p className="mb-2 text-xs font-black text-[#8D7B95]">روابط النشر</p>
           <div className="space-y-3">
             {publications.map((publication) => (
-              <div key={publication.id} className="rounded-2xl border border-[#E2E6F4] bg-white p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-black text-[#4D5A86]">{platformLabel(publication.platform)} · {publicationState(publication.status)}</p><p className="text-xs font-bold text-[#929AAF]">{formatDateTime(publication.submitted_at)}</p></div>
-                <a href={publication.post_url} target="_blank" rel="noreferrer" className="mt-3 block truncate text-sm font-bold text-[#596BC4] underline">{publication.post_url}</a>
-                {publication.submitter_notes ? <p className="mt-2 whitespace-pre-wrap text-xs font-semibold text-[#6F7898]">{publication.submitter_notes}</p> : null}
-                {proofUrlMap.get(publication.id) ? <a href={proofUrlMap.get(publication.id)} target="_blank" rel="noreferrer" className="mt-3 inline-block rounded-xl bg-[#EEF1FF] px-3 py-2 text-xs font-black text-[#596BC4]">فتح إثبات النشر</a> : null}
+              <div key={publication.id} className="rounded-2xl border border-[#F0E8F4] bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-black text-[#624B72]">{platformLabel(publication.platform)} · {publicationState(publication.status)}</p><p className="text-xs font-bold text-[#95849D]">{formatDateTime(publication.submitted_at)}</p></div>
+                <a href={publication.post_url} target="_blank" rel="noreferrer" className="mt-3 block truncate text-sm font-bold text-[#9362AD] underline">{publication.post_url}</a>
+                {publication.submitter_notes ? <p className="mt-2 whitespace-pre-wrap text-xs font-semibold text-[#74637F]">{publication.submitter_notes}</p> : null}
+                {proofUrlMap.get(publication.id) ? <a href={proofUrlMap.get(publication.id)} target="_blank" rel="noreferrer" className="mt-3 inline-block rounded-xl bg-[#F7F0FA] px-3 py-2 text-xs font-black text-[#9362AD]">فتح إثبات النشر</a> : null}
                 {publication.review_notes ? <p className="mt-3 whitespace-pre-wrap rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">{publication.review_notes}</p> : null}
                 {canReview && publication.status === "submitted" ? (
                   <form action={reviewPublication} className="mt-4 border-t border-[#E8EBF5] pt-4">
                     <input type="hidden" name="campaign_id" value={campaignId} /><input type="hidden" name="assignment_id" value={assignmentId} /><input type="hidden" name="publication_id" value={publication.id} />
-                    <textarea name="notes" rows={2} placeholder="سبب الإرجاع أو الرفض مطلوب" className="w-full rounded-xl border border-[#D8DDF7] p-3 text-sm font-bold outline-none focus:border-[#6877C8]" />
+                    <textarea name="notes" rows={2} placeholder="سبب الإرجاع أو الرفض مطلوب" className="w-full rounded-xl border border-[#EBDDF2] p-3 text-sm font-bold outline-none focus:border-[#A170BA]" />
                     <div className="mt-3 flex flex-wrap gap-2"><button type="submit" name="decision" value="approve" className="rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-black text-white">اعتماد الرابط</button><button type="submit" name="decision" value="needs_changes" className="rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-black text-white">إرجاع للتصحيح</button><button type="submit" name="decision" value="reject" className="rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-black text-white">رفض</button></div>
                   </form>
                 ) : null}
@@ -374,18 +373,18 @@ function ContentReviewCard({ campaignId, assignmentId, item, platform, username,
   );
 }
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) { return <section className="rounded-[26px] border border-[#E2E6F4] bg-white/90 p-5 shadow-[0_15px_45px_rgba(67,82,155,0.07)]"><h2 className="mb-5 text-lg font-black text-[#405080]">{title}</h2>{children}</section>; }
-function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-[22px] border border-[#E2E6F4] bg-white p-5"><p className="text-xs font-black text-[#929AAF]">{label}</p><p className="mt-2 text-xl font-black text-[#405080]">{value}</p></div>; }
-function Info({ label, value }: { label: string; value: string }) { return <div className="flex items-start justify-between gap-4 border-b border-[#EEF0F7] py-3 first:pt-0 last:border-0 last:pb-0"><p className="text-xs font-bold text-[#929AAF]">{label}</p><p className="text-left text-sm font-black text-[#4D5A86]">{value}</p></div>; }
-function Empty({ text }: { text: string }) { return <div className="rounded-2xl border border-dashed border-[#CDD4EE] bg-[#FAFBFF] p-5 text-center text-xs font-bold text-[#929AAF]">{text}</div>; }
+function Panel({ title, children }: { title: string; children: React.ReactNode }) { return <section className="rounded-[26px] border border-[#F0E8F4] bg-white/90 p-5 shadow-[0_15px_45px_rgba(67,82,155,0.07)]"><h2 className="mb-5 text-lg font-black text-[#513865]">{title}</h2>{children}</section>; }
+function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-[22px] border border-[#F0E8F4] bg-white p-5"><p className="text-xs font-black text-[#95849D]">{label}</p><p className="mt-2 text-xl font-black text-[#513865]">{value}</p></div>; }
+function Info({ label, value }: { label: string; value: string }) { return <div className="flex items-start justify-between gap-4 border-b border-[#F5EFF7] py-3 first:pt-0 last:border-0 last:pb-0"><p className="text-xs font-bold text-[#95849D]">{label}</p><p className="text-left text-sm font-black text-[#624B72]">{value}</p></div>; }
+function Empty({ text }: { text: string }) { return <div className="rounded-2xl border border-dashed border-[#E5D5EC] bg-[#FDFBFE] p-5 text-center text-xs font-bold text-[#95849D]">{text}</div>; }
 function Banner({ tone, children }: { tone: "success" | "warning"; children: React.ReactNode }) { return <div className={`rounded-2xl border px-5 py-4 text-sm font-black ${tone === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>{children}</div>; }
-function Status({ status }: { status: string }) { const tone = ["approved", "published"].includes(status) ? "bg-emerald-50 text-emerald-700" : ["needs_changes", "rejected"].includes(status) ? "bg-rose-50 text-rose-700" : "bg-[#EEF1FF] text-[#596BC4]"; return <span className={`rounded-full px-3 py-1.5 text-xs font-black ${tone}`}>{contentStatus(status)}</span>; }
+function Status({ status }: { status: string }) { const tone = ["approved", "published"].includes(status) ? "bg-emerald-50 text-emerald-700" : ["needs_changes", "rejected"].includes(status) ? "bg-rose-50 text-rose-700" : "bg-[#F7F0FA] text-[#9362AD]"; return <span className={`rounded-full px-3 py-1.5 text-xs font-black ${tone}`}>{contentStatus(status)}</span>; }
 function assignmentStatus(value: string) { const map: Record<string,string> = { invited:"تمت الدعوة",accepted:"تم القبول",product_pending:"بانتظار المنتج",brief_pending:"بانتظار البريف",content_pending:"بانتظار المحتوى",under_review:"قيد المراجعة",needs_changes:"مطلوب تعديلات",approved:"المحتوى معتمد",payment_pending:"جاهز لإجراء الدفع",paid:"تم الدفع",closed:"مغلق",rejected:"مرفوض",cancelled:"ملغي" }; return map[value] ?? value; }
 function contentStatus(value: string) { const map: Record<string,string> = { draft:"بانتظار المسودة",submitted:"تم الإرسال",under_review:"قيد المراجعة",needs_changes:"مطلوب تعديل",approved:"معتمد",rejected:"مرفوض",published:"منشور ومعتمد" }; return map[value] ?? value; }
 function reviewDecision(value: string) { return value === "approve" ? "اعتماد" : value === "needs_changes" ? "طلب تعديل" : "رفض"; }
 function publicationState(value: string) { return value === "approved" ? "معتمد" : value === "needs_changes" ? "أعيد للتصحيح" : value === "rejected" ? "مرفوض" : "بانتظار التحقق"; }
 function platformLabel(value: string) { const map: Record<string,string> = { instagram:"إنستغرام",tiktok:"تيك توك",snapchat:"سناب شات",youtube:"يوتيوب",x:"X",facebook:"فيسبوك",other:"أخرى" }; return map[value] ?? value; }
-function executionLabel(value: string | null) { return value === "home" ? "تعاون منزلي" : value === "in_branch" ? "حضور في الفرع" : value === "remote" ? "تعاون آخر" : "غير محدد"; }
+function executionLabel(value: string | null, details?: string | null) { return value === "home" ? "تعاون منزلي" : value === "in_branch" ? "حضور في الفرع" : value === "remote" && details === "MULTIPLE_HOME_IN_BRANCH" ? "تعاون منزلي + حضوري" : value === "remote" ? "تعاون آخر" : "غير محدد"; }
 function paymentTiming(value: string | null) { return value === "before_publish" ? "قبل النشر" : value === "after_publish" ? "بعد النشر" : value === "by_agreement" ? "حسب الاتفاق" : "غير محدد"; }
 function formatDate(value: string | null) { if (!value) return "غير محدد"; return new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium" }).format(new Date(`${value}T12:00:00`)); }
 function formatDateTime(value: string | null) { if (!value) return "غير محدد"; return new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh" }).format(new Date(value)); }

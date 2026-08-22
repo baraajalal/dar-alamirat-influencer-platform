@@ -92,14 +92,14 @@ export default async function AssignmentWorkspacePage({ searchParams }: { search
   };
 
   return (
-    <div className="space-y-7" dir="rtl">
+    <div className="space-y-7" dir="inherit">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-black text-[#6578CF]">مساحة عمل المنسق</p>
+          <p className="text-sm font-black text-[#A978C3]">مساحة عمل المنسق</p>
           <h1 className="mt-2 text-3xl font-black text-slate-900">إضافة مؤثر لحملة ومتابعة التكليفات</h1>
           <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-slate-500">ابدأ بالمؤثر، اختر الحملة، أنشئ التكليف، ثم أرسل الدعوة عبر واتساب وتابع التقدم من مكان واحد.</p>
         </div>
-        <Link href="/dashboard/campaigns/assignments/new" className="rounded-2xl bg-[#5368C3] px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200">+ إضافة مؤثر لحملة</Link>
+        <Link href="/dashboard/campaigns/assignments/new" className="rounded-2xl bg-[#9566AF] px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200">+ إضافة مؤثر لحملة</Link>
       </div>
 
       {filters.assignment ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-black text-emerald-800">تم إنشاء التكليف بنجاح وأصبح ظاهرًا في القائمة.</div> : null}
@@ -114,7 +114,7 @@ export default async function AssignmentWorkspacePage({ searchParams }: { search
 
       <section className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
         <form className="grid gap-3 lg:grid-cols-5">
-          <input name="q" defaultValue={filters.q} placeholder="بحث بالاسم أو الجوال أو الحملة" className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-[#6578CF]" />
+          <input name="q" defaultValue={filters.q} placeholder="بحث بالاسم أو الجوال أو الحملة" className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-[#A978C3]" />
           <select name="campaign" defaultValue={filters.campaign ?? ""} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold"><option value="">كل الحملات</option>{(campaignsResult.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
           <select name="status" defaultValue={filters.status ?? ""} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold"><option value="">كل الحالات</option>{Object.entries(statusLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>
           {isManager ? <select name="employee" defaultValue={filters.employee ?? ""} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold"><option value="">كل الموظفين</option>{(coordinatorsResult.data ?? []).map((p) => <option key={p.id} value={p.id}>{p.full_name}</option>)}</select> : <div />}
@@ -136,9 +136,9 @@ export default async function AssignmentWorkspacePage({ searchParams }: { search
                   <td className="px-5 py-4"><p className="font-black text-slate-900">{influencer?.full_name ?? "مؤثر"}</p><p className="mt-1 text-xs font-bold text-slate-500">{influencer?.mobile_e164 ?? "—"}</p></td>
                   <td className="px-5 py-4"><p className="font-black text-slate-800">{campaign?.name ?? "—"}</p><p className="mt-1 text-xs font-bold text-slate-500">{campaign?.brand ?? "—"}</p></td>
                   <td className="px-5 py-4 font-bold text-slate-600">{coordinatorMap.get(row.coordinator_id ?? "") ?? "غير محدد"}</td>
-                  <td className="px-5 py-4"><span className="rounded-full bg-[#EEF1FF] px-3 py-1.5 text-xs font-black text-[#5368C3]">{statusLabels[row.status] ?? row.status}</span></td>
+                  <td className="px-5 py-4"><span className="rounded-full bg-[#F7F0FA] px-3 py-1.5 text-xs font-black text-[#9566AF]">{statusLabels[row.status] ?? row.status}</span></td>
                   <td className="px-5 py-4"><span className={`rounded-full px-3 py-1.5 text-xs font-black ${row.invitation_status === "sent" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{row.invitation_status === "sent" ? "تم الإرسال" : "لم تُرسل"}</span></td>
-                  <td className="min-w-40 px-5 py-4"><div className="flex items-center justify-between text-xs font-black text-slate-600"><span>{progress}%</span><span>{campaign?.progress_percentage ? `الحملة ${Math.round(Number(campaign.progress_percentage))}%` : ""}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#6578CF]" style={{ width: `${Math.min(100, progress)}%` }} /></div></td>
+                  <td className="min-w-40 px-5 py-4"><div className="flex items-center justify-between text-xs font-black text-slate-600"><span>{progress}%</span><span>{campaign?.progress_percentage ? `الحملة ${Math.round(Number(campaign.progress_percentage))}%` : ""}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#A978C3]" style={{ width: `${Math.min(100, progress)}%` }} /></div></td>
                   <td className="px-5 py-4"><div className="flex flex-wrap gap-2"><Link href={`/dashboard/campaigns/${row.campaign_id}/influencers/${row.id}`} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-700">فتح</Link><form action={sendAssignmentInvitation}><input type="hidden" name="assignment_id" value={row.id} /><button className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white">واتساب</button></form></div></td>
                 </tr>;
               })}

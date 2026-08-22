@@ -114,8 +114,8 @@ export default async function AdvertisementPaymentApprovalsPage({
   };
 
   return (
-    <div dir="rtl" className="space-y-6">
-      <section className="rounded-[30px] bg-[linear-gradient(135deg,#5368C3,#91A0E5)] p-7 text-white shadow-[0_24px_64px_rgba(70,86,180,.22)]">
+    <div dir="inherit" className="space-y-6">
+      <section className="rounded-[30px] bg-[linear-gradient(135deg,#9566AF,#C5A2D5)] p-7 text-white shadow-[0_24px_64px_rgba(70,86,180,.22)]">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm font-black text-white/70">الاعتمادات المالية</p>
@@ -129,15 +129,15 @@ export default async function AdvertisementPaymentApprovalsPage({
       {params.error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-black text-rose-700">{errorMessages[params.error] ?? "تعذر تنفيذ العملية."}</div> : null}
       {params.success ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-black text-emerald-700">تم حفظ قرار المراجعة بنجاح.</div> : null}
 
-      <form className="flex flex-wrap gap-3 rounded-[24px] border border-[#E2E6F4] bg-white p-4 shadow-[0_12px_36px_rgba(67,82,155,.06)]">
-        <select name="status" defaultValue={params.status ?? ""} className="rounded-xl border border-[#DDE2F2] bg-white px-4 py-3 text-sm font-bold text-[#4A5A87]">
+      <form className="flex flex-wrap gap-3 rounded-[24px] border border-[#F0E8F4] bg-white p-4 shadow-[0_12px_36px_rgba(67,82,155,.06)]">
+        <select name="status" defaultValue={params.status ?? ""} className="rounded-xl border border-[#ECE1F1] bg-white px-4 py-3 text-sm font-bold text-[#604A70]">
           <option value="">كل الحالات</option>
           <option value="pending">بانتظار المراجعة</option>
           <option value="approved">معتمد</option>
           <option value="returned">معاد للتعديل</option>
           <option value="rejected">مرفوض</option>
         </select>
-        <button className="rounded-xl bg-[#596BC4] px-5 py-3 text-sm font-black text-white">تطبيق</button>
+        <button className="rounded-xl bg-[#9362AD] px-5 py-3 text-sm font-black text-white">تطبيق</button>
       </form>
 
       <section className="space-y-4">
@@ -154,18 +154,18 @@ export default async function AdvertisementPaymentApprovalsPage({
           const firstUrl = items.find((item) => item.post_url)?.post_url ?? null;
 
           return (
-            <article key={payment.id} className="rounded-[28px] border border-[#E1E6F5] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.07)]">
+            <article key={payment.id} className="rounded-[28px] border border-[#F0E7F4] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.07)]">
               <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
                 <div>
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs font-black text-[#8A93AE]">{campaign?.brand ?? "دار الأميرات"}</p>
-                      <h2 className="mt-1 text-xl font-black text-[#3D4D7D]">{influencer?.full_name ?? "مؤثر"}</h2>
-                      <p className="mt-1 text-xs font-bold text-[#8A93AE]" dir="ltr">{influencer?.mobile_e164 ?? "—"}</p>
+                      <p className="text-xs font-black text-[#8D7B95]">{campaign?.brand ?? "دار الأميرات"}</p>
+                      <h2 className="mt-1 text-xl font-black text-[#4F3762]">{influencer?.full_name ?? "مؤثر"}</h2>
+                      <p className="mt-1 text-xs font-bold text-[#8D7B95]" dir="ltr">{influencer?.mobile_e164 ?? "—"}</p>
                     </div>
                     <div className="text-left">
-                      <p className="text-xs font-black text-[#8A93AE]">المبلغ المستحق</p>
-                      <p className="mt-1 text-2xl font-black text-[#344578]">{money(amount(payment.expected_amount) || amount(payment.amount))}</p>
+                      <p className="text-xs font-black text-[#8D7B95]">المبلغ المستحق</p>
+                      <p className="mt-1 text-2xl font-black text-[#4A315C]">{money(amount(payment.expected_amount) || amount(payment.amount))}</p>
                     </div>
                   </div>
 
@@ -182,24 +182,24 @@ export default async function AdvertisementPaymentApprovalsPage({
                     {badge(bankReady, "ملف البنك معتمد", "ملف البنك غير معتمد")}
                   </div>
 
-                  {firstUrl ? <a href={firstUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-xl bg-[#EEF1FF] px-4 py-2 text-xs font-black text-[#596BC4]">فتح رابط الإعلان والنشر</a> : <p className="mt-4 text-xs font-black text-amber-700">لا يوجد رابط نشر ظاهر حتى الآن.</p>}
+                  {firstUrl ? <a href={firstUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-xl bg-[#F7F0FA] px-4 py-2 text-xs font-black text-[#9362AD]">فتح رابط الإعلان والنشر</a> : <p className="mt-4 text-xs font-black text-amber-700">لا يوجد رابط نشر ظاهر حتى الآن.</p>}
                   {payment.finance_review_notes ? <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-800">آخر ملاحظة: {payment.finance_review_notes}</p> : null}
                 </div>
 
-                <form action={reviewAdvertisementPayment} className="rounded-2xl border border-[#E3E7F5] bg-[#FAFBFF] p-4">
+                <form action={reviewAdvertisementPayment} className="rounded-2xl border border-[#F1EAF5] bg-[#FDFBFE] p-4">
                   <input type="hidden" name="payment_id" value={payment.id} />
-                  <p className="text-sm font-black text-[#405080]">قرار المراجع المالي</p>
-                  <label className="mt-4 flex items-center gap-3 rounded-xl border border-[#DDE2F2] bg-white p-3 text-sm font-black text-[#53618C]">
+                  <p className="text-sm font-black text-[#513865]">قرار المراجع المالي</p>
+                  <label className="mt-4 flex items-center gap-3 rounded-xl border border-[#ECE1F1] bg-white p-3 text-sm font-black text-[#53618C]">
                     <input type="checkbox" name="review_confirmed" className="h-4 w-4" />
                     تمت مراجعة المبلغ والتعاقد ورابط الإعلان وبيانات البنك
                   </label>
                   {prepaid ? (
-                    <label className="mt-4 flex items-center gap-3 rounded-xl border border-[#DDE2F2] bg-white p-3 text-sm font-black text-[#53618C]">
+                    <label className="mt-4 flex items-center gap-3 rounded-xl border border-[#ECE1F1] bg-white p-3 text-sm font-black text-[#53618C]">
                       <input type="checkbox" name="contract_approved" className="h-4 w-4" />
                       راجعت العقد وأوافق على الدفع المسبق
                     </label>
                   ) : null}
-                  <textarea name="notes" rows={3} placeholder="الملاحظة إلزامية عند الإرجاع أو الرفض" className="mt-3 w-full rounded-xl border border-[#DDE2F2] bg-white p-3 text-sm font-bold text-[#465681] outline-none" />
+                  <textarea name="notes" rows={3} placeholder="الملاحظة إلزامية عند الإرجاع أو الرفض" className="mt-3 w-full rounded-xl border border-[#ECE1F1] bg-white p-3 text-sm font-bold text-[#5C456B] outline-none" />
                   <div className="mt-3 grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
                     <button name="decision" value="approve" className="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white">اعتماد وجاهز للتجميع</button>
                     <button name="decision" value="return" className="rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-white">إرجاع بملاحظة</button>
@@ -210,7 +210,7 @@ export default async function AdvertisementPaymentApprovalsPage({
             </article>
           );
         })}
-        {payments.length === 0 ? <div className="rounded-[26px] border border-dashed border-[#CDD4EE] bg-white p-10 text-center text-sm font-black text-[#8A93AE]">لا توجد مستحقات مطابقة.</div> : null}
+        {payments.length === 0 ? <div className="rounded-[26px] border border-dashed border-[#E5D5EC] bg-white p-10 text-center text-sm font-black text-[#8D7B95]">لا توجد مستحقات مطابقة.</div> : null}
       </section>
     </div>
   );
@@ -218,8 +218,8 @@ export default async function AdvertisementPaymentApprovalsPage({
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-[#F6F7FC] p-3">
-      <p className="text-[11px] font-black text-[#929AB1]">{label}</p>
+    <div className="rounded-xl bg-[#FBF8FD] p-3">
+      <p className="text-[11px] font-black text-[#95849D]">{label}</p>
       <p className="mt-1 truncate text-sm font-black text-[#4B5B87]">{value}</p>
     </div>
   );

@@ -102,7 +102,7 @@ export default async function InfluencerPerformancePage() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[30px] bg-[linear-gradient(135deg,#33447F,#6072CB)] p-6 text-white shadow-[0_22px_70px_rgba(51,68,127,0.24)] sm:p-8">
+      <section className="rounded-[30px] bg-[linear-gradient(135deg,#432A57,#9A68B5)] p-6 text-white shadow-[0_22px_70px_rgba(51,68,127,0.24)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-sm font-black text-white/65">الأداء والتصنيف</p>
@@ -148,7 +148,7 @@ export default async function InfluencerPerformancePage() {
 
       <section className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
-          <p className="text-sm font-bold text-[#6676C9]">ملخص الأرقام</p>
+          <p className="text-sm font-bold text-[#9F6EB8]">ملخص الأرقام</p>
           <h2 className="mt-1 text-xl font-black">مؤشرات الحساب</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <Stat label="إجمالي المتابعين" value={number(followers)} />
@@ -161,7 +161,7 @@ export default async function InfluencerPerformancePage() {
         </div>
 
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
-          <p className="text-sm font-bold text-[#6676C9]">كيف يتحسن المستوى؟</p>
+          <p className="text-sm font-bold text-[#9F6EB8]">كيف يتحسن المستوى؟</p>
           <h2 className="mt-1 text-xl font-black">خطوات عملية</h2>
           <div className="mt-5 space-y-3">
             <Tip done={(influencer.profile_completion ?? 0) >= 90} text="إكمال الملف إلى 90% أو أكثر" />
@@ -190,9 +190,9 @@ function ScoreCard({
         <p className="text-sm font-bold text-[#65708F]">{label}</p>
         <span className="text-xs font-black text-[#9AA2BB]">{weight}</span>
       </div>
-      <p className="mt-3 text-3xl font-black text-[#304176]">{value}%</p>
+      <p className="mt-3 text-3xl font-black text-[#3D274F]">{value}%</p>
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#EEF1F8]">
-        <div className="h-full rounded-full bg-[#6877C8]" style={{ width: `${value}%` }} />
+        <div className="h-full rounded-full bg-[#A170BA]" style={{ width: `${value}%` }} />
       </div>
     </div>
   );
@@ -200,16 +200,16 @@ function ScoreCard({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-[#F8F9FF] p-4">
+    <div className="rounded-2xl bg-[#FCF9FD] p-4">
       <p className="text-xs font-bold text-[#929AB4]">{label}</p>
-      <p className="mt-2 text-lg font-black text-[#465681]">{value}</p>
+      <p className="mt-2 text-lg font-black text-[#5C456B]">{value}</p>
     </div>
   );
 }
 
 function Tip({ done, text }: { done: boolean; text: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-[#F8F9FF] p-4">
+    <div className="flex items-center gap-3 rounded-2xl bg-[#FCF9FD] p-4">
       <span
         className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${
           done

@@ -92,8 +92,8 @@ export default async function FinanceOperationsPage() {
   ];
 
   return (
-    <div dir="rtl" className="space-y-6">
-      <section className="overflow-hidden rounded-[32px] bg-[linear-gradient(135deg,#5368C3,#8D9BE2)] px-7 py-8 text-white shadow-[0_25px_70px_rgba(65,82,180,.22)]">
+    <div dir="inherit" className="space-y-6">
+      <section className="overflow-hidden rounded-[32px] bg-[linear-gradient(135deg,#9566AF,#8D9BE2)] px-7 py-8 text-white shadow-[0_25px_70px_rgba(65,82,180,.22)]">
         <p className="text-sm font-black text-white/72">الإدارة المالية الداخلية</p>
         <h1 className="mt-2 text-3xl font-black">المدفوعات والمقابل</h1>
         <p className="mt-3 max-w-3xl text-sm font-bold leading-7 text-white/82">
@@ -104,8 +104,8 @@ export default async function FinanceOperationsPage() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
         {stats.map((item) => (
           <article key={item.label} className="rounded-[24px] border border-white bg-white p-5 shadow-[0_14px_40px_rgba(67,82,155,.08)]">
-            <p className="text-xs font-black text-[#8A93AE]">{item.label}</p>
-            <p className="mt-3 text-3xl font-black text-[#344578]">{item.value}</p>
+            <p className="text-xs font-black text-[#8D7B95]">{item.label}</p>
+            <p className="mt-3 text-3xl font-black text-[#4A315C]">{item.value}</p>
           </article>
         ))}
       </section>
@@ -115,16 +115,16 @@ export default async function FinanceOperationsPage() {
           <Link
             key={section.href}
             href={section.href}
-            className="group rounded-[28px] border border-[#E3E7F5] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.08)] transition hover:-translate-y-1 hover:border-[#BFC8EF]"
+            className="group rounded-[28px] border border-[#F1EAF5] bg-white p-6 shadow-[0_16px_48px_rgba(67,82,155,.08)] transition hover:-translate-y-1 hover:border-[#BFC8EF]"
           >
             <div className="flex items-start gap-4">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#EEF1FF] text-[#596BC4]">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#F7F0FA] text-[#9362AD]">
                 <DashboardIcon name={section.icon} className="h-6 w-6" />
               </span>
               <div className="min-w-0 flex-1">
-                <h2 className="text-xl font-black text-[#3D4D7D]">{section.title}</h2>
-                <p className="mt-2 text-sm font-bold leading-7 text-[#7E88A8]">{section.description}</p>
-                <span className="mt-4 inline-flex rounded-full bg-[#F0F2FF] px-4 py-2 text-xs font-black text-[#596BC4]">فتح القسم</span>
+                <h2 className="text-xl font-black text-[#4F3762]">{section.title}</h2>
+                <p className="mt-2 text-sm font-bold leading-7 text-[#82718C]">{section.description}</p>
+                <span className="mt-4 inline-flex rounded-full bg-[#F8F2FB] px-4 py-2 text-xs font-black text-[#9362AD]">فتح القسم</span>
               </div>
             </div>
           </Link>

@@ -189,10 +189,10 @@ export default async function InfluencerPortalDashboard() {
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.09)]">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-[#6676C9]">الحملات الحالية</p>
+              <p className="text-sm font-bold text-[#9F6EB8]">الحملات الحالية</p>
               <h2 className="mt-1 text-xl font-black">المهام المفتوحة</h2>
             </div>
-            <Link href="/portal/campaigns" className="text-sm font-black text-[#6072CB]">
+            <Link href="/portal/campaigns" className="text-sm font-black text-[#9A68B5]">
               عرض جميع الحملات
             </Link>
           </div>
@@ -206,17 +206,17 @@ export default async function InfluencerPortalDashboard() {
                 return (
                   <div
                     key={assignment.id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E7EAF7] bg-[#FBFCFF] p-4"
+                    className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#F3EDF7] bg-[#FEFCFF] p-4"
                   >
                     <div>
-                      <p className="font-black text-[#344578]">
+                      <p className="font-black text-[#4A315C]">
                         {campaign?.name ?? "حملة"}
                       </p>
-                      <p className="mt-1 text-xs text-[#8991AA]">
+                      <p className="mt-1 text-xs text-[#8D7C94]">
                         {campaign?.brand ?? "دار الأميرات"}
                       </p>
                     </div>
-                    <span className="rounded-full bg-[#EEF1FF] px-3 py-1.5 text-xs font-bold text-[#5E72CF]">
+                    <span className="rounded-full bg-[#F7F0FA] px-3 py-1.5 text-xs font-bold text-[#5E72CF]">
                       {statusLabel(String(assignment.status))}
                     </span>
                   </div>
@@ -228,7 +228,7 @@ export default async function InfluencerPortalDashboard() {
 
         <div className="space-y-5">
           <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.09)]">
-            <p className="text-sm font-bold text-[#6676C9]">خطوات مطلوبة</p>
+            <p className="text-sm font-bold text-[#9F6EB8]">خطوات مطلوبة</p>
             <h2 className="mt-1 text-xl font-black">جاهزية الحساب</h2>
             <div className="mt-5 space-y-3">
               <Readiness
@@ -241,14 +241,14 @@ export default async function InfluencerPortalDashboard() {
             {bankStatus !== "approved" ? (
               <Link
                 href="/portal/profile/payment-details"
-                className="mt-5 flex h-12 items-center justify-center rounded-2xl bg-[#6072CB] text-sm font-black text-white"
+                className="mt-5 flex h-12 items-center justify-center rounded-2xl bg-[#9A68B5] text-sm font-black text-white"
               >
                 مراجعة بيانات البنك
               </Link>
             ) : null}
           </div>
 
-          <div className="rounded-[28px] bg-[linear-gradient(145deg,#33447F,#5364B8)] p-6 text-white shadow-[0_20px_55px_rgba(51,68,127,0.22)]">
+          <div className="rounded-[28px] bg-[linear-gradient(145deg,#432A57,#8959A2)] p-6 text-white shadow-[0_20px_55px_rgba(51,68,127,0.22)]">
             <p className="text-xs font-black text-white/65">المستوى الحالي</p>
             <div className="mt-2 flex items-end justify-between gap-4">
               <div>
@@ -284,14 +284,14 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[24px] border border-white bg-white/90 p-5 shadow-[0_14px_40px_rgba(68,82,140,0.08)]">
       <p className="text-sm text-[#7D86A1]">{label}</p>
-      <p className="mt-2 text-2xl font-black text-[#304176]">{value}</p>
+      <p className="mt-2 text-2xl font-black text-[#3D274F]">{value}</p>
     </div>
   );
 }
 
 function Readiness({ done, label }: { done: boolean; label: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-[#F7F8FE] p-3">
+    <div className="flex items-center gap-3 rounded-2xl bg-[#FBF8FD] p-3">
       <span
         className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${
           done
@@ -308,7 +308,7 @@ function Readiness({ done, label }: { done: boolean; label: string }) {
 
 function Empty({ text }: { text: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[#DCE1F4] bg-[#FAFBFF] px-4 py-8 text-center text-sm text-[#8790AA]">
+    <div className="rounded-2xl border border-dashed border-[#EADFF0] bg-[#FDFBFE] px-4 py-8 text-center text-sm text-[#8C7B94]">
       {text}
     </div>
   );

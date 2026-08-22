@@ -59,7 +59,7 @@ function getPlatformStyle(platform: string) {
     return { backgroundColor: "#1877F2", color: "#ffffff" };
   }
 
-  return { backgroundColor: "#3b2b22", color: "#ffffff" };
+  return { backgroundColor: "#3F2950", color: "#ffffff" };
 }
 
 function getExecutionLabel(value: string) {
@@ -259,15 +259,15 @@ export default function ContentReviewPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f2ea] px-5 py-8" dir="rtl">
+    <main className="min-h-screen bg-[#F6EFF8] px-5 py-8" dir="inherit">
       <div className="mx-auto max-w-[1350px]">
-        <section className="mb-6 rounded-[28px] border border-[#eadfce] bg-white p-6 shadow-sm">
+        <section className="mb-6 rounded-[28px] border border-[#E8D9EE] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[#3b2b22]">
+              <h1 className="text-2xl font-bold text-[#3F2950]">
                 مراجعة محتوى المؤثرين
               </h1>
-              <p className="mt-2 text-sm leading-6 text-[#7b6657]">
+              <p className="mt-2 text-sm leading-6 text-[#7A687F]">
                 مراجعة المحتوى، صلاحية الترويج، الجاهزية للدفع، وملاحظات مشرف
                 المنسقين.
               </p>
@@ -276,22 +276,22 @@ export default function ContentReviewPage() {
             <button
               onClick={loadItems}
               disabled={loading}
-              className="rounded-2xl bg-[#3b2b22] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+              className="rounded-2xl bg-[#3F2950] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
             >
               تحديث البيانات
             </button>
           </div>
         </section>
 
-        <section className="mb-6 grid gap-4 rounded-[28px] border border-[#eadfce] bg-white p-6 shadow-sm md:grid-cols-2">
+        <section className="mb-6 grid gap-4 rounded-[28px] border border-[#E8D9EE] bg-white p-6 shadow-sm md:grid-cols-2">
           <div>
-            <label className="mb-2 block text-sm font-semibold text-[#3b2b22]">
+            <label className="mb-2 block text-sm font-semibold text-[#3F2950]">
               فلتر نوع التنفيذ
             </label>
             <select
               value={executionTypeFilter}
               onChange={(event) => setExecutionTypeFilter(event.target.value)}
-              className="w-full rounded-2xl border border-[#e5d8c8] bg-white px-4 py-3 text-sm outline-none focus:border-[#8b6f47]"
+              className="w-full rounded-2xl border border-[#E3D3EA] bg-white px-4 py-3 text-sm outline-none focus:border-[#9A6EB1]"
             >
               <option value="All">كل الأنواع</option>
               <option value="Home">منزلي</option>
@@ -300,13 +300,13 @@ export default function ContentReviewPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-[#3b2b22]">
+            <label className="mb-2 block text-sm font-semibold text-[#3F2950]">
               فلتر الحملة
             </label>
             <select
               value={campaignFilter}
               onChange={(event) => setCampaignFilter(event.target.value)}
-              className="w-full rounded-2xl border border-[#e5d8c8] bg-white px-4 py-3 text-sm outline-none focus:border-[#8b6f47]"
+              className="w-full rounded-2xl border border-[#E3D3EA] bg-white px-4 py-3 text-sm outline-none focus:border-[#9A6EB1]"
             >
               <option value="All">كل الحملات</option>
               {campaigns.map((campaign) => (
@@ -331,11 +331,11 @@ export default function ContentReviewPage() {
         ) : null}
 
         {loading ? (
-          <div className="rounded-[28px] bg-white p-10 text-center text-[#7b6657] shadow-sm">
+          <div className="rounded-[28px] bg-white p-10 text-center text-[#7A687F] shadow-sm">
             جاري تحميل بيانات المراجعة...
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="rounded-[28px] bg-white p-10 text-center text-[#7b6657] shadow-sm">
+          <div className="rounded-[28px] bg-white p-10 text-center text-[#7A687F] shadow-sm">
             لا توجد مواد بانتظار المراجعة حاليًا.
           </div>
         ) : (
@@ -354,13 +354,13 @@ export default function ContentReviewPage() {
                     item.id ||
                     `${item.campaignName}-${item.influencerMobile}-${item.platform}-${itemIndex}`
                   }
-                  className="overflow-hidden rounded-[30px] border border-[#eadfce] bg-white shadow-sm"
+                  className="overflow-hidden rounded-[30px] border border-[#E8D9EE] bg-white shadow-sm"
                 >
-                  <div className="border-b border-[#eadfce] bg-[#fbf7f1] p-5">
+                  <div className="border-b border-[#E8D9EE] bg-[#F8F1FA] p-5">
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div>
                         <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <span className="rounded-full bg-[#3b2b22] px-3 py-1 text-xs font-semibold text-white">
+                          <span className="rounded-full bg-[#3F2950] px-3 py-1 text-xs font-semibold text-white">
                             {getExecutionLabel(item.executionType)}
                           </span>
 
@@ -373,27 +373,27 @@ export default function ContentReviewPage() {
                           </span>
 
                           {item.promoCode ? (
-                            <span className="rounded-full bg-[#efe2cf] px-3 py-1 text-xs font-semibold text-[#5a3d2b]">
+                            <span className="rounded-full bg-[#F0E3F5] px-3 py-1 text-xs font-semibold text-[#6C467D]">
                               كود: {item.promoCode}
                             </span>
                           ) : null}
                         </div>
 
-                        <h2 className="text-xl font-bold text-[#3b2b22]">
+                        <h2 className="text-xl font-bold text-[#3F2950]">
                           {item.campaignName || "حملة بدون اسم"}
                         </h2>
 
-                        <p className="mt-2 text-sm text-[#7b6657]">
+                        <p className="mt-2 text-sm text-[#7A687F]">
                           {item.influencerName || "-"} —{" "}
                           {item.influencerMobile || "-"}
                         </p>
                       </div>
 
                       <div className="rounded-2xl bg-white px-5 py-4 text-sm shadow-sm xl:min-w-[300px]">
-                        <div className="text-xs font-semibold text-[#9b8a7a]">
+                        <div className="text-xs font-semibold text-[#94819A]">
                           المقابل والقيمة
                         </div>
-                        <div className="mt-1 font-bold text-[#3b2b22]">
+                        <div className="mt-1 font-bold text-[#3F2950]">
                           {item.paymentSummary || "-"}
                         </div>
                       </div>
@@ -403,36 +403,36 @@ export default function ContentReviewPage() {
                   <div className="grid gap-5 p-5 xl:grid-cols-[1fr_360px]">
                     <div className="space-y-5">
                       <div className="grid gap-4 md:grid-cols-3">
-                        <div className="rounded-2xl border border-[#f0e7db] bg-[#fffaf4] p-4">
-                          <div className="text-xs font-semibold text-[#9b8a7a]">
+                        <div className="rounded-2xl border border-[#EEE3F3] bg-[#FCF8FD] p-4">
+                          <div className="text-xs font-semibold text-[#94819A]">
                             المنصة
                           </div>
-                          <div className="mt-1 font-bold text-[#3b2b22]">
+                          <div className="mt-1 font-bold text-[#3F2950]">
                             {item.platform || "-"}
                           </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#f0e7db] bg-[#fffaf4] p-4">
-                          <div className="text-xs font-semibold text-[#9b8a7a]">
+                        <div className="rounded-2xl border border-[#EEE3F3] bg-[#FCF8FD] p-4">
+                          <div className="text-xs font-semibold text-[#94819A]">
                             نوع المحتوى
                           </div>
-                          <div className="mt-1 font-bold text-[#3b2b22]">
+                          <div className="mt-1 font-bold text-[#3F2950]">
                             {item.contentType || "-"}
                           </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#f0e7db] bg-[#fffaf4] p-4">
-                          <div className="text-xs font-semibold text-[#9b8a7a]">
+                        <div className="rounded-2xl border border-[#EEE3F3] bg-[#FCF8FD] p-4">
+                          <div className="text-xs font-semibold text-[#94819A]">
                             موافقة الاستخدام
                           </div>
-                          <div className="mt-1 font-bold text-[#3b2b22]">
+                          <div className="mt-1 font-bold text-[#3F2950]">
                             {item.canReuseInAds || "-"}
                           </div>
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-[#f0e7db] p-4">
-                        <div className="mb-3 text-sm font-bold text-[#3b2b22]">
+                      <div className="rounded-2xl border border-[#EEE3F3] p-4">
+                        <div className="mb-3 text-sm font-bold text-[#3F2950]">
                           روابط المحتوى
                         </div>
 
@@ -451,7 +451,7 @@ export default function ContentReviewPage() {
                               </a>
                             ))
                           ) : (
-                            <span className="rounded-2xl bg-[#f7f2ea] px-4 py-2 text-sm text-[#9b8a7a]">
+                            <span className="rounded-2xl bg-[#F6EFF8] px-4 py-2 text-sm text-[#94819A]">
                               لا يوجد رابط نشر
                             </span>
                           )}
@@ -461,7 +461,7 @@ export default function ContentReviewPage() {
                               href={item.contentLink}
                               target="_blank"
                               rel="noreferrer"
-                              className="rounded-2xl bg-[#efe2cf] px-4 py-2 text-sm font-bold text-[#5a3d2b] transition hover:opacity-80"
+                              className="rounded-2xl bg-[#F0E3F5] px-4 py-2 text-sm font-bold text-[#6C467D] transition hover:opacity-80"
                             >
                               رابط المادة
                             </a>
@@ -472,7 +472,7 @@ export default function ContentReviewPage() {
                               href={item.screenshotLink}
                               target="_blank"
                               rel="noreferrer"
-                              className="rounded-2xl bg-[#efe2cf] px-4 py-2 text-sm font-bold text-[#5a3d2b] transition hover:opacity-80"
+                              className="rounded-2xl bg-[#F0E3F5] px-4 py-2 text-sm font-bold text-[#6C467D] transition hover:opacity-80"
                             >
                               رابط السكرين
                             </a>
@@ -481,20 +481,20 @@ export default function ContentReviewPage() {
                       </div>
 
                       {item.usageRightsNote ? (
-                        <div className="rounded-2xl border border-[#f0e7db] bg-[#fffaf4] p-4">
-                          <div className="mb-1 text-xs font-semibold text-[#9b8a7a]">
+                        <div className="rounded-2xl border border-[#EEE3F3] bg-[#FCF8FD] p-4">
+                          <div className="mb-1 text-xs font-semibold text-[#94819A]">
                             ملاحظات استخدام المحتوى
                           </div>
-                          <p className="text-sm leading-6 text-[#3b2b22]">
+                          <p className="text-sm leading-6 text-[#3F2950]">
                             {item.usageRightsNote}
                           </p>
                         </div>
                       ) : null}
                     </div>
 
-                    <aside className="rounded-3xl border border-[#eadfce] bg-[#fbf7f1] p-5">
+                    <aside className="rounded-3xl border border-[#E8D9EE] bg-[#F8F1FA] p-5">
                       <div className="mb-4">
-                        <label className="mb-2 block text-sm font-bold text-[#3b2b22]">
+                        <label className="mb-2 block text-sm font-bold text-[#3F2950]">
                           هل يصلح للترويج؟
                         </label>
                         <select
@@ -506,20 +506,20 @@ export default function ContentReviewPage() {
                                 | "No",
                             })
                           }
-                          className="w-full rounded-2xl border border-[#e5d8c8] bg-white px-4 py-3 text-sm outline-none focus:border-[#8b6f47]"
+                          className="w-full rounded-2xl border border-[#E3D3EA] bg-white px-4 py-3 text-sm outline-none focus:border-[#9A6EB1]"
                         >
                           <option value="No">لا</option>
                           <option value="Yes">نعم</option>
                         </select>
 
-                        <p className="mt-2 text-xs leading-5 text-[#9b8a7a]">
+                        <p className="mt-2 text-xs leading-5 text-[#94819A]">
                           الترويج النهائي يتطلب أن تكون موافقة المؤثر على
                           الاستخدام = Yes.
                         </p>
                       </div>
 
                       <div className="mb-4">
-                        <label className="mb-2 block text-sm font-bold text-[#3b2b22]">
+                        <label className="mb-2 block text-sm font-bold text-[#3F2950]">
                           ملاحظات المشرف
                         </label>
                         <textarea
@@ -531,7 +531,7 @@ export default function ContentReviewPage() {
                           }
                           rows={6}
                           placeholder="اكتبي ملاحظات المراجعة هنا..."
-                          className="w-full resize-none rounded-2xl border border-[#e5d8c8] bg-white px-4 py-3 text-sm outline-none focus:border-[#8b6f47]"
+                          className="w-full resize-none rounded-2xl border border-[#E3D3EA] bg-white px-4 py-3 text-sm outline-none focus:border-[#9A6EB1]"
                         />
                       </div>
 
@@ -561,7 +561,7 @@ export default function ContentReviewPage() {
                         </button>
 
                         {isLoading ? (
-                          <p className="text-center text-xs text-[#7b6657]">
+                          <p className="text-center text-xs text-[#7A687F]">
                             جاري حفظ القرار...
                           </p>
                         ) : null}

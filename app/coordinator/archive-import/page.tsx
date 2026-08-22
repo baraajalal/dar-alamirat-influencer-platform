@@ -128,12 +128,12 @@ async function handleImport() {
   }
 }
   return (
-    <main dir="rtl" className="min-h-screen bg-[#f7f1ea] px-4 py-8 text-[#2b2118]">
+    <main dir="inherit" className="min-h-screen bg-[#f7f1ea] px-4 py-8 text-[#2b2118]">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 rounded-3xl bg-white p-6 shadow-sm">
           <p className="text-sm text-[#8a6f5a]">دار الأميرات</p>
           <h1 className="mt-2 text-3xl font-bold">استيراد الأرشيف</h1>
-          <p className="mt-3 text-sm leading-7 text-[#6d5a4b]">
+          <p className="mt-3 text-sm leading-7 text-[#786681]">
             ارفعي ملف Excel للأرشيف. هذه الصفحة تفحص الملف فقط ولا تدخل أي بيانات في SmartSuite.
           </p>
         </div>
@@ -149,7 +149,7 @@ async function handleImport() {
               setResult(null);
               setMessage("");
             }}
-            className="mt-3 block w-full rounded-2xl border border-[#e5d6c8] bg-white px-4 py-3 text-sm"
+            className="mt-3 block w-full rounded-2xl border border-[#E3D3EA] bg-white px-4 py-3 text-sm"
           />
 
           <button
@@ -166,7 +166,7 @@ async function handleImport() {
     <input
       value={archiveYear}
       onChange={(e) => setArchiveYear(e.target.value)}
-      className="mt-2 block w-full rounded-2xl border border-[#e5d6c8] bg-white px-4 py-3 text-sm"
+      className="mt-2 block w-full rounded-2xl border border-[#E3D3EA] bg-white px-4 py-3 text-sm"
       placeholder="2026"
     />
   </div>
@@ -176,7 +176,7 @@ async function handleImport() {
     <select
       value={archiveMonth}
       onChange={(e) => setArchiveMonth(e.target.value)}
-      className="mt-2 block w-full rounded-2xl border border-[#e5d6c8] bg-white px-4 py-3 text-sm"
+      className="mt-2 block w-full rounded-2xl border border-[#E3D3EA] bg-white px-4 py-3 text-sm"
     >
       <option value="January">January</option>
       <option value="February">February</option>
@@ -198,7 +198,7 @@ async function handleImport() {
   <select
     value={startStep}
     onChange={(e) => setStartStep(e.target.value)}
-    className="mt-2 block w-full rounded-2xl border border-[#e5d6c8] bg-white px-4 py-3 text-sm"
+    className="mt-2 block w-full rounded-2xl border border-[#E3D3EA] bg-white px-4 py-3 text-sm"
   >
     <option value="influencers">1. Influencers</option>
     <option value="campaigns">2. Campaigns</option>
@@ -234,7 +234,7 @@ async function handleImport() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-bold">نتيجة الفحص</h2>
-                  <p className="mt-1 text-sm text-[#6d5a4b]">
+                  <p className="mt-1 text-sm text-[#786681]">
                     {result.summary.readyToImport
                       ? "الملف جاهز مبدئيًا للاستيراد."
                       : "الملف يحتاج تعديل قبل الاستيراد."}
@@ -363,7 +363,7 @@ function SummaryCard({
           : "border-[#eadccd] bg-[#fbf8f5]"
       }`}
     >
-      <p className="text-sm text-[#6d5a4b]">{label}</p>
+      <p className="text-sm text-[#786681]">{label}</p>
       <p className="mt-2 text-3xl font-bold">{value}</p>
     </div>
   );
