@@ -13,7 +13,6 @@ type AssignmentRow = {
   id: string;
   status: string;
   execution_type: string | null;
-  other_execution_details: string | null;
   content_due_at: string | null;
   publishing_date: string | null;
   branch: string | null;
@@ -27,7 +26,7 @@ export default async function InfluencerCampaignsPage() {
   const { data: assignments } = await admin
     .from("campaign_assignments")
     .select(
-      "id,status,execution_type,other_execution_details,branch,order_number,created_at,campaigns(name,brand,product,brief,start_date,end_date)",
+      "id,status,execution_type,content_due_at,publishing_date,branch,order_number,created_at,campaigns(name,brand,product,brief,start_date,end_date)",
     )
     .eq("influencer_id", influencer.id)
     .order("created_at", { ascending: false });
@@ -72,8 +71,7 @@ export default async function InfluencerCampaignsPage() {
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <Info label="نوع التنفيذ" value={executionLabel(assignment.execution_type, assignment.other_execution_details)} />
-                  <Info label="موعد المحتوى" value={formatDate(assignment.content_due_at)} />
+                  <Info label="نوع التنفيذ" value={executionLabel(assignment.execution_type)} />
                   <Info
                     label="الموقع أو الطلب"
                     value={assignment.branch || assignment.order_number || "غير محدد"}
@@ -135,13 +133,6 @@ function Empty({ text }: { text: string }) {
 
 function relation<T>(value: T | T[] | null): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "غير محدد";
-  return new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium" }).format(
-    new Date(value),
-  );
 }
 
 function executionLabel(value: string | null) {

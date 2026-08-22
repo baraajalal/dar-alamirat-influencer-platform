@@ -92,7 +92,7 @@ export default async function FinanceOperationsPage() {
   ];
 
   return (
-    <div dir="inherit" className="space-y-6">
+    <div dir="rtl" className="space-y-6">
       <section className="overflow-hidden rounded-[32px] bg-[linear-gradient(135deg,#9566AF,#8D9BE2)] px-7 py-8 text-white shadow-[0_25px_70px_rgba(65,82,180,.22)]">
         <p className="text-sm font-black text-white/72">الإدارة المالية الداخلية</p>
         <h1 className="mt-2 text-3xl font-black">المدفوعات والمقابل</h1>
@@ -103,9 +103,17 @@ export default async function FinanceOperationsPage() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
         {stats.map((item) => (
-          <article key={item.label} className="rounded-[24px] border border-white bg-white p-5 shadow-[0_14px_40px_rgba(67,82,155,.08)]">
-            <p className="text-xs font-black text-[#8D7B95]">{item.label}</p>
-            <p className="mt-3 text-3xl font-black text-[#4A315C]">{item.value}</p>
+          <article
+            key={item.label}
+            className="flex min-h-[150px] flex-col rounded-[24px] border border-white bg-white px-5 py-5 shadow-[0_14px_40px_rgba(67,82,155,.08)]"
+          >
+            <div className="flex min-h-[52px] items-start justify-center text-center">
+              <p className="max-w-[13rem] text-[12px] font-black leading-5 text-[#8D7B95]">{item.label}</p>
+            </div>
+            <div className="my-3 h-px w-full bg-[#F1E8F5]" aria-hidden="true" />
+            <div className="flex flex-1 items-end justify-center">
+              <p className="text-[32px] font-black leading-none tabular-nums text-[#4A315C]">{item.value}</p>
+            </div>
           </article>
         ))}
       </section>
