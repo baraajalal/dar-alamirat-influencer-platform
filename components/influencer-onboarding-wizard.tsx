@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import FeedbackModal from "@/components/feedback-modal";
 
 type Gender = "" | "female" | "male" | "other";
+type FieldErrors = Record<string, string>;
 type LocationKind = "city" | "country";
 type SocialRow = {
   platform: string;
@@ -65,6 +66,67 @@ export default function InfluencerOnboardingWizard({ editToken }: { editToken?: 
   const [reviewNotes, setReviewNotes] = useState("");
   const [cityOptions, setCityOptions] = useState<string[]>(defaultCities);
   const [countryOptions, setCountryOptions] = useState<string[]>(defaultCountries);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const clearFieldError = useCallback((path: string) => {
+    setFieldErrors((current) => {
+      if (!current[path]) return current;
+      const next = { ...current };
+      delete next[path];
+      return next;
+    });
+  }, []);
+
+  const fieldLabel = useCallback((path: string) => {
+    const labels: Record<string, string> = {
+      "influencer.fullName": "الاسم الكامل",
+      "influencer.mobile": "رقم الجوال",
+      "influencer.email": "البريد الإلكتروني",
+      "influencer.gender": "الجنس",
+      "influencer.birthYear": "تاريخ الميلاد",
+      "influencer.city": "المدينة",
+      "influencer.country": "الدولة",
+      "influencer.hasMawthooq": "حالة موثوق",
+      "influencer.mawthooqNumber": "رقم موثوق",
+      "influencer.preferredAdCategories": "مجالات التعاون",
+      "influencer.contentStylePreference": "أنواع المحتوى",
+      "influencer.shootingStylePreferences": "أسلوب التصوير",
+      "socialAccounts": "حسابات التواصل",
+    };
+    if (labels[path]) return labels[path];
+    if (path.startsWith("socialAccounts.")) return "حسابات التواصل";
+    return "أحد الحقول";
+  }, []);
+
+  const stepForPath = useCallback((path: string) => {
+    if (path.startsWith("influencer.hasMawthooq") || path.startsWith("influencer.mawthooq")) return 1;
+    if (path.startsWith("socialAccounts")) return 2;
+    if (path.includes("preferredAdCategories") || path.includes("contentStylePreference") || path.includes("shootingStylePreferences")) return 3;
+    return 0;
+  }, []);
+
+  const focusProblemField = useCallback((path: string) => {
+    setStep(stepForPath(path));
+    window.setTimeout(() => {
+      const element = document.querySelector<HTMLElement>(`[data-field-path="${path}"]`)
+        || document.querySelector<HTMLElement>(`[data-field-path^="${path.split(".").slice(0,2).join(".")}"]`);
+      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const input = element?.querySelector<HTMLElement>("input,select,textarea,button");
+      input?.focus();
+    }, 120);
+  }, [stepForPath]);
+
+  const presentFieldErrors = useCallback((issues: FieldErrors, fallbackMessage: string) => {
+    const entries = Object.entries(issues).filter(([, value]) => Boolean(value));
+    if (!entries.length) {
+      showError(fallbackMessage);
+      return;
+    }
+    setFieldErrors(issues);
+    const [firstPath, firstMessage] = entries[0];
+    focusProblemField(firstPath);
+    showError(`يوجد خطأ في ${fieldLabel(firstPath)}: ${firstMessage}`);
+  }, [fieldLabel, focusProblemField]);
 
   const showError = useCallback((text: string, destination: string | null = null) => {
     setMessage(text);
@@ -147,16 +209,37 @@ export default function InfluencerOnboardingWizard({ editToken }: { editToken?: 
   function updateSocial(index: number, patch: Partial<SocialRow>) { setSocial(rows => rows.map((row, i) => i === index ? { ...row, ...patch } : row)); }
   function addOtherPlatform() { setSocial(rows => [...rows, makeRow("Other")]); }
 
-  function validateCurrent() {
-    if (step === 0 && (!form.fullName.trim() || !form.mobile.trim() || !form.email.trim() || !form.gender || !form.birthYear || !form.city.trim())) return "أكمل البيانات الشخصية المطلوبة.";
-    if (step === 1 && (!form.hasMawthooq || (form.hasMawthooq === "yes" && !form.mawthooqNumber.trim()))) return "أكمل بيانات موثوق.";
-    if (step === 2 && !social.some(row => row.profileUrl.trim() || row.username.trim())) return "أضف حساب تواصل واحدًا على الأقل.";
-    if (step === 3 && (!form.preferredAdCategories.length || !form.contentStylePreference.length || !form.shootingStylePreferences.length)) return "اختر تفضيلات التعاون والمحتوى والتصوير.";
-    return "";
+  function validateCurrent(): { message: string; issues: FieldErrors } {
+    const issues: FieldErrors = {};
+    if (step === 0) {
+      if (!form.fullName.trim()) issues["influencer.fullName"] = "الاسم الكامل مطلوب.";
+      const mobileDigits = form.mobile.replace(/\D/g, "");
+      const validMobile = /^(?:05\d{8}|5\d{8}|9665\d{8}|009665\d{8})$/.test(mobileDigits);
+      if (!form.mobile.trim()) issues["influencer.mobile"] = "رقم الجوال مطلوب.";
+      else if (!validMobile) issues["influencer.mobile"] = "رقم الجوال غير صحيح. استخدم 05XXXXXXXX أو +9665XXXXXXXX.";
+      if (!form.email.trim()) issues["influencer.email"] = "البريد الإلكتروني مطلوب.";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) issues["influencer.email"] = "صيغة البريد الإلكتروني غير صحيحة.";
+      if (!form.gender) issues["influencer.gender"] = "اختر الجنس.";
+      if (!form.birthYear) issues["influencer.birthYear"] = "تاريخ الميلاد مطلوب.";
+      if (!form.city.trim()) issues["influencer.city"] = "المدينة مطلوبة.";
+      if (!form.country.trim()) issues["influencer.country"] = "الدولة مطلوبة.";
+    }
+    if (step === 1) {
+      if (!form.hasMawthooq) issues["influencer.hasMawthooq"] = "حدد هل لديك موثوق أم لا.";
+      if (form.hasMawthooq === "yes" && !form.mawthooqNumber.trim()) issues["influencer.mawthooqNumber"] = "رقم موثوق مطلوب.";
+    }
+    if (step === 2 && !social.some(row => row.profileUrl.trim() || row.username.trim())) issues["socialAccounts"] = "أضف حساب تواصل واحدًا على الأقل.";
+    if (step === 3) {
+      if (!form.preferredAdCategories.length) issues["influencer.preferredAdCategories"] = "اختر مجال تعاون واحدًا على الأقل.";
+      if (!form.contentStylePreference.length) issues["influencer.contentStylePreference"] = "اختر نوع محتوى واحدًا على الأقل.";
+      if (!form.shootingStylePreferences.length) issues["influencer.shootingStylePreferences"] = "اختر أسلوب تصوير واحدًا على الأقل.";
+    }
+    return { message: Object.values(issues)[0] || "", issues };
   }
   function next() {
-    const error = validateCurrent();
-    if (error) { showError(error); return; }
+    const validation = validateCurrent();
+    if (validation.message) { presentFieldErrors(validation.issues, validation.message); return; }
+    setFieldErrors({});
     if (step === 0) {
       void rememberLocationOption("city", form.city);
       void rememberLocationOption("country", form.country);
@@ -166,7 +249,9 @@ export default function InfluencerOnboardingWizard({ editToken }: { editToken?: 
   }
 
   async function submit() {
-    const error = validateCurrent(); if (error) { showError(error); return; }
+    const validation = validateCurrent();
+    if (validation.message) { presentFieldErrors(validation.issues, validation.message); return; }
+    setFieldErrors({});
     setSubmitting(true); setMessage("");
     const activeSocial = social.filter(row => row.profileUrl.trim() || row.username.trim());
     const payload = {
@@ -177,10 +262,19 @@ export default function InfluencerOnboardingWizard({ editToken }: { editToken?: 
       const endpoint = editToken ? "/api/portal-access/edit" : "/api/submit-influencer";
       const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editToken ? { token: editToken, payload } : payload) });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "تعذر حفظ الملف");
+      if (!response.ok) {
+        const issues = (result.issues && typeof result.issues === "object") ? result.issues as FieldErrors : {};
+        presentFieldErrors(issues, result.message || "تعذر حفظ الملف");
+        return;
+      }
       if (!editToken) {
         const req = await fetch("/api/portal-access/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mobile: form.mobile, email: form.email, website: "" }) });
-        const reqResult = await req.json(); if (!req.ok) throw new Error(reqResult.message || "تم حفظ الملف لكن تعذر إرسال طلب التفعيل");
+        const reqResult = await req.json();
+        if (!req.ok) {
+          const issues = (reqResult.issues && typeof reqResult.issues === "object") ? reqResult.issues as FieldErrors : {};
+          presentFieldErrors(issues, reqResult.message || "تم حفظ الملف لكن تعذر إرسال طلب التفعيل");
+          return;
+        }
       }
       const successMessage = editToken ? "تم إرسال التعديلات للمراجعة مرة أخرى. تم إغلاق رابط التعديل ولن يمكن استخدامه مرة ثانية." : "تم إرسال طلبك بنجاح. سيقوم فريق دار الأميرات بمراجعته، وسيصلك رابط التفعيل من الموظف بعد الموافقة.";
       showSuccess(successMessage, editToken ? "/" : "/");
@@ -205,8 +299,8 @@ export default function InfluencerOnboardingWizard({ editToken }: { editToken?: 
             <div className="mt-7 space-y-2">{steps.map((label, i) => <button type="button" key={label} onClick={()=> i <= step && setStep(i)} className={`flex w-full items-center gap-3 rounded-2xl p-3 text-right text-sm font-bold ${i === step ? "bg-white text-[#7F568E]" : "text-white/80"}`}><span className={`flex h-8 w-8 items-center justify-center rounded-full ${i < step ? "bg-emerald-400 text-white" : i === step ? "bg-[#F6F0F9]" : "bg-white/10"}`}>{i < step ? "✓" : i + 1}</span>{label}</button>)}</div>
           </aside>
           <section className="rounded-[30px] border border-[#E0E4F2] bg-white p-5 shadow-[0_18px_55px_rgba(67,82,155,.08)] sm:p-8">
-            {step === 0 && <PersonalStep form={form} setForm={setForm} cityOptions={cityOptions} countryOptions={countryOptions} rememberLocationOption={rememberLocationOption} />}
-            {step === 1 && <MawthooqStep form={form} setForm={setForm} />}
+            {step === 0 && <PersonalStep form={form} setForm={setForm} cityOptions={cityOptions} countryOptions={countryOptions} rememberLocationOption={rememberLocationOption} errors={fieldErrors} clearError={clearFieldError} />}
+            {step === 1 && <MawthooqStep form={form} setForm={setForm} errors={fieldErrors} clearError={clearFieldError} />}
             {step === 2 && <SocialStep rows={social} update={updateSocial} addOther={addOtherPlatform} />}
             {step === 3 && <PreferencesStep form={form} toggle={toggle} />}
             {step === 4 && <ReviewStep form={form} social={social} />}
@@ -222,25 +316,25 @@ export default function InfluencerOnboardingWizard({ editToken }: { editToken?: 
   );
 }
 
-function Field({ label, value, onChange, type="text", dir, placeholder, list }: any) { return <label className="block"><span className="mb-2 block text-sm font-black text-[#5F5068]">{label}</span><input type={type} value={value} onChange={e=>onChange(e.target.value)} dir={dir} placeholder={placeholder} list={list} className="h-14 w-full rounded-2xl border border-[#E9DDEF] bg-[#FEFCFF] px-4 font-bold outline-none focus:border-[#A170BA] focus:ring-4 focus:ring-[#A170BA]/10" /></label>; }
+function Field({ label, value, onChange, type="text", dir, placeholder, list, fieldPath, error, onClearError }: any) { return <label className="block" data-field-path={fieldPath}><span className={`mb-2 block text-sm font-black ${error ? "text-red-600" : "text-[#5F5068]"}`}>{label}</span><input type={type} value={value} onChange={e=>{onChange(e.target.value); if(error) onClearError?.(fieldPath);}} dir={dir} placeholder={placeholder} list={list} aria-invalid={Boolean(error)} className={`h-14 w-full rounded-2xl border bg-[#FEFCFF] px-4 font-bold outline-none transition ${error ? "border-red-500 ring-4 ring-red-500/10 hover:border-red-600 focus:border-red-600 focus:ring-red-500/15" : "border-[#E9DDEF] focus:border-[#A170BA] focus:ring-4 focus:ring-[#A170BA]/10"}`} />{error ? <span className="mt-2 block text-xs font-bold text-red-600">{error}</span> : null}</label>; }
 
-function BirthDateField({ birthYear, setBirthYear }: { birthYear: string; setBirthYear: (value: string) => void }) {
+function BirthDateField({ birthYear, setBirthYear, error, onClearError }: { birthYear: string; setBirthYear: (value: string) => void; error?: string; onClearError?: () => void }) {
   const [dateValue, setDateValue] = useState(() => /^\d{4}$/.test(birthYear || "") ? `${birthYear}-01-01` : "");
   useEffect(() => {
     if (/^\d{4}$/.test(birthYear || "") && !dateValue) setDateValue(`${birthYear}-01-01`);
   }, [birthYear, dateValue]);
   const today = new Date();
   const maxDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-  return <label className="block"><span className="mb-2 block text-sm font-black text-[#5F5068]">تاريخ الميلاد *</span><input type="date" value={dateValue} max={maxDate} onChange={(e)=>{setDateValue(e.target.value); setBirthYear(e.target.value ? e.target.value.slice(0,4) : "");}} className="h-14 w-full rounded-2xl border border-[#E9DDEF] bg-[#FEFCFF] px-4 font-bold outline-none focus:border-[#A170BA] focus:ring-4 focus:ring-[#A170BA]/10" /></label>;
+  return <label className="block" data-field-path="influencer.birthYear"><span className={`mb-2 block text-sm font-black ${error ? "text-red-600" : "text-[#5F5068]"}`}>تاريخ الميلاد *</span><input type="date" value={dateValue} max={maxDate} onChange={(e)=>{setDateValue(e.target.value); setBirthYear(e.target.value ? e.target.value.slice(0,4) : ""); if(error) onClearError?.();}} aria-invalid={Boolean(error)} className={`h-14 w-full rounded-2xl border bg-[#FEFCFF] px-4 font-bold outline-none transition ${error ? "border-red-500 ring-4 ring-red-500/10 hover:border-red-600 focus:border-red-600" : "border-[#E9DDEF] focus:border-[#A170BA] focus:ring-4 focus:ring-[#A170BA]/10"}`} />{error ? <span className="mt-2 block text-xs font-bold text-red-600">{error}</span> : null}</label>;
 }
 
-function SmartLocationField({ label, value, onChange, options, listId, placeholder, onRemember }: { label:string; value:string; onChange:(value:string)=>void; options:string[]; listId:string; placeholder?:string; onRemember:()=>void }) {
+function SmartLocationField({ label, value, onChange, options, listId, placeholder, onRemember, fieldPath, error, onClearError }: { label:string; value:string; onChange:(value:string)=>void; options:string[]; listId:string; placeholder?:string; onRemember:()=>void; fieldPath:string; error?:string; onClearError?:()=>void }) {
   const exact = options.some((item) => item.localeCompare(value.trim(), undefined, { sensitivity: "accent" }) === 0);
-  return <div className="block"><label><span className="mb-2 block text-sm font-black text-[#5F5068]">{label}</span><input value={value} onChange={(e)=>onChange(e.target.value)} onBlur={onRemember} list={listId} placeholder={placeholder} autoComplete="off" className="h-14 w-full rounded-2xl border border-[#E9DDEF] bg-[#FEFCFF] px-4 font-bold outline-none focus:border-[#A170BA] focus:ring-4 focus:ring-[#A170BA]/10" /></label><datalist id={listId}>{options.map((item)=><option key={item} value={item}/>)}</datalist>{value.trim() && !exact ? <p className="mt-2 text-xs font-bold text-[#8B6A97]">خيار جديد — سيتم حفظه في القائمة بعد الإدخال.</p> : null}</div>;
+  return <div className="block" data-field-path={fieldPath}><label><span className={`mb-2 block text-sm font-black ${error ? "text-red-600" : "text-[#5F5068]"}`}>{label}</span><input value={value} onChange={(e)=>{onChange(e.target.value); if(error) onClearError?.();}} onBlur={onRemember} list={listId} placeholder={placeholder} autoComplete="off" aria-invalid={Boolean(error)} className={`h-14 w-full rounded-2xl border bg-[#FEFCFF] px-4 font-bold outline-none transition ${error ? "border-red-500 ring-4 ring-red-500/10 hover:border-red-600 focus:border-red-600" : "border-[#E9DDEF] focus:border-[#A170BA] focus:ring-4 focus:ring-[#A170BA]/10"}`} /></label>{error ? <span className="mt-2 block text-xs font-bold text-red-600">{error}</span> : null}<datalist id={listId}>{options.map((item)=><option key={item} value={item}/>)}</datalist>{value.trim() && !exact ? <p className="mt-2 text-xs font-bold text-[#8B6A97]">خيار جديد — سيتم حفظه في القائمة بعد الإدخال.</p> : null}</div>;
 }
 
-function PersonalStep({ form, setForm, cityOptions, countryOptions, rememberLocationOption }: any) { return <div><StepTitle title="البيانات الشخصية" desc="أدخل بياناتك الأساسية كما تريد أن تظهر في ملف صانع المحتوى."/><div className="grid gap-4 sm:grid-cols-2"><Field label="الاسم الكامل *" value={form.fullName} onChange={(v:string)=>setForm((f:any)=>({...f,fullName:v}))}/><Field label="رقم الجوال *" value={form.mobile} onChange={(v:string)=>setForm((f:any)=>({...f,mobile:v}))} dir="ltr"/><Field label="البريد الإلكتروني *" type="email" value={form.email} onChange={(v:string)=>setForm((f:any)=>({...f,email:v}))} dir="ltr"/><BirthDateField birthYear={form.birthYear} setBirthYear={(v)=>setForm((f:any)=>({...f,birthYear:v}))}/><SmartLocationField label="المدينة *" value={form.city} onChange={(v)=>setForm((f:any)=>({...f,city:v}))} options={cityOptions} listId="creator-city-options" placeholder="اختر من القائمة أو اكتب مدينة جديدة" onRemember={()=>rememberLocationOption("city", form.city)}/><SmartLocationField label="الدولة *" value={form.country} onChange={(v)=>setForm((f:any)=>({...f,country:v}))} options={countryOptions} listId="creator-country-options" placeholder="السعودية ودول الخليج أو اكتب دولة أخرى" onRemember={()=>rememberLocationOption("country", form.country)}/></div><div className="mt-5"><p className="mb-3 text-sm font-black text-[#5F5068]">الجنس *</p><div className="grid grid-cols-3 gap-3">{[["female","أنثى"],["male","ذكر"],["other","شيء آخر"]].map(([v,l])=><button key={v} type="button" onClick={()=>setForm((f:any)=>({...f,gender:v}))} className={`rounded-2xl border p-4 font-black ${form.gender===v?"border-[#A170BA] bg-[#F6F0F9] text-[#7F568E]":"border-[#E9DDEF]"}`}>{l}</button>)}</div></div></div>; }
-function MawthooqStep({ form, setForm }: any) { return <div><StepTitle title="بيانات موثوق" desc="اختر حالة موثوق ثم أضف الرقم والتاريخ إذا كان لديك موثوق."/><div className="grid gap-3 sm:grid-cols-2">{[["yes","لدي موثوق"],["no","لا يوجد لدي موثوق"]].map(([v,l])=><button key={v} type="button" onClick={()=>setForm((f:any)=>({...f,hasMawthooq:v}))} className={`rounded-2xl border p-5 text-right font-black ${form.hasMawthooq===v?"border-[#A170BA] bg-[#F6F0F9]":"border-[#E9DDEF]"}`}>{l}</button>)}</div>{form.hasMawthooq==="yes"?<div className="mt-5 grid gap-4 sm:grid-cols-2"><Field label="رقم موثوق *" value={form.mawthooqNumber} onChange={(v:string)=>setForm((f:any)=>({...f,mawthooqNumber:v}))}/><Field label="تاريخ الانتهاء" type="date" value={form.mawthooqExpiryDate} onChange={(v:string)=>setForm((f:any)=>({...f,mawthooqExpiryDate:v}))}/></div>:null}</div>; }
+function PersonalStep({ form, setForm, cityOptions, countryOptions, rememberLocationOption, errors, clearError }: any) { return <div><StepTitle title="البيانات الشخصية" desc="أدخل بياناتك الأساسية كما تريد أن تظهر في ملف صانع المحتوى."/><div className="grid gap-4 sm:grid-cols-2"><Field label="الاسم الكامل *" fieldPath="influencer.fullName" error={errors["influencer.fullName"]} onClearError={clearError} value={form.fullName} onChange={(v:string)=>setForm((f:any)=>({...f,fullName:v}))}/><Field label="رقم الجوال *" fieldPath="influencer.mobile" error={errors["influencer.mobile"]} onClearError={clearError} value={form.mobile} onChange={(v:string)=>setForm((f:any)=>({...f,mobile:v}))} dir="ltr"/><Field label="البريد الإلكتروني *" fieldPath="influencer.email" error={errors["influencer.email"]} onClearError={clearError} type="email" value={form.email} onChange={(v:string)=>setForm((f:any)=>({...f,email:v}))} dir="ltr"/><BirthDateField birthYear={form.birthYear} setBirthYear={(v)=>setForm((f:any)=>({...f,birthYear:v}))} error={errors["influencer.birthYear"]} onClearError={()=>clearError("influencer.birthYear")}/><SmartLocationField label="المدينة *" fieldPath="influencer.city" error={errors["influencer.city"]} onClearError={()=>clearError("influencer.city")} value={form.city} onChange={(v)=>setForm((f:any)=>({...f,city:v}))} options={cityOptions} listId="creator-city-options" placeholder="اختر من القائمة أو اكتب مدينة جديدة" onRemember={()=>rememberLocationOption("city", form.city)}/><SmartLocationField label="الدولة *" fieldPath="influencer.country" error={errors["influencer.country"]} onClearError={()=>clearError("influencer.country")} value={form.country} onChange={(v)=>setForm((f:any)=>({...f,country:v}))} options={countryOptions} listId="creator-country-options" placeholder="السعودية ودول الخليج أو اكتب دولة أخرى" onRemember={()=>rememberLocationOption("country", form.country)}/></div><div className={`mt-5 rounded-2xl ${errors["influencer.gender"] ? "border border-red-500 p-3" : ""}`} data-field-path="influencer.gender"><p className={`mb-3 text-sm font-black ${errors["influencer.gender"] ? "text-red-600" : "text-[#5F5068]"}`}>الجنس *</p><div className="grid grid-cols-3 gap-3">{[["female","أنثى"],["male","ذكر"],["other","شيء آخر"]].map(([v,l])=><button key={v} type="button" onClick={()=>{setForm((f:any)=>({...f,gender:v})); clearError("influencer.gender");}} className={`rounded-2xl border p-4 font-black ${form.gender===v?"border-[#A170BA] bg-[#F6F0F9] text-[#7F568E]":"border-[#E9DDEF]"}`}>{l}</button>)}</div>{errors["influencer.gender"] ? <p className="mt-2 text-xs font-bold text-red-600">{errors["influencer.gender"]}</p> : null}</div></div>; }
+function MawthooqStep({ form, setForm, errors, clearError }: any) { return <div><StepTitle title="بيانات موثوق" desc="اختر حالة موثوق ثم أضف الرقم والتاريخ إذا كان لديك موثوق."/><div data-field-path="influencer.hasMawthooq" className={`grid gap-3 rounded-2xl sm:grid-cols-2 ${errors["influencer.hasMawthooq"] ? "border border-red-500 p-3" : ""}`}>{[["yes","لدي موثوق"],["no","لا يوجد لدي موثوق"]].map(([v,l])=><button key={v} type="button" onClick={()=>{setForm((f:any)=>({...f,hasMawthooq:v})); clearError("influencer.hasMawthooq");}} className={`rounded-2xl border p-5 text-right font-black ${form.hasMawthooq===v?"border-[#A170BA] bg-[#F6F0F9]":"border-[#D9DEF0]"}`}>{l}</button>)}</div>{errors["influencer.hasMawthooq"] ? <p className="mt-2 text-xs font-bold text-red-600">{errors["influencer.hasMawthooq"]}</p> : null}{form.hasMawthooq==="yes"?<div className="mt-5 grid gap-4 sm:grid-cols-2"><Field label="رقم موثوق *" fieldPath="influencer.mawthooqNumber" error={errors["influencer.mawthooqNumber"]} onClearError={clearError} value={form.mawthooqNumber} onChange={(v:string)=>setForm((f:any)=>({...f,mawthooqNumber:v}))}/><Field label="تاريخ الانتهاء" type="date" fieldPath="influencer.mawthooqExpiryDate" value={form.mawthooqExpiryDate} onChange={(v:string)=>setForm((f:any)=>({...f,mawthooqExpiryDate:v}))}/></div>:null}</div>; }
 function SocialStep({ rows, update, addOther }: any) { return <div><StepTitle title="حسابات التواصل الاجتماعي" desc="أضف رابط الحساب وعدد المتابعين. المقاييس الإضافية اختيارية وتبقى مرتبة داخل نفس صف المنصة."/><div className="space-y-4">{rows.map((row:SocialRow,i:number)=><div key={`${row.platform}-${i}`} className="rounded-[24px] border border-[#E0E4F2] bg-[#FEFCFF] p-4"><div className="grid gap-3 lg:grid-cols-[130px_1fr_160px_auto]"><div className="flex items-center rounded-xl bg-[#F6F0F9] px-3 font-black text-[#5363AA]">{row.platform==="Other"?<input value={row.otherPlatformName} onChange={e=>update(i,{otherPlatformName:e.target.value})} placeholder="اسم المنصة" className="w-full bg-transparent outline-none"/>:row.platform}</div><input dir="ltr" value={row.profileUrl} onChange={e=>update(i,{profileUrl:e.target.value})} placeholder="رابط الحساب" className="h-12 rounded-xl border border-[#E9DDEF] bg-white px-3 font-bold outline-none"/><input dir="ltr" inputMode="numeric" value={row.followersCount} onChange={e=>update(i,{followersCount:e.target.value})} placeholder="عدد المتابعين" className="h-12 rounded-xl border border-[#E9DDEF] bg-white px-3 font-bold outline-none"/><button type="button" onClick={()=>update(i,{advanced:!row.advanced})} className="rounded-xl border border-[#CBD2EB] px-3 text-xs font-black text-[#6170B8]">{row.advanced?"إخفاء المقاييس":"+ مقاييس أخرى"}</button></div>{row.advanced?<div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[["username","اسم المستخدم"],["averageViews","متوسط المشاهدات"],["averageLikes","متوسط الإعجابات"],["averageComments","متوسط التعليقات"],["engagementRate","نسبة التفاعل %"],["femaleAudience","جمهور إناث %"],["maleAudience","جمهور ذكور %"],["audienceMainCity","مدينة الجمهور"],["audienceMainCountry","دولة الجمهور"]].map(([k,p])=><input key={k} value={(row as any)[k]} onChange={e=>update(i,{[k]:e.target.value})} placeholder={p} className="h-11 rounded-xl border border-[#E9DDEF] bg-white px-3 text-sm font-bold outline-none"/>)}</div>:null}</div>)}</div><button type="button" onClick={addOther} className="mt-5 rounded-2xl border border-dashed border-[#AAB4DE] px-5 py-3 font-black text-[#A06DB9]">+ إضافة منصة أخرى</button></div>; }
 function CheckGroup({ title, values, selected, onToggle }: any) { return <div><h3 className="mb-3 text-base font-black text-[#4C4052]">{title}</h3><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{values.map((v:string)=><label key={v} className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3 text-sm font-bold ${selected.includes(v)?"border-[#A170BA] bg-[#F6F0F9] text-[#7F568E]":"border-[#E0E4F2]"}`}><input type="checkbox" checked={selected.includes(v)} onChange={()=>onToggle(v)} className="h-4 w-4 accent-[#A06DB9]"/>{v}</label>)}</div></div>; }
 function PreferencesStep({ form, toggle }: any) { return <div><StepTitle title="تفضيلات المحتوى والتصوير" desc="اختر ما يناسبك. يمكنك تحديد أكثر من خيار في كل مجموعة."/><div className="space-y-7"><CheckGroup title="مجالات التعاون" values={categories} selected={form.preferredAdCategories} onToggle={(v:string)=>toggle("preferredAdCategories",v)}/><CheckGroup title="أنواع المحتوى" values={contentTypes} selected={form.contentStylePreference} onToggle={(v:string)=>toggle("contentStylePreference",v)}/><CheckGroup title="أسلوب التصوير" values={shootingStyles} selected={form.shootingStylePreferences} onToggle={(v:string)=>toggle("shootingStylePreferences",v)}/></div></div>; }

@@ -12,6 +12,15 @@ import {
 
 export const dynamic = "force-dynamic";
 
+function preciseIssues(error: { issues: Array<{ path: Array<string | number>; message: string }> }) {
+  const fields: Record<string, string> = {};
+  for (const issue of error.issues) {
+    const path = issue.path.join(".");
+    if (path && !fields[path]) fields[path] = issue.message;
+  }
+  return fields;
+}
+
 function numericText(value: string) {
   return value.replace(/[\s,]/g, "");
 }
@@ -36,7 +45,7 @@ export async function POST(request: Request) {
         {
           success: false,
           message: formatZodError(parsed.error),
-          issues: parsed.error.flatten().fieldErrors,
+          issues: preciseIssues(parsed.error),
         },
         { status: 400 },
       );
@@ -205,6 +214,18 @@ export async function POST(request: Request) {
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof Error && error.message === "INVALID_MOBILE") {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "INVALID_MOBILE",
+          message: "رقم الجوال غير صحيح. استخدم 05XXXXXXXX أو +9665XXXXXXXX.",
+          issues: { "influencer.mobile": "رقم الجوال غير صحيح. استخدم 05XXXXXXXX أو +9665XXXXXXXX." },
+        },
+        { status: 400 },
+      );
+    }
+
     if (error instanceof Error && error.message === "RATE_LIMITED") {
       return NextResponse.json(
         {

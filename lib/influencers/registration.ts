@@ -57,7 +57,7 @@ export const registrationSchema = z
   .object({
     influencer: z.object({
       fullName: z.string().trim().min(2, "الاسم مطلوب").max(200),
-      mobile: z.string().trim().min(9).max(30),
+      mobile: z.string().trim().min(9, "رقم الجوال قصير").max(30).refine((value) => /^9665\d{8}$/.test(normalizeMobile(value)), "رقم الجوال غير صحيح. استخدم 05XXXXXXXX أو +9665XXXXXXXX"),
       email: optionalEmail,
       city: z.string().trim().min(1, "المدينة مطلوبة").max(120),
       country: z.string().trim().min(1).max(120),
