@@ -12,12 +12,17 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function preciseIssues(error: { issues: Array<{ path: Array<string | number>; message: string }> }) {
+function preciseIssues(error: { issues: Array<{ path: PropertyKey[]; message: string }> }) {
   const fields: Record<string, string> = {};
+
   for (const issue of error.issues) {
-    const path = issue.path.join(".");
-    if (path && !fields[path]) fields[path] = issue.message;
+    const path = issue.path.map((part) => String(part)).join(".");
+
+    if (path && !fields[path]) {
+      fields[path] = issue.message;
+    }
   }
+
   return fields;
 }
 
