@@ -10,12 +10,17 @@ function makeTemporaryPassword() {
   const symbols = "!@#$%";
   const all = upper + lower + digits + symbols;
 
-  const pick = (chars: string) => chars[Math.floor(Math.random() * chars.length)];
+  const randomIndex = (length: number) => {
+    const values = new Uint32Array(1);
+    crypto.getRandomValues(values);
+    return values[0] % length;
+  };
+  const pick = (chars: string) => chars[randomIndex(chars.length)];
   const value = [pick(upper), pick(lower), pick(digits), pick(symbols)];
   while (value.length < 12) value.push(pick(all));
 
   for (let i = value.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = randomIndex(i + 1);
     [value[i], value[j]] = [value[j], value[i]];
   }
   return value.join("");
@@ -76,7 +81,7 @@ export default function StaffTempPasswordForm({
         disabled={disabled || password.length < 8}
         className="h-10 rounded-xl bg-[linear-gradient(135deg,#AD79C5,#754A93)] px-3 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        تعيين مؤقتة
+        تفعيل كلمة مؤقتة
       </button>
     </form>
   );

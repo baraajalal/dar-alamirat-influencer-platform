@@ -5,11 +5,8 @@ import { changeForcedStaffPassword } from "./actions";
 export const dynamic = "force-dynamic";
 
 const messages: Record<string, string> = {
-  current_required: "أدخل كلمة المرور المؤقتة التي أرسلها لك مدير النظام.",
-  current_invalid: "كلمة المرور المؤقتة غير صحيحة. تأكد من الكلمة المرسلة من الإدارة.",
   password_weak: "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل وتحتوي حرفًا كبيرًا وصغيرًا ورقمًا ورمزًا.",
   password_mismatch: "تأكيد كلمة المرور الجديدة غير مطابق.",
-  password_same: "اختر كلمة مرور جديدة مختلفة عن كلمة المرور المؤقتة.",
   update_failed: "تعذر تحديث كلمة المرور. أعد المحاولة.",
   metadata_failed: "تم تحديث كلمة المرور لكن تعذر إنهاء خطوة التفعيل. تواصل مع مدير النظام.",
 };
@@ -49,7 +46,7 @@ export default async function StaffChangePasswordPage({
           <p className="mt-4 text-sm font-extrabold text-[#9566AF]">حماية الحساب الوظيفي</p>
           <h1 className="mt-2 text-3xl font-black text-[#3F2255]">غيّر كلمة المرور قبل المتابعة</h1>
           <p className="mt-3 text-sm font-medium leading-7 text-[#806B89]">
-            مرحبًا {profile.full_name}. سجّلت الدخول بكلمة مرور مؤقتة من الإدارة، ولحماية حسابك يجب إنشاء كلمة خاصة بك قبل فتح بقية النظام.
+            مرحبًا {profile.full_name}. تم التحقق من كلمة المرور المؤقتة عند تسجيل الدخول. أنشئ الآن كلمة مرور خاصة بك لفتح بقية النظام.
           </p>
         </div>
 
@@ -60,10 +57,6 @@ export default async function StaffChangePasswordPage({
         ) : null}
 
         <form action={changeForcedStaffPassword} className="mt-7 space-y-4">
-          <label className="block">
-            <span className="mb-2 block text-sm font-black text-[#5A3473]">كلمة المرور المؤقتة</span>
-            <input name="current_password" type="password" required autoComplete="current-password" dir="ltr" className="h-14 w-full rounded-2xl border border-[#E6D7EC] bg-[#FEFCFF] px-4 font-bold text-[#432A57] outline-none transition focus:border-[#9566AF] focus:ring-4 focus:ring-[#9566AF]/10" />
-          </label>
           <label className="block">
             <span className="mb-2 block text-sm font-black text-[#5A3473]">كلمة المرور الجديدة</span>
             <input name="new_password" type="password" required minLength={8} autoComplete="new-password" dir="ltr" className="h-14 w-full rounded-2xl border border-[#E6D7EC] bg-[#FEFCFF] px-4 font-bold text-[#432A57] outline-none transition focus:border-[#9566AF] focus:ring-4 focus:ring-[#9566AF]/10" />

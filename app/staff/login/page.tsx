@@ -30,7 +30,11 @@ export default async function StaffLoginPage({
 
     if (profile && profile.role !== "influencer" && profile.is_active) {
       if (user.app_metadata?.must_change_password === true) redirect("/staff/change-password");
-      redirect(profile.invitation_status === "pending" ? "/staff/set-password" : "/dashboard");
+      if (profile.invitation_status === "pending") {
+        await supabase.auth.signOut();
+        redirect("/staff/login?error=temporary_password_required");
+      }
+      redirect("/dashboard");
     }
   }
 
@@ -39,7 +43,9 @@ export default async function StaffLoginPage({
     invalid_credentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
     not_staff: "هذا الحساب ليس حساب موظف. استخدم بوابة المؤثرين.",
     account_disabled: "تم تعطيل هذا الحساب. تواصل مع الإدارة.",
-    invalid_invite: "رابط الدعوة غير صالح أو منتهي. اطلب إعادة إرسال الدعوة.",
+    invalid_invite: "رابط الدعوة القديم لم يعد مستخدمًا. اطلب من الإدارة تعيين كلمة مرور مؤقتة لحسابك.",
+    legacy_activation_disabled: "تم إيقاف التفعيل عبر روابط البريد. استخدم كلمة المرور المؤقتة التي يعيّنها مدير النظام.",
+    temporary_password_required: "الحساب موجود، لكن الإدارة لم تعيّن له كلمة مرور مؤقتة بعد.",
     profile_not_found: "تعذر العثور على ملف الموظف داخل النظام.",
   };
 

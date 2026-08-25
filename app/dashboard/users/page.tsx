@@ -2,8 +2,7 @@ import { requirePermission } from "@/lib/auth/require-user";
 import { createAdminClient } from "@/lib/supabase/admin";
 import StaffTempPasswordForm from "@/components/dashboard/staff-temp-password-form";
 import {
-  inviteStaffUser,
-  resendStaffInvitation,
+  createStaffUser,
   toggleStaffUser,
   updateStaffUser,
 } from "./actions";
@@ -19,8 +18,7 @@ const roleLabels: Record<string, string> = {
 };
 
 const successMessages: Record<string, string> = {
-  invited: "تم إنشاء المستخدم وإرسال دعوة التفعيل.",
-  resent: "تمت إعادة إرسال الدعوة.",
+  created: "تم إنشاء حساب الموظف بدون إرسال أي بريد. عيّن له كلمة مرور مؤقتة من الجدول أدناه.",
   updated: "تم تحديث بيانات المستخدم وصلاحيته.",
   enabled: "تم تفعيل المستخدم.",
   disabled: "تم تعطيل المستخدم.",
@@ -31,11 +29,9 @@ const errorMessages: Record<string, string> = {
   invalid_fields: "راجعي الاسم والبريد والدور.",
   invalid_user: "معرف المستخدم غير صحيح.",
   email_exists: "البريد مستخدم مسبقًا.",
-  invite_failed: "تعذر إرسال الدعوة. راجعي إعدادات Supabase والبريد.",
-  profile_failed: "تم إلغاء الدعوة لأن إنشاء ملف المستخدم لم يكتمل.",
-  email_missing: "لا يوجد بريد محفوظ لهذا المستخدم.",
-  user_disabled: "فعّلي المستخدم قبل إعادة إرسال الدعوة.",
-  resend_failed: "تعذر إعادة إرسال الدعوة.",
+  create_failed: "تعذر إنشاء حساب الموظف في Supabase.",
+  profile_failed: "تم إلغاء إنشاء الحساب لأن ملف الموظف لم يكتمل.",
+  user_disabled: "فعّلي المستخدم أولًا.",
   update_failed: "تعذر تحديث المستخدم.",
   toggle_failed: "تعذر تغيير حالة المستخدم.",
   cannot_disable_self: "لا يمكنك تعطيل حسابك الحالي.",
@@ -70,8 +66,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
     <main dir="rtl" className="mx-auto max-w-7xl space-y-6">
       <header>
         <p className="text-sm font-extrabold text-[#6575c8]">إدارة النظام</p>
-        <h1 className="mt-1 text-3xl font-black text-[#3D274F]">المستخدمون والدعوات</h1>
-        <p className="mt-2 text-sm text-[#7e87a1]">إضافة موظفين، إرسال الدعوات، وتحديد الدور الأساسي لكل مستخدم.</p>
+        <h1 className="mt-1 text-3xl font-black text-[#3D274F]">إدارة الموظفين</h1>
+        <p className="mt-2 text-sm text-[#7e87a1]">أضف الموظف مباشرة، ثم عيّن له كلمة مرور مؤقتة من الجدول. لا يتم إرسال أي دعوة بريدية.</p>
       </header>
 
       {success ? (
@@ -86,8 +82,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
       ) : null}
 
       <section className="rounded-[28px] bg-white p-6 shadow-[0_16px_45px_rgba(68,82,140,0.09)]">
-        <h2 className="text-xl font-black text-[#4A315C]">دعوة مستخدم جديد</h2>
-        <form action={inviteStaffUser} className="mt-5 grid gap-4 md:grid-cols-4">
+        <h2 className="text-xl font-black text-[#4A315C]">إضافة موظف جديد</h2>
+        <form action={createStaffUser} className="mt-5 grid gap-4 md:grid-cols-4">
           <label className="space-y-2">
             <span className="text-sm font-bold text-[#596a9b]">الاسم الكامل</span>
             <input name="full_name" required minLength={3} className="w-full rounded-2xl border border-[#EEE4F2] px-4 py-3 outline-none focus:border-[#a978c3]" />
@@ -103,7 +99,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
             </select>
           </label>
           <div className="flex items-end">
-            <button className="w-full rounded-2xl bg-[#9566af] px-5 py-3 font-black text-white shadow-sm hover:bg-[#465bb5]">إرسال الدعوة</button>
+            <button className="w-full rounded-2xl bg-[#9566af] px-5 py-3 font-black text-white shadow-sm hover:bg-[#465bb5]">إضافة الموظف</button>
           </div>
         </form>
       </section>
@@ -119,7 +115,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
               <tr>
                 <th className="p-4 text-right">المستخدم</th>
                 <th className="p-4 text-right">الدور</th>
-                <th className="p-4 text-right">حالة الدعوة</th>
+                <th className="p-4 text-right">حالة الحساب</th>
                 <th className="p-4 text-right">آخر دخول</th>
                 <th className="p-4 text-right">حالة كلمة المرور</th>
                 <th className="p-4 text-right">الإجراءات</th>
@@ -128,9 +124,15 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
             <tbody>
               {(profiles ?? []).map((profile) => {
                 const authUser = authUsers.get(profile.id);
-                const confirmed = Boolean(authUser?.email_confirmed_at);
-                const status = !profile.is_active ? "معطل" : confirmed ? "نشط" : "دعوة معلقة";
-                const canResend = profile.is_active && !confirmed && Boolean(profile.email);
+                const mustChangePassword = authUser?.app_metadata?.must_change_password === true;
+                const waitingForTemporaryPassword = profile.invitation_status === "pending";
+                const status = !profile.is_active
+                  ? "معطل"
+                  : waitingForTemporaryPassword
+                    ? "بانتظار كلمة مؤقتة"
+                    : mustChangePassword
+                      ? "دخول مؤقت"
+                      : "نشط";
                 return (
                   <tr key={profile.id} className="border-t border-[#edf0f8] align-top">
                     <td className="p-4">
@@ -148,29 +150,24 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
                       </form>
                     </td>
                     <td className="p-4">
-                      <span className={`rounded-full px-3 py-1.5 text-xs font-black ${!profile.is_active ? "bg-red-50 text-red-700" : confirmed ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{status}</span>
-                      {profile.last_invitation_at ? <p className="mt-2 text-xs text-[#929ab0]">آخر دعوة: {new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(profile.last_invitation_at))}</p> : null}
+                      <span className={`rounded-full px-3 py-1.5 text-xs font-black ${!profile.is_active ? "bg-red-50 text-red-700" : waitingForTemporaryPassword || mustChangePassword ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{status}</span>
                     </td>
                     <td className="p-4 text-[#6f7892]">
                       {authUser?.last_sign_in_at ? new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(authUser.last_sign_in_at)) : "لم يسجل الدخول"}
                     </td>
                     <td className="p-4">
-                      {authUser?.app_metadata?.must_change_password === true ? (
-                        <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">مطلوب تغييرها</span>
+                      {waitingForTemporaryPassword ? (
+                        <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600">لم تُعيّن بعد</span>
+                      ) : mustChangePassword ? (
+                        <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">مؤقتة — يجب تغييرها</span>
                       ) : (
-                        <span className="rounded-full bg-[#F3E9F7] px-3 py-1.5 text-xs font-black text-[#754A93]">محدثة</span>
+                        <span className="rounded-full bg-[#F3E9F7] px-3 py-1.5 text-xs font-black text-[#754A93]">كلمة شخصية</span>
                       )}
                     </td>
                     <td className="p-4">
                       <div className="space-y-3">
                         <StaffTempPasswordForm userId={profile.id} disabled={!profile.is_active || profile.id === currentUser.id} />
                         <div className="flex flex-wrap gap-2">
-                        {canResend ? (
-                          <form action={resendStaffInvitation}>
-                            <input type="hidden" name="user_id" value={profile.id} />
-                            <button className="rounded-xl bg-blue-50 px-3 py-2 text-xs font-black text-blue-700">إعادة الدعوة</button>
-                          </form>
-                        ) : null}
                         {profile.id !== currentUser.id ? (
                           <form action={toggleStaffUser}>
                             <input type="hidden" name="user_id" value={profile.id} />

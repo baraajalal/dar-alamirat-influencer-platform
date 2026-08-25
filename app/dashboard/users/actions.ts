@@ -9,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const USERS_PATH = "/dashboard/users";
 const STAFF_ROLES = ["admin", "coordinator", "finance", "reviewer", "viewer"] as const;
 
-const inviteSchema = z.object({
+const createStaffSchema = z.object({
   fullName: z.string().trim().min(3).max(120),
   email: z.string().trim().toLowerCase().email().max(254),
   role: z.enum(STAFF_ROLES),
@@ -38,17 +38,13 @@ function field(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
-function appBaseUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
-}
-
 function go(params: Record<string, string>): never {
   const query = new URLSearchParams(params);
   redirect(`${USERS_PATH}?${query.toString()}`);
 }
 
-export async function inviteStaffUser(formData: FormData) {
-  const parsed = inviteSchema.safeParse({
+export async function createStaffUser(formData: FormData) {
+  const parsed = createStaffSchema.safeParse({
     fullName: field(formData, "full_name"),
     email: field(formData, "email"),
     role: field(formData, "role"),
@@ -56,7 +52,9 @@ export async function inviteStaffUser(formData: FormData) {
 
   if (!parsed.success) go({ error: "invalid_fields" });
 
-  const { user: actor } = await requirePermission("users", "create");
+  const { user: actor, profile: actorProfile } = await requirePermission("users", "create");
+  if (actorProfile.role !== "admin") go({ error: "admin_only" });
+
   const admin = createAdminClient();
   const input = parsed.data;
 
@@ -68,12 +66,18 @@ export async function inviteStaffUser(formData: FormData) {
 
   if (existingProfile) go({ error: "email_exists" });
 
-  const redirectTo = `${appBaseUrl()}/auth/callback?account_type=staff&next=/staff/set-password`;
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(input.email, {
-    redirectTo,
-    data: {
+  // Create the Auth user directly. This does NOT send an invitation or
+  // confirmation email. The account intentionally has no password yet;
+  // the admin sets a temporary password from the users table afterwards.
+  const { data, error } = await admin.auth.admin.createUser({
+    email: input.email,
+    email_confirm: true,
+    user_metadata: {
       full_name: input.fullName,
       role: input.role,
+      account_type: "staff",
+    },
+    app_metadata: {
       account_type: "staff",
     },
   });
@@ -83,8 +87,8 @@ export async function inviteStaffUser(formData: FormData) {
     if (message.includes("already") || message.includes("registered")) {
       go({ error: "email_exists" });
     }
-    console.error("STAFF_INVITE_FAILED", error);
-    go({ error: "invite_failed" });
+    console.error("STAFF_CREATE_FAILED", error);
+    go({ error: "create_failed" });
   }
 
   const now = new Date().toISOString();
@@ -97,7 +101,7 @@ export async function inviteStaffUser(formData: FormData) {
       is_active: true,
       invited_at: now,
       invited_by: actor.id,
-      last_invitation_at: now,
+      last_invitation_at: null,
       invitation_status: "pending",
       updated_at: now,
     },
@@ -114,55 +118,12 @@ export async function inviteStaffUser(formData: FormData) {
     actor_id: actor.id,
     entity_type: "profile",
     entity_id: data.user.id,
-    action: "staff_user_invited",
+    action: "staff_user_created",
     metadata: { email: input.email, role: input.role },
   });
 
   revalidatePath(USERS_PATH);
-  go({ success: "invited" });
-}
-
-export async function resendStaffInvitation(formData: FormData) {
-  const userId = field(formData, "user_id");
-  if (!z.string().uuid().safeParse(userId).success) go({ error: "invalid_user" });
-
-  const { user: actor } = await requirePermission("users", "update");
-  const admin = createAdminClient();
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("id,email,full_name,role,is_active")
-    .eq("id", userId)
-    .single();
-
-  if (!profile?.email) go({ error: "email_missing" });
-  if (!profile.is_active) go({ error: "user_disabled" });
-
-  const redirectTo = `${appBaseUrl()}/auth/callback?account_type=staff&next=/staff/set-password`;
-  const { error } = await admin.auth.resetPasswordForEmail(profile.email, {
-    redirectTo,
-  });
-
-  if (error) {
-    console.error("STAFF_INVITE_RESEND_FAILED", error);
-    go({ error: "resend_failed" });
-  }
-
-  const now = new Date().toISOString();
-  await admin
-    .from("profiles")
-    .update({ last_invitation_at: now, invitation_status: "pending", updated_at: now })
-    .eq("id", userId);
-
-  await admin.from("activity_logs").insert({
-    actor_id: actor.id,
-    entity_type: "profile",
-    entity_id: userId,
-    action: "staff_invitation_resent",
-    metadata: { email: profile.email },
-  });
-
-  revalidatePath(USERS_PATH);
-  go({ success: "resent" });
+  go({ success: "created" });
 }
 
 export async function updateStaffUser(formData: FormData) {
@@ -220,12 +181,28 @@ export async function toggleStaffUser(formData: FormData) {
   if (userId === actor.id && !enable) go({ error: "cannot_disable_self" });
 
   const admin = createAdminClient();
+  const { data: currentProfile, error: currentProfileError } = await admin
+    .from("profiles")
+    .select("id,is_active,invitation_status")
+    .eq("id", userId)
+    .neq("role", "influencer")
+    .maybeSingle();
+
+  if (currentProfileError || !currentProfile) go({ error: "invalid_user" });
+
   const now = new Date().toISOString();
+  const nextInvitationStatus = enable && currentProfile.invitation_status === "disabled"
+    ? "active"
+    : currentProfile.invitation_status;
+
   const { error } = await admin
     .from("profiles")
     .update({
       is_active: enable,
-      invitation_status: enable ? "active" : "disabled",
+      // is_active is the source of truth for suspension. Keeping the
+      // onboarding status preserves "pending" when an account is disabled
+      // before a temporary password has been assigned.
+      invitation_status: nextInvitationStatus,
       updated_at: now,
     })
     .eq("id", userId)
@@ -236,9 +213,22 @@ export async function toggleStaffUser(formData: FormData) {
     go({ error: "toggle_failed" });
   }
 
-  await admin.auth.admin.updateUserById(userId, {
+  const { error: authToggleError } = await admin.auth.admin.updateUserById(userId, {
     ban_duration: enable ? "none" : "876000h",
   });
+
+  if (authToggleError) {
+    console.error("STAFF_USER_AUTH_TOGGLE_FAILED", authToggleError);
+    await admin
+      .from("profiles")
+      .update({
+        is_active: currentProfile.is_active,
+        invitation_status: currentProfile.invitation_status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+    go({ error: "toggle_failed" });
+  }
 
   await admin.from("activity_logs").insert({
     actor_id: actor.id,

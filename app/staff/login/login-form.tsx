@@ -67,7 +67,7 @@ export default function StaffLoginForm({ error, success }: { error?: string; suc
               </div>
               <p className="text-sm font-extrabold text-[#A170BA]">بوابة فريق دار الأميرات</p>
               <h2 className="mt-2 text-3xl font-black text-[#402A4B]">تسجيل دخول الموظف</h2>
-              <p className="mt-3 text-sm font-medium leading-7 text-[#75677B]">استخدم البريد الإلكتروني الذي استلمت عليه دعوة النظام.</p>
+              <p className="mt-3 text-sm font-medium leading-7 text-[#75677B]">استخدم بريدك الوظيفي وكلمة المرور التي زودتك بها الإدارة.</p>
             </div>
 
             {success ? <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold leading-7 text-emerald-700">{success}</div> : null}
