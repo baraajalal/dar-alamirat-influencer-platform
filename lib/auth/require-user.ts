@@ -30,6 +30,10 @@ export async function requireUser() {
     redirect("/login?error=account_disabled");
   }
 
+  if (profile.role !== "influencer" && user.app_metadata?.must_change_password === true) {
+    redirect("/staff/change-password");
+  }
+
   return { user, profile, supabase };
 }
 

@@ -29,6 +29,7 @@ export default async function StaffLoginPage({
       .maybeSingle();
 
     if (profile && profile.role !== "influencer" && profile.is_active) {
+      if (user.app_metadata?.must_change_password === true) redirect("/staff/change-password");
       redirect(profile.invitation_status === "pending" ? "/staff/set-password" : "/dashboard");
     }
   }

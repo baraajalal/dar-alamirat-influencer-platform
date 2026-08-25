@@ -1,5 +1,6 @@
 import { requirePermission } from "@/lib/auth/require-user";
 import { createAdminClient } from "@/lib/supabase/admin";
+import StaffTempPasswordForm from "@/components/dashboard/staff-temp-password-form";
 import {
   inviteStaffUser,
   resendStaffInvitation,
@@ -23,6 +24,7 @@ const successMessages: Record<string, string> = {
   updated: "تم تحديث بيانات المستخدم وصلاحيته.",
   enabled: "تم تفعيل المستخدم.",
   disabled: "تم تعطيل المستخدم.",
+  temporary_password_set: "تم تعيين كلمة مرور مؤقتة. انسخها وأرسلها للموظف؛ سيُطلب منه تغييرها عند أول دخول.",
 };
 
 const errorMessages: Record<string, string> = {
@@ -38,6 +40,10 @@ const errorMessages: Record<string, string> = {
   toggle_failed: "تعذر تغيير حالة المستخدم.",
   cannot_disable_self: "لا يمكنك تعطيل حسابك الحالي.",
   cannot_demote_self: "لا يمكنك إزالة صلاحية المدير من حسابك الحالي.",
+  temporary_password_invalid: "كلمة المرور المؤقتة يجب أن تكون 8 أحرف على الأقل وتحتوي حرفًا كبيرًا وصغيرًا ورقمًا ورمزًا.",
+  temporary_password_failed: "تعذر تعيين كلمة المرور المؤقتة للمستخدم.",
+  temporary_password_profile_failed: "تم تغيير كلمة المرور، لكن تعذر تحديث حالة المستخدم. أعد المحاولة أو راجع السجل.",
+  admin_only: "هذا الإجراء متاح لمدير النظام فقط.",
 };
 
 type SearchParams = Promise<{ success?: string | string[]; error?: string | string[] }>;
@@ -61,11 +67,11 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
   const authUsers = new Map((authResult.data?.users ?? []).map((item) => [item.id, item]));
 
   return (
-    <main dir="inherit" className="mx-auto max-w-7xl space-y-6">
+    <main dir="rtl" className="mx-auto max-w-7xl space-y-6">
       <header>
         <p className="text-sm font-extrabold text-[#6575c8]">إدارة النظام</p>
         <h1 className="mt-1 text-3xl font-black text-[#3D274F]">المستخدمون والدعوات</h1>
-        <p className="mt-2 text-sm text-[#75677B]">إضافة موظفين، إرسال الدعوات، وتحديد الدور الأساسي لكل مستخدم.</p>
+        <p className="mt-2 text-sm text-[#7e87a1]">إضافة موظفين، إرسال الدعوات، وتحديد الدور الأساسي لكل مستخدم.</p>
       </header>
 
       {success ? (
@@ -103,7 +109,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
       </section>
 
       <section className="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_45px_rgba(68,82,140,0.09)]">
-        <div className="border-b border-[#F6EFF9] p-6">
+        <div className="border-b border-[#edf0f8] p-6">
           <h2 className="text-xl font-black text-[#4A315C]">المستخدمون</h2>
           <p className="mt-1 text-sm text-[#8a92aa]">إجمالي المستخدمين: {(profiles ?? []).length}</p>
         </div>
@@ -115,6 +121,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
                 <th className="p-4 text-right">الدور</th>
                 <th className="p-4 text-right">حالة الدعوة</th>
                 <th className="p-4 text-right">آخر دخول</th>
+                <th className="p-4 text-right">حالة كلمة المرور</th>
                 <th className="p-4 text-right">الإجراءات</th>
               </tr>
             </thead>
@@ -125,7 +132,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
                 const status = !profile.is_active ? "معطل" : confirmed ? "نشط" : "دعوة معلقة";
                 const canResend = profile.is_active && !confirmed && Boolean(profile.email);
                 return (
-                  <tr key={profile.id} className="border-t border-[#F6EFF9] align-top">
+                  <tr key={profile.id} className="border-t border-[#edf0f8] align-top">
                     <td className="p-4">
                       <p className="font-black text-[#4A315C]">{profile.full_name}</p>
                       <p className="mt-1 text-xs text-[#8c7b94]" dir="ltr">{profile.email || authUser?.email || "—"}</p>
@@ -148,7 +155,16 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
                       {authUser?.last_sign_in_at ? new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(authUser.last_sign_in_at)) : "لم يسجل الدخول"}
                     </td>
                     <td className="p-4">
-                      <div className="flex flex-wrap gap-2">
+                      {authUser?.app_metadata?.must_change_password === true ? (
+                        <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">مطلوب تغييرها</span>
+                      ) : (
+                        <span className="rounded-full bg-[#F3E9F7] px-3 py-1.5 text-xs font-black text-[#754A93]">محدثة</span>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <div className="space-y-3">
+                        <StaffTempPasswordForm userId={profile.id} disabled={!profile.is_active || profile.id === currentUser.id} />
+                        <div className="flex flex-wrap gap-2">
                         {canResend ? (
                           <form action={resendStaffInvitation}>
                             <input type="hidden" name="user_id" value={profile.id} />
@@ -162,6 +178,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
                             <button className={`rounded-xl px-3 py-2 text-xs font-black ${profile.is_active ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>{profile.is_active ? "تعطيل" : "تفعيل"}</button>
                           </form>
                         ) : <span className="rounded-xl bg-[#f2f4fa] px-3 py-2 text-xs font-bold text-[#8d95aa]">حسابك الحالي</span>}
+                        </div>
                       </div>
                     </td>
                   </tr>

@@ -51,7 +51,7 @@ function emptyItem(platform: string): ContentItem {
   return {
     platform,
     postLink: "",
-    promoCode: "",
+    promoCode: "", 
     contentType: "",
     contentFileLink: "",
     performanceScreenshotLink: "",

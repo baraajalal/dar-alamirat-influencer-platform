@@ -34,6 +34,10 @@ export async function staffLogin(formData: FormData) {
     redirect("/staff/login?error=account_disabled");
   }
 
+  if (data.user.app_metadata?.must_change_password === true) {
+    redirect("/staff/change-password");
+  }
+
   if (profile.invitation_status === "pending") {
     redirect("/staff/set-password");
   }

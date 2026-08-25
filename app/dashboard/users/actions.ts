@@ -15,6 +15,19 @@ const inviteSchema = z.object({
   role: z.enum(STAFF_ROLES),
 });
 
+
+const temporaryPasswordSchema = z.object({
+  userId: z.string().uuid(),
+  temporaryPassword: z
+    .string()
+    .min(8)
+    .max(128)
+    .refine((value) => /[a-z]/.test(value), "lower")
+    .refine((value) => /[A-Z]/.test(value), "upper")
+    .refine((value) => /[0-9]/.test(value), "digit")
+    .refine((value) => /[^A-Za-z0-9]/.test(value), "symbol"),
+});
+
 const updateSchema = z.object({
   userId: z.string().uuid(),
   fullName: z.string().trim().min(3).max(120),
@@ -237,4 +250,72 @@ export async function toggleStaffUser(formData: FormData) {
 
   revalidatePath(USERS_PATH);
   go({ success: enable ? "enabled" : "disabled" });
+}
+
+
+export async function setTemporaryStaffPassword(formData: FormData) {
+  const parsed = temporaryPasswordSchema.safeParse({
+    userId: field(formData, "user_id"),
+    temporaryPassword: String(formData.get("temporary_password") ?? ""),
+  });
+  if (!parsed.success) go({ error: "temporary_password_invalid" });
+
+  const { user: actor, profile: actorProfile } = await requirePermission("users", "manage");
+  if (actorProfile.role !== "admin") go({ error: "admin_only" });
+
+  const admin = createAdminClient();
+  const { data: profile, error: profileLookupError } = await admin
+    .from("profiles")
+    .select("id,email,full_name,role,is_active")
+    .eq("id", parsed.data.userId)
+    .neq("role", "influencer")
+    .maybeSingle();
+
+  if (profileLookupError || !profile) go({ error: "invalid_user" });
+  if (!profile.is_active) go({ error: "user_disabled" });
+
+  const { data: authResult, error: authLookupError } = await admin.auth.admin.getUserById(parsed.data.userId);
+  if (authLookupError || !authResult.user) {
+    console.error("STAFF_TEMP_PASSWORD_USER_LOOKUP_FAILED", authLookupError);
+    go({ error: "temporary_password_failed" });
+  }
+
+  const existingAppMetadata = authResult.user.app_metadata ?? {};
+  const { error: passwordError } = await admin.auth.admin.updateUserById(parsed.data.userId, {
+    password: parsed.data.temporaryPassword,
+    email_confirm: true,
+    app_metadata: {
+      ...existingAppMetadata,
+      must_change_password: true,
+      temporary_password_set_at: new Date().toISOString(),
+      temporary_password_set_by: actor.id,
+    },
+  });
+
+  if (passwordError) {
+    console.error("STAFF_TEMP_PASSWORD_UPDATE_FAILED", passwordError);
+    go({ error: "temporary_password_failed" });
+  }
+
+  const now = new Date().toISOString();
+  const { error: profileError } = await admin
+    .from("profiles")
+    .update({ invitation_status: "active", updated_at: now })
+    .eq("id", parsed.data.userId);
+
+  if (profileError) {
+    console.error("STAFF_TEMP_PASSWORD_PROFILE_UPDATE_FAILED", profileError);
+    go({ error: "temporary_password_profile_failed" });
+  }
+
+  await admin.from("activity_logs").insert({
+    actor_id: actor.id,
+    entity_type: "profile",
+    entity_id: parsed.data.userId,
+    action: "staff_temporary_password_set",
+    metadata: { email: profile.email, role: profile.role },
+  });
+
+  revalidatePath(USERS_PATH);
+  go({ success: "temporary_password_set" });
 }
