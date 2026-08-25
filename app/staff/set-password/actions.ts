@@ -4,24 +4,44 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export async function setStaffPassword(formData: FormData) {
-  const password = String(formData.get("password") ?? "");
-  const confirmation = String(formData.get("confirm_password") ?? "");
+function passwordIsStrong(value: string) {
+  return (
+    value.length >= 8 &&
+    /[a-z]/.test(value) &&
+    /[A-Z]/.test(value) &&
+    /[0-9]/.test(value) &&
+    /[^A-Za-z0-9]/.test(value)
+  );
+}
 
-  if (password.length < 8) redirect("/staff/set-password?error=password_short");
-  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+export async function setStaffPassword(formData: FormData) {
+  const password = String(formData.get("password") ?? "").trim();
+  const confirmation = String(formData.get("confirm_password") ?? "").trim();
+
+  if (password.length < 8) {
+    redirect("/staff/set-password?error=password_short");
+  }
+
+  if (!passwordIsStrong(password)) {
     redirect("/staff/set-password?error=password_weak");
   }
-  if (password !== confirmation) redirect("/staff/set-password?error=password_mismatch");
+
+  if (password !== confirmation) {
+    redirect("/staff/set-password?error=password_mismatch");
+  }
 
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/staff/login?error=invalid_invite");
+  if (!user) {
+    redirect("/staff/login?error=invalid_invite");
+  }
 
   const admin = createAdminClient();
+
   const { data: profile } = await admin
     .from("profiles")
     .select("id,role,is_active,full_name")
@@ -38,18 +58,32 @@ export async function setStaffPassword(formData: FormData) {
     redirect("/staff/login?error=account_disabled");
   }
 
-  const { error: passwordError } = await supabase.auth.updateUser({ password });
-  if (passwordError) redirect("/staff/set-password?error=update_failed");
+  const { error: passwordError } =
+    await supabase.auth.updateUser({ password });
+
+  if (passwordError) {
+    redirect("/staff/set-password?error=update_failed");
+  }
 
   const now = new Date().toISOString();
+
   const { error: profileError } = await admin
     .from("profiles")
-    .update({ invitation_status: "active", updated_at: now })
+    .update({
+      invitation_status: "active",
+      updated_at: now,
+    })
     .eq("id", user.id);
 
   if (profileError) {
-    console.error("STAFF_ACTIVATION_PROFILE_FAILED", profileError);
-    redirect("/staff/set-password?error=profile_update_failed");
+    console.error(
+      "STAFF_ACTIVATION_PROFILE_FAILED",
+      profileError
+    );
+
+    redirect(
+      "/staff/set-password?error=profile_update_failed"
+    );
   }
 
   await admin.from("activity_logs").insert({
@@ -60,12 +94,7 @@ export async function setStaffPassword(formData: FormData) {
     metadata: { role: profile.role },
   });
 
-  // End the temporary invitation session. The employee must now sign in
-  // through the dedicated staff login page using the new password.
-  const { error: signOutError } = await supabase.auth.signOut();
-  if (signOutError) {
-    console.error("STAFF_ACTIVATION_SIGN_OUT_FAILED", signOutError);
-  }
+  await supabase.auth.signOut();
 
   redirect("/staff/login?activated=1");
 }
