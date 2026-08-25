@@ -23,15 +23,19 @@ export async function changeForcedStaffPassword(formData: FormData) {
     formData.get("confirm_password") ?? ""
   ).trim();
 
+
   if (!passwordIsStrong(newPassword)) {
     redirect("/staff/change-password?error=password_weak");
   }
+
 
   if (newPassword !== confirmation) {
     redirect("/staff/change-password?error=password_mismatch");
   }
 
+
   const supabase = await createClient();
+
 
   const {
     data: { user },
@@ -44,6 +48,7 @@ export async function changeForcedStaffPassword(formData: FormData) {
 
 
   const admin = createAdminClient();
+
 
   const { data: profile } = await admin
     .from("profiles")
@@ -63,11 +68,14 @@ export async function changeForcedStaffPassword(formData: FormData) {
     redirect("/staff/login?error=account_disabled");
   }
 
+
+  // تأكد أنه فعلاً موظف يحتاج تغيير كلمة المرور
   if (user.app_metadata?.must_change_password !== true) {
     redirect("/dashboard");
   }
 
 
+  // تغيير كلمة المرور
   const { error: passwordError } =
     await supabase.auth.updateUser({
       password: newPassword,
@@ -84,6 +92,7 @@ export async function changeForcedStaffPassword(formData: FormData) {
   }
 
 
+  // تحديث بيانات Auth
   const { data: authResult } =
     await admin.auth.admin.getUserById(user.id);
 
@@ -97,37 +106,56 @@ export async function changeForcedStaffPassword(formData: FormData) {
     ...(authResult.user.app_metadata ?? {}),
   };
 
+
   delete appMetadata.must_change_password;
   delete appMetadata.temporary_password_set_at;
   delete appMetadata.temporary_password_set_by;
 
 
-  const { error: metadataError } = await admin.auth.admin.updateUserById(user.id, {
-    app_metadata: appMetadata,
-  });
+  const { error: metadataError } =
+    await admin.auth.admin.updateUserById(user.id, {
+      app_metadata: appMetadata,
+    });
+
 
   if (metadataError) {
-    console.error("STAFF_FORCED_PASSWORD_METADATA_UPDATE_FAILED", metadataError);
+    console.error(
+      "STAFF_FORCED_PASSWORD_METADATA_UPDATE_FAILED",
+      metadataError
+    );
+
     redirect("/staff/change-password?error=metadata_failed");
   }
 
 
+  // مهم جداً: تحديث Session بعد تغيير الـ metadata
+  await supabase.auth.refreshSession();
+
+
+  // تحديث حالة الموظف
   const now = new Date().toISOString();
 
-  const { error: profileUpdateError } = await admin
-    .from("profiles")
-    .update({
-      invitation_status: "active",
-      updated_at: now,
-    })
-    .eq("id", user.id);
+  const { error: profileUpdateError } =
+    await admin
+      .from("profiles")
+      .update({
+        invitation_status: "active",
+        updated_at: now,
+      })
+      .eq("id", user.id);
+
 
   if (profileUpdateError) {
-    console.error("STAFF_FORCED_PASSWORD_PROFILE_UPDATE_FAILED", profileUpdateError);
+    console.error(
+      "STAFF_FORCED_PASSWORD_PROFILE_UPDATE_FAILED",
+      profileUpdateError
+    );
+
     redirect("/staff/change-password?error=metadata_failed");
   }
 
 
+  // تسجيل العملية
   await admin.from("activity_logs").insert({
     actor_id: user.id,
     entity_type: "profile",
@@ -137,5 +165,6 @@ export async function changeForcedStaffPassword(formData: FormData) {
   });
 
 
+  // دخول الداشبورد
   redirect("/dashboard?password_changed=1");
 }
