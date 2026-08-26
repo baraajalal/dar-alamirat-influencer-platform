@@ -69,7 +69,6 @@ export async function changeForcedStaffPassword(formData: FormData) {
   }
 
 
-  // تأكد أنه فعلاً موظف يحتاج تغيير كلمة المرور
   if (user.app_metadata?.must_change_password !== true) {
     redirect("/dashboard");
   }
@@ -92,7 +91,7 @@ export async function changeForcedStaffPassword(formData: FormData) {
   }
 
 
-  // تحديث بيانات Auth
+  // حذف حالة كلمة المرور المؤقتة
   const { data: authResult } =
     await admin.auth.admin.getUserById(user.id);
 
@@ -128,11 +127,7 @@ export async function changeForcedStaffPassword(formData: FormData) {
   }
 
 
-  // مهم جداً: تحديث Session بعد تغيير الـ metadata
-  await supabase.auth.refreshSession();
-
-
-  // تحديث حالة الموظف
+  // تحديث حالة الموظف في الجدول
   const now = new Date().toISOString();
 
   const { error: profileUpdateError } =
@@ -165,6 +160,15 @@ export async function changeForcedStaffPassword(formData: FormData) {
   });
 
 
-  // دخول الداشبورد
+  // تحديث الجلسة بعد تعديل Auth metadata
+  await supabase.auth.refreshSession();
+
+
+  await new Promise((resolve) =>
+    setTimeout(resolve, 500)
+  );
+
+
+  // الدخول للداشبورد
   redirect("/dashboard?password_changed=1");
 }

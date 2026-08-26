@@ -16,7 +16,7 @@ export async function requireUser() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id,full_name,role,is_active")
+    .select("id,full_name,role,is_active,invitation_status")
     .eq("id", user.id)
     .single();
 
@@ -30,9 +30,12 @@ export async function requireUser() {
     redirect("/login?error=account_disabled");
   }
 
-  if (profile.role !== "influencer" && user.app_metadata?.must_change_password === true) {
-    redirect("/staff/change-password");
-  }
+if (
+  profile.role !== "influencer" &&
+  profile.invitation_status === "pending_password"
+) {
+  redirect("/staff/change-password");
+}
 
   return { user, profile, supabase };
 }

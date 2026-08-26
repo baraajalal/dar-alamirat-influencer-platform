@@ -38,10 +38,7 @@ export async function staffLogin(formData: FormData) {
     redirect("/staff/change-password");
   }
 
-  if (profile.invitation_status === "pending") {
-    await supabase.auth.signOut();
-    redirect("/staff/login?error=temporary_password_required");
-  }
+if (data.user.app_metadata?.must_change_password === true) {
 
   redirect("/dashboard");
 }
