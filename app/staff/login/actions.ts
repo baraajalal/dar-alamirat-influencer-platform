@@ -42,3 +42,4 @@ if (data.user.app_metadata?.must_change_password === true) {
 
   redirect("/dashboard");
 }
+}
