@@ -35,23 +35,23 @@ export async function POST(request: NextRequest) {
 
     const session = await requireGuestSession(token);
     if (!session) {
-      return NextResponse.json({ message: "انتهت جلسة الرابط. تحققي من رقم الجوال مرة أخرى." }, { status: 401 });
+      return NextResponse.json({ code: "GUEST_SESSION_EXPIRED", message: "انتهت جلسة الرابط. تحققي من رقم الجوال مرة أخرى." }, { status: 401 });
     }
 
     if (!contentItemId) {
-      return NextResponse.json({ message: "عنصر المحتوى غير محدد." }, { status: 400 });
+      return NextResponse.json({ code: "CONTENT_ITEM_REQUIRED", message: "عنصر المحتوى غير محدد." }, { status: 400 });
     }
     if (externalInput && !externalUrl) {
-      return NextResponse.json({ message: "رابط الملف الخارجي غير صحيح." }, { status: 400 });
+      return NextResponse.json({ code: "INVALID_EXTERNAL_URL", message: "رابط الملف الخارجي غير صحيح." }, { status: 400 });
     }
     if (!file && !externalUrl) {
-      return NextResponse.json({ message: "ارفعي ملفًا أو أضيفي رابطًا خارجيًا للمحتوى." }, { status: 400 });
+      return NextResponse.json({ code: "CONTENT_SOURCE_REQUIRED", message: "ارفعي ملفًا أو أضيفي رابطًا خارجيًا للمحتوى." }, { status: 400 });
     }
     if (file && file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ message: "حجم الملف أكبر من 50MB. استخدمي رابط Google Drive أو رابطًا خارجيًا." }, { status: 413 });
+      return NextResponse.json({ code: "FILE_TOO_LARGE", message: "حجم الملف أكبر من 50MB. استخدمي رابط Google Drive أو رابطًا خارجيًا." }, { status: 413 });
     }
     if (file && !ALLOWED_TYPES.has(file.type)) {
-      return NextResponse.json({ message: "نوع الملف غير مدعوم. المسموح صور، فيديو MP4/MOV/WebM أو PDF." }, { status: 415 });
+      return NextResponse.json({ code: "UNSUPPORTED_FILE_TYPE", message: "نوع الملف غير مدعوم. المسموح صور، فيديو MP4/MOV/WebM أو PDF." }, { status: 415 });
     }
 
     const { admin, assignmentId, link } = session;
@@ -64,10 +64,10 @@ export async function POST(request: NextRequest) {
 
     if (itemError) throw new Error(itemError.message);
     if (!contentItem) {
-      return NextResponse.json({ message: "عنصر المحتوى لا يتبع هذا التكليف." }, { status: 403 });
+      return NextResponse.json({ code: "CONTENT_NOT_OWNED", message: "عنصر المحتوى لا يتبع هذا التكليف." }, { status: 403 });
     }
     if (["approved", "published"].includes(contentItem.status)) {
-      return NextResponse.json({ message: "هذا المحتوى معتمد ولا يمكن استبداله إلا بعد إعادة فتحه من الإدارة." }, { status: 409 });
+      return NextResponse.json({ code: "CONTENT_LOCKED", message: "هذا المحتوى معتمد ولا يمكن استبداله إلا بعد إعادة فتحه من الإدارة." }, { status: 409 });
     }
 
     const { data: latestVersion, error: latestError } = await admin
@@ -156,12 +156,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      code: "CONTENT_SUBMITTED",
       message: `تم إرسال النسخة رقم ${versionNo} للمراجعة.`,
       versionId: version.id,
       versionNo,
     });
   } catch (error) {
     console.error("Guest content submission failed:", error);
-    return NextResponse.json({ message: "تعذر رفع المحتوى حاليًا. حاولي مرة أخرى." }, { status: 500 });
+    return NextResponse.json({ code: "CONTENT_UPLOAD_FAILED", message: "تعذر رفع المحتوى حاليًا. حاولي مرة أخرى." }, { status: 500 });
   }
 }

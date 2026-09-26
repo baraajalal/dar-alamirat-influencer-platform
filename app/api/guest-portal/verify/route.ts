@@ -21,13 +21,13 @@ export async function POST(request: NextRequest) {
     const suppliedLastFour = lastFourDigits(String(body.lastFour ?? ""));
 
     if (suppliedLastFour.length !== 4) {
-      return NextResponse.json({ message: "أدخلي آخر 4 أرقام من رقم الجوال." }, { status: 400 });
+      return NextResponse.json({ code: "LAST_FOUR_REQUIRED", message: "أدخلي آخر 4 أرقام من رقم الجوال." }, { status: 400 });
     }
 
     const found = await findGuestLink(rawToken);
     if (!found?.link || !guestLinkIsUsable(found.link)) {
       return NextResponse.json(
-        { message: "الرابط غير صالح أو انتهت صلاحيته. تواصلي مع منسقة الحملة." },
+        { code: "LINK_INVALID", message: "الرابط غير صالح أو انتهت صلاحيته. تواصلي مع منسقة الحملة." },
         { status: 403 },
       );
     }
@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
+          code: locked ? "VERIFICATION_LOCKED" : "MOBILE_MISMATCH",
           message: locked
             ? "تم إيقاف الرابط بعد محاولات متعددة. تواصلي مع منسقة الحملة لإصدار رابط جديد."
             : "الأرقام المدخلة لا تطابق رقم الجوال المسجل.",
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({
       success: true,
+      code: "VERIFIED",
       message: "تم التحقق بنجاح.",
       influencerName: found.link.campaign_assignments?.influencers?.full_name ?? "",
     });
@@ -96,6 +98,6 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Guest portal verification failed:", error);
-    return NextResponse.json({ message: "تعذر التحقق من الرابط حاليًا." }, { status: 500 });
+    return NextResponse.json({ code: "VERIFY_FAILED", message: "تعذر التحقق من الرابط حاليًا." }, { status: 500 });
   }
 }

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { normalizeSaudiMobile } from "@/lib/influencers/mobile";
+import type { AppLocale } from "@/lib/i18n/app";
+import { formatFlowMessage, type FlowDictionary } from "@/lib/i18n/flow-dictionary";
 
 type RegistrationResult = {
   success?: boolean;
@@ -12,11 +14,27 @@ type RegistrationResult = {
   loginPath?: string;
   nextPath?: string;
   message?: string;
+  code?: string;
 };
 
 type ViewState = "register" | "existing" | "complete";
 
-export default function ActivationClient({ token }: { token: string }) {
+type Copy = FlowDictionary["directActivation"];
+
+function resultError(copy: Copy, code?: string) {
+  if (!code) return copy.createFailed;
+  return copy.errors[code as keyof typeof copy.errors] ?? copy.createFailed;
+}
+
+export default function ActivationClient({
+  token,
+  locale,
+  copy,
+}: {
+  token: string;
+  locale: AppLocale;
+  copy: Copy;
+}) {
   const [view, setView] = useState<ViewState>("register");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -39,24 +57,22 @@ export default function ActivationClient({ token }: { token: string }) {
     setMessage("");
 
     if (!token) {
-      setError("رابط التكليف غير مكتمل.");
+      setError(copy.missingToken);
       return;
     }
 
     if (!normalizedMobile) {
-      setError(
-        "أدخلي رقم جوال سعودي صحيحًا، مع المفتاح أو بدونه وبالأرقام العربية أو الإنجليزية.",
-      );
+      setError(copy.invalidMobile);
       return;
     }
 
     if (!passwordIsValid) {
-      setError("كلمة المرور يجب أن تكون 8 أحرف على الأقل وتحتوي على حرف ورقم.");
+      setError(copy.weakPassword);
       return;
     }
 
     if (password !== passwordConfirmation) {
-      setError("كلمة المرور وتأكيد كلمة المرور غير متطابقين.");
+      setError(copy.passwordMismatch);
       return;
     }
 
@@ -83,16 +99,16 @@ export default function ActivationClient({ token }: { token: string }) {
           result.loginPath ||
             `/portal/complete-account?token=${encodeURIComponent(token)}`,
         );
-        setMessage(result.message ?? "يوجد حساب مرتبط بهذا المؤثر.");
+        setMessage(copy.accountExists);
         setView("existing");
         return;
       }
 
       if (!response.ok) {
-        throw new Error(result.message || "تعذر إنشاء الحساب.");
+        throw new Error(resultError(copy, result.code));
       }
 
-      setMessage(result.message ?? "تم إنشاء الحساب بنجاح.");
+      setMessage(copy.created);
       setView("complete");
 
       window.setTimeout(() => {
@@ -104,7 +120,7 @@ export default function ActivationClient({ token }: { token: string }) {
       setError(
         registrationError instanceof Error
           ? registrationError.message
-          : "تعذر إنشاء الحساب حاليًا.",
+          : copy.genericFailed,
       );
     } finally {
       setSubmitting(false);
@@ -113,75 +129,69 @@ export default function ActivationClient({ token }: { token: string }) {
 
   return (
     <main
+      lang={locale}
       dir="inherit"
+      data-no-auto-translate
       className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(216,221,247,0.82),transparent_30%),linear-gradient(135deg,#FFFDFF,#F9F5FB)] px-4 py-8 font-['Tajawal',Tahoma,Arial,sans-serif] text-[#432A57]"
     >
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 flex items-center justify-between rounded-[24px] border border-white/90 bg-white/82 px-5 py-4 shadow-[0_18px_55px_rgba(67,82,155,0.11)] backdrop-blur-xl">
           <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/da-logo.png"
-              alt="دار الأميرات"
+              alt="DA"
               className="h-14 w-14 rounded-2xl object-contain"
             />
             <div>
-              <p className="text-xs font-black text-[#8F7E98]">بوابة المؤثر</p>
-              <h1 className="text-lg font-black text-[#432A57]">
-                إنشاء حساب المؤثر
-              </h1>
+              <p className="text-xs font-black text-[#8F7E98]">{copy.portalLabel}</p>
+              <h1 className="text-lg font-black text-[#432A57]">{copy.headerTitle}</h1>
             </div>
           </div>
           <Link
             href={token ? `/portal/assignments/${encodeURIComponent(token)}` : "/"}
             className="text-sm font-black text-[#A170BA]"
           >
-            العودة للتكليف
+            {copy.backToAssignment}
           </Link>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <section className="rounded-[30px] bg-[linear-gradient(145deg,#AD7EC4,#8959A2)] p-7 text-white shadow-[0_25px_70px_rgba(74,88,162,0.25)]">
             <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black">
-              تسجيل مباشر وآمن
+              {copy.secureBadge}
             </span>
-            <h2 className="mt-5 text-2xl font-black">
-              من رابط النشر إلى لوحة المؤثر
-            </h2>
+            <h2 className="mt-5 text-2xl font-black">{copy.introTitle}</h2>
             <p className="mt-4 text-sm font-semibold leading-8 text-white/80">
-              أدخلي نفس رقم الجوال المرتبط بالتكليف، ثم اختاري بريدًا وكلمة مرور
-              لحسابك. بعد المطابقة ينتقل حسابك مباشرة إلى بيانات البنك ولوحة
-              الحملات والأداء.
+              {copy.introDescription}
             </p>
             <div className="mt-7 space-y-3">
-              <RegistrationStep number="1" text="مطابقة رقم الجوال كاملًا" />
-              <RegistrationStep number="2" text="إنشاء البريد وكلمة المرور" />
-              <RegistrationStep number="3" text="إضافة أو تأكيد بيانات البنك" />
-              <RegistrationStep number="4" text="الدخول إلى لوحة المؤثر" />
+              {copy.steps.map((step, index) => (
+                <RegistrationStep key={step} number={String(index + 1)} text={step} />
+              ))}
             </div>
             <div className="mt-7 rounded-2xl border border-white/15 bg-white/10 p-4 text-xs font-semibold leading-6 text-white/80">
-              يقبل الرقم بصيغة 05 أو 966 أو +966 أو 00966، وبالأرقام العربية أو
-              الإنجليزية، مع المسافات أو بدونها.
+              {copy.mobileFormats}
             </div>
           </section>
 
           <section className="rounded-[30px] border border-[#ECE1F1] bg-white/90 p-6 shadow-[0_20px_60px_rgba(67,82,155,0.10)] sm:p-8">
             {view === "register" ? (
               <form onSubmit={register} className="space-y-4">
-                <p className="text-sm font-black text-[#A170BA]">إنشاء الحساب</p>
-                <h2 className="text-2xl font-black">أكملي بيانات الدخول</h2>
+                <p className="text-sm font-black text-[#A170BA]">{copy.createLabel}</p>
+                <h2 className="text-2xl font-black">{copy.formTitle}</h2>
                 <p className="text-sm font-semibold leading-7 text-[#806F8A]">
-                  يجب أن يكون رقم الجوال مطابقًا تمامًا للرقم الذي ربطه منسق
-                  الحملة بهذا التكليف.
+                  {copy.formDescription}
                 </p>
 
                 <Field
-                  label="رقم الجوال المرتبط بالتكليف"
+                  label={copy.mobileLabel}
                   type="tel"
                   value={mobile}
                   onChange={setMobile}
                   autoComplete="tel"
                   inputMode="tel"
-                  placeholder="05XXXXXXXX أو +9665XXXXXXXX"
+                  placeholder={copy.mobilePlaceholder}
                   direction="ltr"
                 />
 
@@ -194,64 +204,71 @@ export default function ActivationClient({ token }: { token: string }) {
                     }`}
                   >
                     {normalizedMobile
-                      ? `سيتم التحقق من الرقم: ${normalizedMobile}`
-                      : "صيغة الرقم غير مكتملة بعد."}
+                      ? formatFlowMessage(copy.mobileWillVerify, {
+                          mobile: normalizedMobile,
+                        })
+                      : copy.mobileIncomplete}
                   </p>
                 ) : null}
 
                 <Field
-                  label="البريد الإلكتروني"
+                  label={copy.emailLabel}
                   type="email"
                   value={email}
                   onChange={setEmail}
                   autoComplete="email"
                   inputMode="email"
-                  placeholder="name@example.com"
+                  placeholder={copy.emailPlaceholder}
                   direction="ltr"
                 />
 
                 <PasswordField
-                  label="كلمة المرور"
+                  label={copy.passwordLabel}
                   value={password}
                   onChange={setPassword}
                   show={showPassword}
                   onToggle={() => setShowPassword((current) => !current)}
                   autoComplete="new-password"
+                  showLabel={copy.show}
+                  hideLabel={copy.hide}
                 />
 
                 <PasswordField
-                  label="تأكيد كلمة المرور"
+                  label={copy.confirmPasswordLabel}
                   value={passwordConfirmation}
                   onChange={setPasswordConfirmation}
                   show={showPassword}
                   onToggle={() => setShowPassword((current) => !current)}
                   autoComplete="new-password"
+                  showLabel={copy.show}
+                  hideLabel={copy.hide}
                 />
 
                 <div className="grid grid-cols-2 gap-2 text-xs font-bold">
-                  <PasswordRule valid={password.length >= 8} text="8 أحرف على الأقل" />
-                  <PasswordRule valid={/[A-Za-z]/.test(password)} text="تحتوي على حرف" />
-                  <PasswordRule valid={/[0-9]/.test(password)} text="تحتوي على رقم" />
+                  <PasswordRule valid={password.length >= 8} text={copy.ruleMin} />
+                  <PasswordRule valid={/[A-Za-z]/.test(password)} text={copy.ruleLetter} />
+                  <PasswordRule valid={/[0-9]/.test(password)} text={copy.ruleNumber} />
                   <PasswordRule
                     valid={Boolean(password) && password === passwordConfirmation}
-                    text="كلمتا المرور متطابقتان"
+                    text={copy.ruleMatch}
                   />
                 </div>
 
                 <Feedback message={message} error={error} />
                 <PrimaryButton disabled={submitting}>
-                  {submitting ? "جاري إنشاء الحساب..." : "إنشاء الحساب والمتابعة"}
+                  {submitting ? copy.creating : copy.createAndContinue}
                 </PrimaryButton>
               </form>
             ) : null}
 
             {view === "existing" ? (
               <div className="space-y-5">
-                <p className="text-sm font-black text-[#A170BA]">الحساب موجود</p>
-                <h2 className="text-2xl font-black">سجلي الدخول بالحساب الحالي</h2>
+                <p className="text-sm font-black text-[#A170BA]">{copy.existingLabel}</p>
+                <h2 className="text-2xl font-black">{copy.existingTitle}</h2>
                 <p className="text-sm font-semibold leading-7 text-[#806F8A]">
-                  وجدنا حسابًا مرتبطًا بهذا المؤثر
-                  {maskedEmail ? ` (${maskedEmail})` : ""}. لن ننشئ حسابًا ثانيًا.
+                  {formatFlowMessage(copy.existingDescription, {
+                    email: maskedEmail ? ` (${maskedEmail})` : "",
+                  })}
                 </p>
                 <Feedback message={message} error={error} />
                 <Link
@@ -261,7 +278,7 @@ export default function ActivationClient({ token }: { token: string }) {
                   }
                   className="flex h-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] px-5 font-black text-white"
                 >
-                  تسجيل الدخول واستكمال البنك
+                  {copy.loginAndBank}
                 </Link>
               </div>
             ) : null}
@@ -271,9 +288,9 @@ export default function ActivationClient({ token }: { token: string }) {
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-700">
                   ✓
                 </div>
-                <h2 className="mt-5 text-2xl font-black">تم إنشاء الحساب</h2>
+                <h2 className="mt-5 text-2xl font-black">{copy.completeTitle}</h2>
                 <p className="mt-3 text-sm font-semibold text-[#806F8A]">
-                  جاري تحويلك إلى بيانات البنك...
+                  {copy.redirecting}
                 </p>
                 <Feedback message={message} error={error} />
               </div>
@@ -342,6 +359,8 @@ function PasswordField({
   show,
   onToggle,
   autoComplete,
+  showLabel,
+  hideLabel,
 }: {
   label: string;
   value: string;
@@ -349,6 +368,8 @@ function PasswordField({
   show: boolean;
   onToggle: () => void;
   autoComplete: string;
+  showLabel: string;
+  hideLabel: string;
 }) {
   return (
     <label className="block">
@@ -363,15 +384,15 @@ function PasswordField({
             onChange(event.target.value)
           }
           autoComplete={autoComplete}
-          className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 pl-20 text-sm font-bold outline-none focus:border-[#A170BA]"
+          className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] ps-4 pe-20 text-sm font-bold outline-none focus:border-[#A170BA]"
           dir="ltr"
         />
         <button
           type="button"
           onClick={onToggle}
-          className="absolute left-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-black text-[#A170BA]"
+          className="absolute end-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-black text-[#A170BA]"
         >
-          {show ? "إخفاء" : "إظهار"}
+          {show ? hideLabel : showLabel}
         </button>
       </span>
     </label>
@@ -424,3 +445,4 @@ function Feedback({ message, error }: { message: string; error: string }) {
     </>
   );
 }
+

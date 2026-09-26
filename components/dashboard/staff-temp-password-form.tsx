@@ -45,44 +45,50 @@ export default function StaffTempPasswordForm({
   }
 
   return (
-    <form action={setTemporaryStaffPassword} className="flex min-w-[330px] flex-wrap items-center gap-2">
+    <form action={setTemporaryStaffPassword} className="grid w-full min-w-0 gap-2">
       <input type="hidden" name="user_id" value={userId} />
-      <input
-        name="temporary_password"
-        type="text"
-        dir="ltr"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        minLength={8}
-        required
-        disabled={disabled}
-        autoComplete="off"
-        placeholder="كلمة مرور مؤقتة"
-        className="h-10 w-44 rounded-xl border border-[#E6D7EC] bg-[#FEFCFF] px-3 text-xs font-bold text-[#432A57] outline-none transition focus:border-[#9566AF] focus:ring-4 focus:ring-[#9566AF]/10 disabled:cursor-not-allowed disabled:opacity-50"
-      />
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setPassword(makeTemporaryPassword())}
-        className="h-10 rounded-xl bg-[#F3E9F7] px-3 text-xs font-black text-[#754A93] transition hover:bg-[#EAD9F0] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        توليد
-      </button>
-      <button
-        type="button"
-        disabled={disabled || !password}
-        onClick={copyPassword}
-        className="h-10 rounded-xl border border-[#E6D7EC] bg-white px-3 text-xs font-black text-[#754A93] transition hover:bg-[#FBF7FD] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {copied ? "تم النسخ" : "نسخ"}
-      </button>
-      <button
-        type="submit"
-        disabled={disabled || password.length < 8}
-        className="h-10 rounded-xl bg-[linear-gradient(135deg,#AD79C5,#754A93)] px-3 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        تفعيل كلمة مؤقتة
-      </button>
+
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+        <input
+          name="temporary_password"
+          type="text"
+          dir="ltr"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          minLength={8}
+          required
+          disabled={disabled}
+          autoComplete="off"
+          placeholder="كلمة مرور مؤقتة"
+          className="h-10 min-w-0 w-full rounded-xl border border-[#E6D7EC] bg-[#FEFCFF] px-3 text-xs font-bold text-[#432A57] outline-none transition focus:border-[#9566AF] focus:ring-4 focus:ring-[#9566AF]/10 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setPassword(makeTemporaryPassword())}
+          className="h-10 whitespace-nowrap rounded-xl bg-[#F3E9F7] px-3 text-xs font-black text-[#754A93] transition hover:bg-[#EAD9F0] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          توليد
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          disabled={disabled || !password}
+          onClick={copyPassword}
+          className="h-10 rounded-xl border border-[#E6D7EC] bg-white px-3 text-xs font-black text-[#754A93] transition hover:bg-[#FBF7FD] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {copied ? "تم النسخ" : "نسخ"}
+        </button>
+        <button
+          type="submit"
+          disabled={disabled || password.length < 8}
+          className="h-10 rounded-xl bg-[linear-gradient(135deg,#AD79C5,#754A93)] px-3 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          تفعيل كلمة مؤقتة
+        </button>
+      </div>
     </form>
   );
 }

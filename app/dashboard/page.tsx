@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { PORTAL_ACCESS_REVIEW_QUEUE_STATUSES } from "@/lib/domain/portal-access";
 import { cookies } from "next/headers";
 import { requirePermission } from "@/lib/auth/require-user";
 import { hasPermission } from "@/lib/auth/permissions";
-import { getDashboardDictionary, normalizeDashboardLocale } from "@/lib/i18n/dashboard";
+import { getDashboardDictionary, normalizeDashboardLocale, type DashboardDictionary, type DashboardLocale } from "@/lib/i18n/dashboard";
 import { DashboardIcon } from "@/components/dashboard/icons";
 import { DashboardEmpty, DashboardPanel, DashboardStatCard } from "@/components/dashboard/dashboard-widgets";
 
@@ -20,12 +21,16 @@ export default async function DashboardPage() {
   const dictionary = getDashboardDictionary(locale);
   const d = dictionary.dashboard;
 
+  if (profile.role === "coordinator") {
+    return renderCoordinatorWorkDashboard({ profile, supabase, locale, dictionary });
+  }
+
   const [campaignsResult, influencerCountResult, recentInfluencersResult, contentCountResult, accessCountResult, paymentsResult] = await Promise.all([
     supabase.from("campaigns").select("id,name,brand,status,budget,start_date").order("created_at", { ascending: false }),
     supabase.from("influencers").select("id", { count: "exact", head: true }),
     supabase.from("influencers").select("id,full_name,city,profile_completion,created_at").order("created_at", { ascending: false }).limit(5),
     supabase.from("content_items").select("id", { count: "exact", head: true }).in("status", ["submitted", "under_review"]),
-    supabase.from("portal_access_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("portal_access_requests").select("id", { count: "exact", head: true }).in("status", PORTAL_ACCESS_REVIEW_QUEUE_STATUSES),
     supabase.from("payments").select("amount,status").in("status", ["awaiting_approval", "ready_for_finance", "partially_paid"]),
   ]);
 
@@ -134,3 +139,98 @@ function formatMoney(value: number, locale: "ar" | "en") { return new Intl.Numbe
 function formatDate(value: string | null, locale: "ar" | "en") { if (!value) return "—"; return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" }).format(new Date(`${value}T00:00:00`)); }
 function initials(name: string) { return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase(); }
 function statusClass(status: CampaignStatus) { return { draft: "bg-slate-100 text-slate-600", active: "bg-emerald-50 text-emerald-700", paused: "bg-amber-50 text-amber-700", completed: "bg-[#F7F0FA] text-[#8D5AA8]", archived: "bg-[#F1F2F5] text-[#7E8495]" }[status]; }
+
+
+type CoordinatorAssignmentRow = {
+  id: string;
+  status: string;
+  execution_type: string | null;
+  content_due_at: string | null;
+  publishing_date: string | null;
+  attention_required: boolean | null;
+  attention_reason: string | null;
+  updated_at: string;
+  campaigns: { id: string; name: string; brand: string | null } | { id: string; name: string; brand: string | null }[] | null;
+  influencers: { id: string; full_name: string; mobile_e164: string } | { id: string; full_name: string; mobile_e164: string }[] | null;
+};
+
+async function renderCoordinatorWorkDashboard({ profile, supabase, locale, dictionary }: {
+  profile: Awaited<ReturnType<typeof requirePermission>>["profile"];
+  supabase: Awaited<ReturnType<typeof requirePermission>>["supabase"];
+  locale: DashboardLocale;
+  dictionary: DashboardDictionary;
+}) {
+  const copy = dictionary.operations.myWork;
+  const { data, error } = await supabase
+    .from("campaign_assignments")
+    .select("id,status,execution_type,content_due_at,publishing_date,attention_required,attention_reason,updated_at,campaigns(id,name,brand),influencers(id,full_name,mobile_e164)")
+    .eq("coordinator_id", profile.id)
+    .order("updated_at", { ascending: false })
+    .limit(300);
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []) as unknown as CoordinatorAssignmentRow[];
+  const now = Date.now();
+  const state = rows.map((row) => ({ row, bucket: coordinatorBucket(row, now) }));
+  const problems = state.filter((item) => item.bucket === "problems").length;
+  const contentReview = state.filter((item) => item.bucket === "contentReview").length;
+  const waitingPublish = state.filter((item) => item.bucket === "waitingPublish").length;
+  const completed = state.filter((item) => item.bucket === "completed").length;
+  const waitingCreator = state.filter((item) => item.bucket === "waitingCreator").length;
+  const needsAction = problems + contentReview;
+  const currentRows = state.filter((item) => item.bucket !== "completed").slice(0, 120);
+
+  return (
+    <main className="mx-auto w-full max-w-[1540px] space-y-5 sm:space-y-6" data-no-auto-translate>
+      <section className="relative overflow-hidden rounded-[28px] bg-[linear-gradient(125deg,#A978C3_0%,#566AC4_55%,#8795DF_100%)] px-5 py-6 text-white shadow-[0_24px_65px_rgba(72,88,170,0.25)] sm:px-7 sm:py-7">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/10 px-3 py-1.5 text-[11px] font-extrabold text-white/88"><DashboardIcon name="sparkles" className="h-4 w-4" />{dictionary.header.welcome} {profile.full_name}</span>
+        <h1 className="mt-4 text-2xl font-black sm:text-3xl">{copy.title}</h1>
+        <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-white/78">{copy.subtitle}</p>
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <WorkStat label={copy.needsAction} value={needsAction} tone="rose" />
+        <WorkStat label={copy.contentReview} value={contentReview} tone="violet" />
+        <WorkStat label={copy.waitingCreator} value={waitingCreator} tone="blue" />
+        <WorkStat label={copy.waitingPublish} value={waitingPublish} tone="gold" />
+        <WorkStat label={copy.problems} value={problems} tone="rose" />
+        <WorkStat label={copy.completed} value={completed} tone="green" />
+      </section>
+
+      <section className="overflow-hidden rounded-[24px] border border-[#EEE4F2] bg-white shadow-[0_12px_34px_rgba(64,36,77,.055)]">
+        <div className="border-b border-[#F0E8F3] px-5 py-4"><h2 className="text-lg font-black text-[#302437]">{copy.allCurrent}</h2></div>
+        {currentRows.length ? <div className="divide-y divide-[#F0E8F3]">
+          {currentRows.map(({ row, bucket }) => {
+            const campaign = relationOne(row.campaigns); const influencer = relationOne(row.influencers);
+            return <div key={row.id} className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(150px,1.15fr)_minmax(160px,1fr)_110px_minmax(150px,1fr)_110px] md:items-center">
+              <div className="min-w-0"><p className="truncate text-sm font-black text-[#4C335F]">{influencer?.full_name ?? "—"}</p><p dir="ltr" className="mt-1 truncate text-start text-[11px] font-bold text-[#9A8FA0]">{influencer?.mobile_e164 ?? "—"}</p></div>
+              <div className="min-w-0"><p className="truncate text-sm font-black text-[#53608E]">{campaign?.name ?? "—"}</p><p className="mt-1 truncate text-[11px] font-semibold text-[#9A8FA0]">{campaign?.brand || "—"}</p></div>
+              <span className="text-xs font-black text-[#6A5775]">{row.execution_type || "—"}</span>
+              <div><WorkBucketBadge bucket={bucket} copy={copy}/>{row.attention_reason ? <p className="mt-1 line-clamp-1 text-[10px] font-bold text-rose-600">{row.attention_reason}</p>:null}</div>
+              <Link href={`/dashboard/campaigns/${campaign?.id ?? ""}/influencers/${row.id}`} className="rounded-xl border border-[#E2D6E8] px-3 py-2 text-center text-xs font-black text-[#6658A8]">{copy.open}</Link>
+            </div>;
+          })}
+        </div> : <div className="p-5"><DashboardEmpty text={copy.noItems}/></div>}
+      </section>
+    </main>
+  );
+}
+
+function coordinatorBucket(row: CoordinatorAssignmentRow, now: number): "problems"|"contentReview"|"waitingCreator"|"waitingPublish"|"completed" {
+  if (["closed","paid"].includes(row.status)) return "completed";
+  const due = row.content_due_at ? new Date(row.content_due_at).getTime() : null;
+  const publish = row.publishing_date ? new Date(`${row.publishing_date}T23:59:59+03:00`).getTime() : null;
+  if (row.attention_required || ((due && due < now) || (publish && publish < now)) && !["approved","closed","paid"].includes(row.status)) return "problems";
+  if (row.status === "under_review") return "contentReview";
+  if (row.status === "approved") return "waitingPublish";
+  return "waitingCreator";
+}
+
+function WorkStat({ label, value, tone }: { label: string; value: number; tone: "rose"|"violet"|"blue"|"gold"|"green" }) {
+  const style = { rose:"bg-rose-50 text-rose-700", violet:"bg-[#F7F0FA] text-[#8D5AA8]", blue:"bg-blue-50 text-blue-700", gold:"bg-amber-50 text-amber-700", green:"bg-emerald-50 text-emerald-700" }[tone];
+  return <article className="rounded-[20px] border border-[#EEE4F2] bg-white p-4 shadow-sm"><span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black ${style}`}>{label}</span><p className="mt-3 text-2xl font-black text-[#302437]">{value}</p></article>;
+}
+function WorkBucketBadge({ bucket, copy }: { bucket: ReturnType<typeof coordinatorBucket>; copy: DashboardDictionary["operations"]["myWork"] }) {
+  const map = { problems:[copy.checkProblem,"bg-rose-50 text-rose-700"], contentReview:[copy.reviewContent,"bg-[#F7F0FA] text-[#8D5AA8]"], waitingCreator:[copy.waitCreator,"bg-blue-50 text-blue-700"], waitingPublish:[copy.waitPublish,"bg-amber-50 text-amber-700"], completed:[copy.complete,"bg-emerald-50 text-emerald-700"] } as const;
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black ${map[bucket][1]}`}>{map[bucket][0]}</span>;
+}
+function relationOne<T>(value:T|T[]|null):T|null{return Array.isArray(value)?value[0]??null:value;}

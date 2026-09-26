@@ -1,39 +1,48 @@
 import Link from "next/link";
 import Image from "next/image";
 import { logout } from "@/app/login/actions";
-
-const links = [
-  { href: "/portal/dashboard", label: "الرئيسية", icon: "⌂" },
-  { href: "/portal/campaigns", label: "حملاتي", icon: "✦" },
-  { href: "/portal/portfolio", label: "ملف الأعمال", icon: "▣" },
-  { href: "/portal/performance", label: "الأداء والتصنيف", icon: "⌁" },
-  { href: "/portal/payments", label: "المستحقات", icon: "◈" },
-  { href: "/portal/notifications", label: "الإشعارات", icon: "◌" },
-  { href: "/portal/profile", label: "ملفي", icon: "○" },
-];
+import type { AppLocale } from "@/lib/i18n/app";
+import type { AppDictionary } from "@/lib/i18n/app-dictionary";
 
 export default function PortalShell({
   influencerName,
   profileCompletion,
   children,
+  locale,
+  copy,
+  brandName,
+  communityLabel,
 }: {
   influencerName: string;
   profileCompletion: number;
   children: React.ReactNode;
+  locale: AppLocale;
+  copy: AppDictionary["portal"];
+  brandName: string;
+  communityLabel: string;
 }) {
   const completion = Math.min(100, Math.max(0, profileCompletion));
+  const links = [
+    { href: "/portal/dashboard", label: copy.nav.dashboard, icon: "⌂" },
+    { href: "/portal/campaigns", label: copy.nav.campaigns, icon: "✦" },
+    { href: "/portal/portfolio", label: copy.nav.portfolio, icon: "▣" },
+    { href: "/portal/performance", label: copy.nav.performance, icon: "⌁" },
+    { href: "/portal/payments", label: copy.nav.payments, icon: "◈" },
+    { href: "/portal/notifications", label: copy.nav.notifications, icon: "◌" },
+    { href: "/portal/profile", label: copy.nav.profile, icon: "○" },
+  ];
 
   return (
-    <main className="min-h-screen bg-[#FAF7FB] text-[#4C4052]">
+    <main data-no-auto-translate className="min-h-screen bg-[#FAF7FB] text-[#4C4052]">
       <div className="mx-auto flex min-h-screen max-w-[1680px] gap-5 px-3 py-3 sm:px-4 sm:py-4 lg:px-5">
         <aside className="hidden w-[282px] shrink-0 overflow-hidden rounded-[28px] border border-[#EEE4F2] bg-white shadow-[0_18px_55px_rgba(64,36,77,.07)] lg:flex lg:flex-col">
           <div className="border-b border-[#EEE4F2] px-5 pb-5 pt-6">
             <Link href="/portal/dashboard" className="flex items-center gap-3">
               <div className="flex h-16 w-20 items-center justify-center rounded-2xl bg-[#FCF9FD] ring-1 ring-[#EEE4F2]">
-                <Image src="/da-logo.png" alt="دار الأميرات" width={112} height={68} className="h-12 w-auto object-contain" />
+                <Image src="/da-logo.png" alt={brandName} width={112} height={68} className="h-12 w-auto object-contain" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-bold text-[#9A8FA0]">مجتمع صُنّاع المحتوى</p>
+                <p className="text-[11px] font-bold text-[#9A8FA0]">{communityLabel}</p>
                 <p className="mt-1 truncate text-sm font-black text-[#302437]">{influencerName}</p>
               </div>
             </Link>
@@ -48,7 +57,7 @@ export default function PortalShell({
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F7F0F9] text-[#8F61A0] transition group-hover:bg-[#EEDFF2] group-hover:text-[#5F3B6C]">{item.icon}</span>
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                <span className="text-[#C0B6C4]">‹</span>
+                <span className="text-[#C0B6C4]">{locale === "ar" ? "‹" : "›"}</span>
               </Link>
             ))}
           </nav>
@@ -56,7 +65,7 @@ export default function PortalShell({
           <div className="px-4 pb-4">
             <div className="rounded-2xl border border-[#EEE4F2] bg-[#FCF9FD] p-4">
               <div className="flex items-center justify-between text-xs font-black text-[#756A7A]">
-                <span>اكتمال الملف</span>
+                <span>{copy.profileCompletion}</span>
                 <span className="text-[#7F568E]">{completion}%</span>
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-white ring-1 ring-[#EEE4F2]">
@@ -64,7 +73,7 @@ export default function PortalShell({
               </div>
             </div>
             <form action={logout} className="mt-3">
-              <button className="w-full rounded-2xl border border-[#E7DDEF] bg-white px-4 py-3 text-sm font-black text-[#7F568E] transition hover:bg-[#FCF9FD]">تسجيل الخروج</button>
+              <button className="w-full rounded-2xl border border-[#E7DDEF] bg-white px-4 py-3 text-sm font-black text-[#7F568E] transition hover:bg-[#FCF9FD]">{copy.logout}</button>
             </form>
           </div>
         </aside>
@@ -75,11 +84,11 @@ export default function PortalShell({
               <div className="flex min-w-0 items-center gap-3">
                 <Image src="/da-mark.png" alt="DA" width={52} height={52} className="h-11 w-11 object-contain" />
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-[#9A8FA0]">مجتمع صُنّاع المحتوى</p>
+                  <p className="text-[10px] font-bold text-[#9A8FA0]">{communityLabel}</p>
                   <p className="truncate text-sm font-black text-[#302437]">{influencerName}</p>
                 </div>
               </div>
-              <form action={logout}><button className="rounded-xl border border-[#E7DDEF] px-3 py-2 text-xs font-black text-[#7F568E]">خروج</button></form>
+              <form action={logout}><button className="rounded-xl border border-[#E7DDEF] px-3 py-2 text-xs font-black text-[#7F568E]">{copy.logoutShort}</button></form>
             </div>
             <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
               {links.map((item) => <Link key={item.href} href={item.href} className="shrink-0 rounded-full bg-[#F7F0F9] px-4 py-2 text-xs font-black text-[#7F568E]">{item.label}</Link>)}

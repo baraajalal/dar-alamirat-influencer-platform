@@ -1,6 +1,9 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SetPasswordClient from "./set-password-client";
+import { normalizeAppLocale } from "@/lib/i18n/app";
+import { getFlowDictionary } from "@/lib/i18n/flow-dictionary";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +16,7 @@ export default async function PortalSetPasswordPage({
   const assignmentId =
     typeof params.assignment === "string" ? params.assignment : "";
 
-  const supabase = await createClient();
+  const [supabase, cookieStore] = await Promise.all([createClient(), cookies()]);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -22,5 +25,10 @@ export default async function PortalSetPasswordPage({
     redirect("/login?error=invalid_activation_session");
   }
 
-  return <SetPasswordClient assignmentId={assignmentId} />;
+  const locale = normalizeAppLocale(
+    cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value,
+  );
+  const copy = getFlowDictionary(locale).portalSetPassword;
+
+  return <SetPasswordClient assignmentId={assignmentId} locale={locale} copy={copy} />;
 }

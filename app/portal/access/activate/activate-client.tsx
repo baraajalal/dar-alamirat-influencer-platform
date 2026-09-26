@@ -2,17 +2,45 @@
 
 import { useCallback, useEffect, useState } from "react";
 import FeedbackModal from "@/components/feedback-modal";
+import type { AppLocale } from "@/lib/i18n/app";
+import { formatFlowMessage, type FlowDictionary } from "@/lib/i18n/flow-dictionary";
 
 type ActivationInfo = {
   fullName: string;
   email: string;
 };
 
-type PortalAccessActivateClientProps = {
-  token: string;
+type ActivationResponse = {
+  fullName?: string;
+  email?: string;
+  nextPath?: string;
+  code?: string;
 };
 
-export default function PortalAccessActivateClient({ token }: PortalAccessActivateClientProps) {
+type Copy = FlowDictionary["activationLink"];
+
+type PortalAccessActivateClientProps = {
+  token: string;
+  locale: AppLocale;
+  copy: Copy;
+};
+
+function apiError(copy: Copy, code: string | undefined, status: number) {
+  if (code) {
+    const translated = copy.errors[code as keyof typeof copy.errors];
+    if (translated) return translated;
+  }
+  if (status === 410) return copy.errors.ACTIVATION_LINK_INVALID;
+  if (status === 409) return copy.errors.ACTIVATION_REQUEST_UNAVAILABLE;
+  if (status === 400) return copy.errors.ACTIVATION_PASSWORD_INVALID;
+  return copy.errors.ACTIVATION_FAILED;
+}
+
+export default function PortalAccessActivateClient({
+  token,
+  locale,
+  copy,
+}: PortalAccessActivateClientProps) {
   const [info, setInfo] = useState<ActivationInfo | null>(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -37,7 +65,6 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
     setFeedbackOpen(false);
 
     if (closeDestination) {
-      // replace removes the activation token from browser history.
       window.location.replace(closeDestination);
     }
   }, [closeDestination]);
@@ -49,7 +76,7 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
       if (!token) {
         if (!cancelled) {
           setLoading(false);
-          showFeedback("error", "رابط التفعيل غير صالح.", "/");
+          showFeedback("error", copy.invalidLink, "/");
         }
         return;
       }
@@ -63,10 +90,10 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
           },
         );
 
-        const result = await response.json().catch(() => ({}));
+        const result = (await response.json().catch(() => ({}))) as ActivationResponse;
 
         if (!response.ok) {
-          throw new Error(result.message || "تعذر التحقق من رابط التفعيل");
+          throw new Error(apiError(copy, result.code, response.status));
         }
 
         if (!cancelled) {
@@ -79,7 +106,7 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
         if (!cancelled) {
           showFeedback(
             "error",
-            error instanceof Error ? error.message : "تعذر التحقق من رابط التفعيل",
+            error instanceof Error ? error.message : copy.verifyFailed,
             "/",
           );
         }
@@ -93,33 +120,33 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
     return () => {
       cancelled = true;
     };
-  }, [token, showFeedback]);
+  }, [token, showFeedback, copy]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!token) {
-      showFeedback("error", "رابط التفعيل غير صالح.", "/");
+      showFeedback("error", copy.invalidLink, "/");
       return;
     }
 
     if (password.length < 8) {
-      showFeedback("error", "كلمة المرور يجب أن تتكون من 8 أحرف على الأقل.");
+      showFeedback("error", copy.passwordMin);
       return;
     }
 
     if (!/[A-Za-z\u0600-\u06FF]/.test(password)) {
-      showFeedback("error", "كلمة المرور يجب أن تحتوي على حرف واحد على الأقل.");
+      showFeedback("error", copy.passwordLetter);
       return;
     }
 
     if (!/\d/.test(password)) {
-      showFeedback("error", "كلمة المرور يجب أن تحتوي على رقم واحد على الأقل.");
+      showFeedback("error", copy.passwordNumber);
       return;
     }
 
     if (password !== confirm) {
-      showFeedback("error", "كلمتا المرور غير متطابقتين.");
+      showFeedback("error", copy.passwordMismatch);
       return;
     }
 
@@ -134,15 +161,15 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
         body: JSON.stringify({ token, password }),
       });
 
-      const result = await response.json().catch(() => ({}));
+      const result = (await response.json().catch(() => ({}))) as ActivationResponse;
 
       if (!response.ok) {
-        throw new Error(result.message || "تعذر تفعيل الحساب");
+        throw new Error(apiError(copy, result.code, response.status));
       }
 
       showFeedback(
         "success",
-        "تم تفعيل حسابك بنجاح. تم إغلاق رابط التفعيل ولن يمكن استخدامه مرة أخرى.",
+        copy.activationSuccess,
         typeof result.nextPath === "string" && result.nextPath
           ? result.nextPath
           : "/login?activated=1",
@@ -150,7 +177,7 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
     } catch (error) {
       showFeedback(
         "error",
-        error instanceof Error ? error.message : "تعذر تفعيل الحساب",
+        error instanceof Error ? error.message : copy.activationFailed,
       );
     } finally {
       setSubmitting(false);
@@ -159,47 +186,53 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
 
   return (
     <main
+      lang={locale}
       dir="inherit"
+      data-no-auto-translate
       className="min-h-screen bg-[linear-gradient(135deg,#F7F8FD,#EEF1FA)] px-4 py-10 text-[#432A57]"
     >
       <div className="mx-auto max-w-xl rounded-[30px] border bg-white p-7 shadow-[0_25px_70px_rgba(67,82,155,.12)] sm:p-9">
-        <p className="text-sm font-black text-[#A170BA]">منصة مؤثري دار الأميرات</p>
-        <h1 className="mt-2 text-3xl font-black">تفعيل الحساب</h1>
+        <p className="text-sm font-black text-[#A170BA]">{copy.brandLabel}</p>
+        <h1 className="mt-2 text-3xl font-black">{copy.title}</h1>
 
         {loading ? (
           <div className="mt-7 rounded-2xl bg-[#FCF9FD] p-5 text-sm font-bold text-[#756A7A]">
-            جاري التحقق من رابط التفعيل...
+            {copy.checking}
           </div>
         ) : info ? (
           <form onSubmit={submit} className="mt-7 space-y-4">
             <div className="rounded-2xl bg-[#FCF9FD] p-4 text-sm font-bold leading-7">
-              <p>مرحبًا {info.fullName || "بك"}</p>
+              <p>
+                {formatFlowMessage(copy.hello, {
+                  name: info.fullName || copy.helloFallback,
+                })}
+              </p>
               {info.email ? (
-                <p dir="ltr" className="text-left text-[#806F8A]">
+                <p dir="ltr" className="text-start text-[#806F8A]">
                   {info.email}
                 </p>
               ) : null}
             </div>
 
             <Password
-              label="كلمة المرور الجديدة"
+              label={copy.newPassword}
               value={password}
               onChange={setPassword}
               autoComplete="new-password"
             />
 
             <Password
-              label="تأكيد كلمة المرور"
+              label={copy.confirmPassword}
               value={confirm}
               onChange={setConfirm}
               autoComplete="new-password"
             />
 
             <div className="grid grid-cols-1 gap-2 text-xs font-bold text-[#77819F] sm:grid-cols-2">
-              <span>• 8 أحرف على الأقل</span>
-              <span>• تحتوي على حرف</span>
-              <span>• تحتوي على رقم</span>
-              <span>• كلمتا المرور متطابقتان</span>
+              <span>• {copy.ruleMin}</span>
+              <span>• {copy.ruleLetter}</span>
+              <span>• {copy.ruleNumber}</span>
+              <span>• {copy.ruleMatch}</span>
             </div>
 
             <button
@@ -207,12 +240,12 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
               disabled={submitting}
               className="h-14 w-full rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] font-black text-white transition disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "جاري التفعيل..." : "تفعيل الحساب"}
+              {submitting ? copy.activating : copy.activate}
             </button>
           </form>
         ) : (
           <div className="mt-7 rounded-2xl bg-[#FCF9FD] p-5 text-sm font-bold leading-7 text-[#756A7A]">
-            تعذر فتح رابط التفعيل. أغلق الرسالة للعودة إلى الصفحة الرئيسية.
+            {copy.cannotOpen}
           </div>
         )}
       </div>
@@ -222,7 +255,7 @@ export default function PortalAccessActivateClient({ token }: PortalAccessActiva
         type={feedbackType}
         message={feedbackMessage}
         onClose={closeFeedback}
-        closeLabel={closeDestination ? "إغلاق الرابط" : "حسنًا"}
+        closeLabel={closeDestination ? copy.closeLink : copy.ok}
       />
     </main>
   );

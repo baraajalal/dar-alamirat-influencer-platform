@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { legacySmartSuiteDisabledResponse } from "@/lib/legacy/smartsuite";
 
 const SMARTSUITE_API_URL = "https://app.smartsuite.com/api/v1";
 
@@ -120,6 +121,9 @@ function getRecordId(record: any) {
 }
 
 export async function POST() {
+  const legacyDisabled = legacySmartSuiteDisabledResponse();
+  if (legacyDisabled) return legacyDisabled;
+
   try {
     if (!PAYMENTS_TABLE_ID) {
       return NextResponse.json(
@@ -207,5 +211,8 @@ const paidPayments = paymentRecords.filter((payment: any) => {
 }
 
 export async function GET() {
+  const legacyDisabled = legacySmartSuiteDisabledResponse();
+  if (legacyDisabled) return legacyDisabled;
+
   return POST();
 }

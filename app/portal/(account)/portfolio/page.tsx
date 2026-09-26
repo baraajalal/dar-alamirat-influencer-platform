@@ -1,4 +1,7 @@
+import { cookies } from "next/headers";
 import { requireInfluencerAccount } from "@/lib/influencer-portal/require-influencer-account";
+import { normalizeAppLocale, type AppLocale } from "@/lib/i18n/app";
+import { getAppDictionary, type AppDictionary } from "@/lib/i18n/app-dictionary";
 
 type CampaignInfo = { name: string; brand: string | null; product: string | null };
 type SocialInfo = { platform: string; username: string };
@@ -6,8 +9,14 @@ type AssignmentRow = {
   id: string;
   campaigns: CampaignInfo | CampaignInfo[] | null;
 };
+type Copy = AppDictionary["portfolio"];
 
 export default async function InfluencerPortfolioPage() {
+  const store = await cookies();
+  const locale = normalizeAppLocale(
+    store.get("app_locale")?.value ?? store.get("dashboard_locale")?.value,
+  );
+  const copy = getAppDictionary(locale).portfolio;
   const { admin, influencer } = await requireInfluencerAccount();
 
   const { data: assignments } = await admin
@@ -88,9 +97,7 @@ export default async function InfluencerPortfolioPage() {
 
   const portfolioItems = contentRows.map((content) => {
     const platform = platformById.get(content.assignment_platform_id);
-    const campaign = platform
-      ? campaignByAssignment.get(platform.assignment_id)
-      : undefined;
+    const campaign = platform ? campaignByAssignment.get(platform.assignment_id) : undefined;
     const social = platform ? relation(platform.social_accounts) : null;
     return {
       content,
@@ -101,20 +108,19 @@ export default async function InfluencerPortfolioPage() {
   });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-no-auto-translate>
       <section className="rounded-[28px] bg-[linear-gradient(135deg,#9C68B9,#BE95D0)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
-        <p className="text-sm font-black text-white/70">ملف الأعمال</p>
-        <h1 className="mt-2 text-2xl font-black">المحتوى والحملات المعتمدة</h1>
+        <p className="text-sm font-black text-white/70">{copy.eyebrow}</p>
+        <h1 className="mt-2 text-2xl font-black">{copy.title}</h1>
         <p className="mt-3 max-w-3xl text-sm font-semibold leading-7 text-white/78">
-          يظهر هنا المحتوى المعتمد والمنشور ضمن تعاوناتك. المعلومات الداخلية
-          والأسعار وملاحظات الإدارة لا تظهر في ملف الأعمال.
+          {copy.description}
         </p>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {portfolioItems.length === 0 ? (
           <div className="md:col-span-2 xl:col-span-3">
-            <Empty text="سيظهر ملف أعمالك بعد اعتماد أول محتوى." />
+            <Empty text={copy.empty} />
           </div>
         ) : (
           portfolioItems.map(({ content, campaign, social, publication }) => (
@@ -124,28 +130,25 @@ export default async function InfluencerPortfolioPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <span className="rounded-full bg-[#F7F0FA] px-3 py-1.5 text-xs font-black text-[#9362AD]">
-                  {platformLabel(publication?.platform || social?.platform || "other")}
+                  {platformLabel(publication?.platform || social?.platform || "other", copy)}
                 </span>
                 <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700">
-                  {publication?.status === "approved" ? "نشر معتمد" : "محتوى معتمد"}
+                  {publication?.status === "approved" ? copy.publicationApproved : copy.contentApproved}
                 </span>
               </div>
 
               <h2 className="mt-4 text-lg font-black text-[#4A315C]">
-                {campaign?.name ?? "حملة"}
+                {campaign?.name ?? copy.campaignFallback}
               </h2>
               <p className="mt-1 text-sm font-bold text-[#78829F]">
-                {campaign?.brand ?? "دار الأميرات"}
+                {campaign?.brand ?? copy.brandFallback}
                 {campaign?.product ? ` · ${campaign.product}` : ""}
               </p>
 
               <div className="mt-5 space-y-3 rounded-2xl bg-[#FCF9FD] p-4">
-                <Info label="نوع المحتوى" value={content.content_type} />
-                <Info label="الحساب" value={social?.username ? `@${social.username}` : "غير محدد"} />
-                <Info
-                  label="تاريخ الاعتماد"
-                  value={formatDate(content.approved_at)}
-                />
+                <Info label={copy.contentType} value={content.content_type} />
+                <Info label={copy.account} value={social?.username ? `@${social.username}` : copy.notSet} />
+                <Info label={copy.approvalDate} value={formatDate(content.approved_at, locale, copy.notSet)} />
               </div>
 
               {publication?.post_url ? (
@@ -155,11 +158,11 @@ export default async function InfluencerPortfolioPage() {
                   rel="noreferrer"
                   className="mt-4 flex h-12 items-center justify-center rounded-2xl bg-[#9A68B5] text-sm font-black text-white"
                 >
-                  فتح المنشور ↗
+                  {copy.openPost} ↗
                 </a>
               ) : (
                 <div className="mt-4 rounded-2xl border border-dashed border-[#EADFF0] px-4 py-3 text-center text-xs font-bold text-[#8D7B95]">
-                  رابط النشر لم يعتمد بعد
+                  {copy.publicationPending}
                 </div>
               )}
             </article>
@@ -192,22 +195,13 @@ function Empty({ text }: { text: string }) {
   );
 }
 
-function formatDate(value: string | null) {
-  if (!value) return "غير محدد";
-  return new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium" }).format(
-    new Date(value),
-  );
+function formatDate(value: string | null, locale: AppLocale, fallback: string) {
+  if (!value) return fallback;
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", {
+    dateStyle: "medium",
+  }).format(new Date(value));
 }
 
-function platformLabel(value: string) {
-  const labels: Record<string, string> = {
-    instagram: "إنستغرام",
-    tiktok: "تيك توك",
-    snapchat: "سناب شات",
-    youtube: "يوتيوب",
-    x: "X",
-    facebook: "فيسبوك",
-    other: "أخرى",
-  };
-  return labels[value] ?? value;
+function platformLabel(value: string, copy: Copy) {
+  return (copy.platforms as Record<string, string>)[value] ?? value;
 }

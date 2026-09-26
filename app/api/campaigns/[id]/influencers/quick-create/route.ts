@@ -13,6 +13,7 @@ const schema = z.object({
   platform: z.enum(["instagram", "tiktok", "snapchat", "youtube", "x", "facebook", "other"]),
   username: z.string().trim().min(2).max(180),
   profileUrl: z.string().trim().url().optional().or(z.literal("")),
+  locale: z.enum(["ar", "en"]).optional().default("ar"),
 });
 
 export async function POST(
@@ -26,16 +27,17 @@ export async function POST(
 
     if (!parsed.success) {
       return NextResponse.json(
-        { message: "راجعي بيانات المؤثر الأساسية وحساب التواصل." },
+        { message: "راجعي بيانات المؤثر الأساسية وحساب التواصل. / Check the influencer details and social account." },
         { status: 400 },
       );
     }
 
     const value = parsed.data;
+    const ar = value.locale !== "en";
     const mobile = normalizeMobile(value.mobile);
     if (!/^9665\d{8}$/.test(mobile)) {
       return NextResponse.json(
-        { message: "رقم الجوال يجب أن يكون رقمًا سعوديًا صحيحًا." },
+        { message: ar ? "رقم الجوال يجب أن يكون رقمًا سعوديًا صحيحًا." : "Enter a valid Saudi mobile number." },
         { status: 400 },
       );
     }
@@ -51,7 +53,7 @@ export async function POST(
       return NextResponse.json(
         {
           code: "DUPLICATE_MOBILE",
-          message: `المؤثر ${existing.full_name} مسجل مسبقًا. ابحثي عنه برقم ${existing.mobile_e164}.`,
+          message: ar ? `المؤثر ${existing.full_name} مسجل مسبقًا. ابحث عنه برقم ${existing.mobile_e164}.` : `${existing.full_name} is already registered. Search using ${existing.mobile_e164}.`,
           existingInfluencerId: existing.id,
           mobile: existing.mobile_e164,
         },
@@ -81,7 +83,7 @@ export async function POST(
     if (influencerError) {
       if (influencerError.code === "23505") {
         return NextResponse.json(
-          { code: "DUPLICATE_MOBILE", message: "رقم الجوال مسجل لمؤثر آخر." },
+          { code: "DUPLICATE_MOBILE", message: ar ? "رقم الجوال مسجل لمؤثر آخر." : "This mobile number belongs to another influencer." },
           { status: 409 },
         );
       }
@@ -138,6 +140,7 @@ export async function POST(
         availability_reason: null,
         blocking_campaign_id: null,
         blocking_campaign_name: null,
+        blocking_brand_name: null,
         blocked_until: null,
         days_remaining: null,
       },
@@ -145,7 +148,7 @@ export async function POST(
   } catch (error) {
     console.error("Quick campaign influencer creation failed:", error);
     return NextResponse.json(
-      { message: "تعذر إنشاء الملف الأولي للمؤثر حاليًا." },
+      { message: "تعذر إنشاء الملف الأولي للمؤثر حاليًا. / Could not create the influencer profile right now." },
       { status: 500 },
     );
   }

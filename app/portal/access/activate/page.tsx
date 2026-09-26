@@ -1,4 +1,7 @@
+import { cookies } from "next/headers";
 import PortalAccessActivateClient from "./activate-client";
+import { normalizeAppLocale } from "@/lib/i18n/app";
+import { getFlowDictionary } from "@/lib/i18n/flow-dictionary";
 
 type ActivatePageProps = {
   searchParams: Promise<{
@@ -10,6 +13,11 @@ export default async function PortalAccessActivatePage({ searchParams }: Activat
   const params = await searchParams;
   const rawToken = params.token;
   const token = Array.isArray(rawToken) ? rawToken[0] ?? "" : rawToken ?? "";
+  const cookieStore = await cookies();
+  const locale = normalizeAppLocale(
+    cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value,
+  );
+  const copy = getFlowDictionary(locale).activationLink;
 
-  return <PortalAccessActivateClient token={token} />;
+  return <PortalAccessActivateClient token={token} locale={locale} copy={copy} />;
 }

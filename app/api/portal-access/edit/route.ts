@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hashPortalToken } from "@/lib/portal-access/tokens";
 import { registrationSchema, normalizeMobile, normalizeProfileUrl, profileUrlFromPlatform } from "@/lib/influencers/registration";
+import { PORTAL_ACCESS_STATUS } from "@/lib/domain/portal-access";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export async function POST(request:Request){
  const {error:saveError}=await found.admin.rpc("save_influencer_profile",{p_payload:payload,p_match_source:"active",p_archive_influencer_id:null,p_existing_influencer_id:req.influencer_id}); if(saveError) throw saveError;
  await found.admin.from("influencers").update({birth_year:Number(influencer.birthYear),shooting_style_preferences:influencer.shootingStylePreferences,updated_at:new Date().toISOString()}).eq("id",req.influencer_id);
  const {data:dbSocial}=await found.admin.from("social_accounts").select("id,platform,username").eq("influencer_id",req.influencer_id); for(const a of normalized){if(!a.otherPlatformName?.trim())continue;const d=(dbSocial||[]).find(x=>x.platform==="other"&&x.username===a.username);if(d)await found.admin.from("social_accounts").update({platform_label:a.otherPlatformName.trim()}).eq("id",d.id)}
- const now=new Date().toISOString(); await found.admin.from("portal_access_requests").update({status:"pending",resubmitted_at:now,submitted_at:now,reviewed_at:null,reviewed_by:null,updated_at:now}).eq("id",req.id); await found.admin.from("portal_access_tokens").update({used_at:now}).eq("id",found.data.id); await found.admin.from("activity_logs").insert({actor_id:null,entity_type:"influencer",entity_id:req.influencer_id,action:"portal_access_resubmitted",metadata:{request_id:req.id}});
+ const now=new Date().toISOString(); await found.admin.from("portal_access_requests").update({status:PORTAL_ACCESS_STATUS.submitted,resubmitted_at:now,submitted_at:now,reviewed_at:null,reviewed_by:null,updated_at:now}).eq("id",req.id); await found.admin.from("portal_access_tokens").update({used_at:now}).eq("id",found.data.id); await found.admin.from("activity_logs").insert({actor_id:null,entity_type:"influencer",entity_id:req.influencer_id,action:"portal_access_resubmitted",metadata:{request_id:req.id}});
  return NextResponse.json({success:true});
  }catch(e){console.error("edit portal access",e);return NextResponse.json({message:"تعذر حفظ التعديلات حاليًا"},{status:500})}
 }

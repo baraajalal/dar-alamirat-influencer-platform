@@ -227,43 +227,57 @@ function parseOptionalNumber(value: string) {
   return Number.isFinite(number) ? number : null;
 }
 
-function availabilityMessage(details?: string | null) {
-  if (!details) {
-    return "هذا المؤثر غير متاح حاليًا للربط بحملة جديدة.";
-  }
+function availabilityMessage(details: string | null | undefined, locale: "ar" | "en") {
+  const generic = locale === "ar"
+    ? "هذا المؤثر غير متاح حاليًا للربط بهذه الحملة."
+    : "This creator is not currently available for this campaign.";
+  if (!details) return generic;
 
   try {
     const parsed = JSON.parse(details) as {
       reason?: string;
       campaignName?: string;
+      brandName?: string;
       blockedUntil?: string | null;
       daysRemaining?: number | null;
     };
+    const date = parsed.blockedUntil
+      ? new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { dateStyle: "medium" }).format(new Date(parsed.blockedUntil))
+      : locale === "ar" ? "غير محدد" : "not specified";
+    const remaining = parsed.daysRemaining
+      ? locale === "ar" ? `، والمتبقي ${parsed.daysRemaining} يومًا` : ` (${parsed.daysRemaining} day(s) remaining)`
+      : "";
 
+    if (parsed.reason === "all_campaigns_exclusivity") {
+      return locale === "ar"
+        ? `المؤثر لديه حظر على جميع الحملات بسبب حملة ${parsed.campaignName ?? "سابقة"} حتى ${date}${remaining}.`
+        : `The creator has an all-campaign restriction from ${parsed.campaignName ?? "a previous campaign"} until ${date}${remaining}.`;
+    }
+    if (parsed.reason === "brand_exclusivity") {
+      return locale === "ar"
+        ? `المؤثر لديه حظر على براند ${parsed.brandName ?? "هذه الحملة"} بسبب حملة ${parsed.campaignName ?? "سابقة"} حتى ${date}${remaining}.`
+        : `The creator has an active restriction for ${parsed.brandName ?? "this brand"} from ${parsed.campaignName ?? "a previous campaign"} until ${date}${remaining}.`;
+    }
     if (parsed.reason === "active_assignment") {
-      return `المؤثر مرتبط حاليًا بحملة ${parsed.campaignName ?? "أخرى"} ولا يمكن ربطه بحملة جديدة.`;
+      return locale === "ar"
+        ? `المؤثر مرتبط حاليًا بحملة ${parsed.campaignName ?? "أخرى"} ولا يمكن ربطه بحملة جديدة.`
+        : `The creator is currently linked to ${parsed.campaignName ?? "another campaign"} and cannot be linked to a new campaign.`;
     }
-
     if (parsed.reason === "settlement_pending") {
-      return `المؤثر مرتبط بحملة ${parsed.campaignName ?? "سابقة"} ولم تتم تسوية كامل مستحقاته بعد.`;
+      return locale === "ar"
+        ? `المؤثر مرتبط بحملة ${parsed.campaignName ?? "سابقة"} ولم تتم تسوية كامل مستحقاته بعد.`
+        : `The creator still has unsettled compensation from ${parsed.campaignName ?? "a previous campaign"}.`;
     }
-
     if (parsed.reason === "cooldown") {
-      const remaining = parsed.daysRemaining
-        ? `، والمتبقي ${parsed.daysRemaining} يومًا`
-        : "";
-      const date = parsed.blockedUntil
-        ? new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium" }).format(
-            new Date(parsed.blockedUntil),
-          )
-        : "غير محدد";
-      return `المؤثر في فترة الحظر بعد حملة ${parsed.campaignName ?? "سابقة"} حتى ${date}${remaining}.`;
+      return locale === "ar"
+        ? `المؤثر في فترة حظر بعد حملة ${parsed.campaignName ?? "سابقة"} حتى ${date}${remaining}.`
+        : `The creator is in a restriction period after ${parsed.campaignName ?? "a previous campaign"} until ${date}${remaining}.`;
     }
   } catch {
     // Fall through to the safe generic message.
   }
 
-  return "هذا المؤثر غير متاح حاليًا للربط بحملة جديدة.";
+  return generic;
 }
 
 function databaseErrorMessage(message: string) {
@@ -292,6 +306,7 @@ export async function createCampaignAssignment(
   formData: FormData,
 ): Promise<AssignmentActionState> {
   const { supabase } = await requirePermission("campaigns", "update");
+  const locale: "ar" | "en" = String(formData.get("locale") ?? "ar") === "en" ? "en" : "ar";
 
   const parsed = assignmentSchema.safeParse({
     campaignId: String(formData.get("campaign_id") ?? ""),
@@ -350,8 +365,8 @@ export async function createCampaignAssignment(
       p_execution_type: value.collaborationMode === "multiple" ? "remote" : value.executionType,
       p_other_execution_details: value.collaborationMode === "multiple" ? "MULTIPLE_HOME_IN_BRANCH" : value.otherExecutionDetails || null,
       p_requires_content: value.requiresContent,
-      p_content_due_at: null,
-      p_publishing_date: null,
+      p_content_due_at: value.contentDueAtIso || null,
+      p_publishing_date: value.publishingDate || null,
       p_branch_name: value.branchName || null,
       p_attendance_at: value.attendanceAtIso || null,
       p_order_number: value.orderNumber || null,
@@ -374,7 +389,7 @@ export async function createCampaignAssignment(
       return {
         ok: false,
         code: "INFLUENCER_UNAVAILABLE",
-        message: availabilityMessage(error.details),
+        message: availabilityMessage(error.details, locale),
       };
     }
 
@@ -382,7 +397,7 @@ export async function createCampaignAssignment(
       return {
         ok: false,
         code: "DUPLICATE_ASSIGNMENT",
-        message: "هذا المؤثر مضاف مسبقًا إلى الحملة أو توجد بيانات مكررة.",
+        message: locale === "ar" ? "هذا المؤثر مضاف مسبقًا إلى الحملة أو توجد بيانات مكررة." : "This creator is already assigned to the campaign or duplicate data exists.",
       };
     }
 

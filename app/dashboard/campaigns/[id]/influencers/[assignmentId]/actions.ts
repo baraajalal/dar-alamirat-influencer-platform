@@ -279,3 +279,116 @@ export async function reviewPublication(formData: FormData) {
   revalidatePath("/dashboard/payments");
   redirect(detailsPath(campaignId, assignmentId, `publication_reviewed=${decision}`));
 }
+
+export async function liftAssignmentExclusivity(formData: FormData) {
+  const { supabase } = await requirePermission("campaigns", "manage");
+  const campaignId = text(formData, "campaign_id");
+  const assignmentId = text(formData, "assignment_id");
+  const reason = text(formData, "reason");
+
+  if (!campaignId || !assignmentId) throw new Error("ASSIGNMENT_NOT_FOUND");
+  if (reason.length < 5) {
+    redirect(detailsPath(campaignId, assignmentId, "exclusivity_error=reason_required"));
+  }
+
+  await verifyAssignment(supabase, campaignId, assignmentId);
+
+  const { error } = await supabase.rpc("lift_assignment_exclusivity", {
+    p_assignment_id: assignmentId,
+    p_reason: reason,
+  });
+
+  if (error) {
+    const code = String(error.message || "").includes("ADMIN_ONLY")
+      ? "admin_only"
+      : String(error.message || "").includes("REASON_REQUIRED")
+        ? "reason_required"
+        : "lift_failed";
+    redirect(detailsPath(campaignId, assignmentId, `exclusivity_error=${code}`));
+  }
+
+  revalidatePath(detailsPath(campaignId, assignmentId));
+  revalidatePath(`/dashboard/campaigns/${campaignId}`);
+  revalidatePath("/dashboard/campaigns");
+  revalidatePath("/portal/campaigns");
+  redirect(detailsPath(campaignId, assignmentId, "exclusivity_lifted=1"));
+}
+
+export async function updateAssignmentExecutionWorkflow(formData: FormData) {
+  const { supabase } = await requirePermission("campaigns", "update");
+  const campaignId = text(formData, "campaign_id");
+  const assignmentId = text(formData, "assignment_id");
+  const workflowAction = text(formData, "workflow_action");
+  const briefOverride = text(formData, "brief_override");
+  const notes = text(formData, "notes");
+  const contentDueRaw = text(formData, "content_due_at");
+  const publishingDate = text(formData, "publishing_date");
+  const productRequiredRaw = text(formData, "product_required");
+
+  if (!campaignId || !assignmentId || !workflowAction) throw new Error("INVALID_WORKFLOW_REQUEST");
+  await verifyAssignment(supabase, campaignId, assignmentId);
+
+  const contentDueAt = contentDueRaw
+    ? new Date(`${contentDueRaw}:00+03:00`).toISOString()
+    : null;
+  const productRequired = productRequiredRaw === "true"
+    ? true
+    : productRequiredRaw === "false"
+      ? false
+      : null;
+
+  const { error } = await supabase.rpc("update_assignment_execution_workflow", {
+    p_assignment_id: assignmentId,
+    p_action: workflowAction,
+    p_brief_override: briefOverride || null,
+    p_notes: notes || null,
+    p_content_due_at: contentDueAt,
+    p_publishing_date: publishingDate || null,
+    p_product_required: productRequired,
+  });
+
+  if (error) {
+    const message = String(error.message || "");
+    const code = message.includes("ACCEPTANCE_REQUIRED")
+      ? "acceptance_required"
+      : message.includes("BRIEF_REQUIRED")
+        ? "brief_required"
+        : message.includes("PRODUCT_RECEIPT_REQUIRED")
+          ? "product_required"
+          : message.includes("INVALID_WORKFLOW_TRANSITION")
+            ? "invalid_transition"
+            : "update_failed";
+    redirect(detailsPath(campaignId, assignmentId, `workflow_error=${code}`));
+  }
+
+  revalidatePath(detailsPath(campaignId, assignmentId));
+  revalidatePath(`/dashboard/campaigns/${campaignId}`);
+  revalidatePath("/dashboard/campaigns/assignments");
+  revalidatePath("/portal/campaigns");
+  redirect(detailsPath(campaignId, assignmentId, `workflow_updated=${encodeURIComponent(workflowAction)}`));
+}
+
+export async function setAssignmentAttention(formData: FormData) {
+  const { supabase } = await requirePermission("campaigns", "update");
+  const campaignId = text(formData, "campaign_id");
+  const assignmentId = text(formData, "assignment_id");
+  const attention = text(formData, "attention") === "true";
+  const reason = text(formData, "reason");
+
+  if (!campaignId || !assignmentId) throw new Error("INVALID_ATTENTION_REQUEST");
+  if (attention && !reason) {
+    redirect(detailsPath(campaignId, assignmentId, "attention_error=reason_required"));
+  }
+
+  await verifyAssignment(supabase, campaignId, assignmentId);
+  const { error } = await supabase.rpc("set_assignment_attention", {
+    p_assignment_id: assignmentId,
+    p_attention: attention,
+    p_reason: attention ? reason : null,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(detailsPath(campaignId, assignmentId));
+  revalidatePath("/dashboard");
+  redirect(detailsPath(campaignId, assignmentId, "attention_updated=1"));
+}

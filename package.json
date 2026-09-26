@@ -1,38 +1,40 @@
 {
-  "name": "influencer-form",
-  "version": "0.1.0",
+  "name": "dar-al-amirat-creator-community",
+  "version": "0.1.0-beta.9.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm run build",
-    "import-archive": "node scripts/import-archive.mjs",
-    "import-campaigns": "node scripts/import-campaign-archive.mjs",
-    "import-payments": "node scripts/import-payments-archive.mjs",
-    "import-content": "node scripts/import-content-archive.mjs"
+    "lint": "eslint .",
+    "i18n:audit": "node scripts/i18n-audit.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.12.3",
-    "@supabase/supabase-js": "^2.110.8",
-    "dotenv": "^17.4.2",
-    "next": "^16.3.0",
+    "@supabase/ssr": "0.12.4",
+    "@supabase/supabase-js": "2.112.2",
+    "dotenv": "17.4.2",
+    "next": "16.3.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "xlsx": "^0.18.5",
-    "zod": "^4.4.3"
+    "xlsx": "0.18.5",
+    "zod": "4.4.3"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.15.13",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "20.19.43",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "eslint": "9.39.5",
     "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3"
+  },
+  "optionalDependencies": {
+    "@img/sharp-libvips-linux-x64": "^1.3.2",
+    "@img/sharp-linux-x64": "^0.35.3",
+    "@next/swc-linux-x64-gnu": "^16.3.0",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3",
+    "lightningcss-linux-x64-gnu": "^1.32.0"
   }
 }

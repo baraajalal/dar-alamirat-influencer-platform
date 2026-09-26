@@ -11,6 +11,7 @@ export async function GET(
     const { id } = await context.params;
     const url = new URL(request.url);
     const query = (url.searchParams.get("q") ?? "").trim();
+    const locale = url.searchParams.get("lang") === "en" ? "en" : "ar";
 
     if (query.length < 2 && query.replace(/\D/g, "").length < 4) {
       return NextResponse.json({ results: [] });
@@ -26,7 +27,7 @@ export async function GET(
     if (error) {
       console.error("Campaign influencer search failed:", error);
       return NextResponse.json(
-        { message: "تعذر البحث عن المؤثرين حاليًا." },
+        { message: locale === "ar" ? "تعذر البحث عن المؤثرين حاليًا." : "Influencer search is temporarily unavailable." },
         { status: 500 },
       );
     }
@@ -34,8 +35,9 @@ export async function GET(
     return NextResponse.json({ results: data ?? [] });
   } catch (error) {
     console.error("Campaign influencer search failed:", error);
+    const fallbackLocale = new URL(request.url).searchParams.get("lang") === "en" ? "en" : "ar";
     return NextResponse.json(
-      { message: "تعذر البحث عن المؤثرين حاليًا." },
+      { message: fallbackLocale === "ar" ? "تعذر البحث عن المؤثرين حاليًا." : "Influencer search is temporarily unavailable." },
       { status: 500 },
     );
   }

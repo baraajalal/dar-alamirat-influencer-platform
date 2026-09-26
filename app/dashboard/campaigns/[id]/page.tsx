@@ -4,9 +4,10 @@ import { notFound } from "next/navigation";
 import { DashboardIcon } from "@/components/dashboard/icons";
 import { hasPermission } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/require-user";
-import { normalizeDashboardLocale } from "@/lib/i18n/dashboard";
+import { getDashboardDictionary, normalizeDashboardLocale } from "@/lib/i18n/dashboard";
 import { getCampaignCopy, type CampaignLocale } from "../campaign-copy";
 import { addCampaignTarget, deleteCampaignTarget, updateCampaignTargetValue } from "./target-actions";
+import { CampaignBrandPolicyPanel } from "./brand-policy-panel";
 import {
   CampaignPageHeader,
   CampaignPanel,
@@ -77,25 +78,33 @@ export default async function CampaignDetailsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ created?: string; assignment?: string }>;
+  searchParams?: Promise<{ created?: string; assignment?: string; brand_policy_saved?: string; brand_policy_error?: string }>;
 }) {
   const { id } = await params;
   const query = (await searchParams) ?? {};
   const { profile, supabase } = await requirePermission("campaigns", "view");
   const cookieStore = await cookies();
-  const locale = normalizeDashboardLocale(cookieStore.get("dashboard_locale")?.value) as CampaignLocale;
+  const locale = normalizeDashboardLocale(cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value) as CampaignLocale;
   const copy = getCampaignCopy(locale);
+  const dashboardDictionary = getDashboardDictionary(locale);
 
   const { data: campaign, error } = await supabase
     .from("campaigns")
-    .select("id,name,brand,product,campaign_type,brief,start_date,end_date,content_due_at,publishing_date,budget,status,manager_id,hashtags,reference_links,internal_notes,created_at,campaign_owner_type,campaign_category,external_organization_name,external_contact_name,external_contact_mobile,external_contact_email,progress_percentage,target_completion_percentage,execution_completion_percentage,auto_complete_enabled,completion_mode,completed_at,progress_review_required")
+    .select("id,name,brand,brand_id,product,campaign_type,brief,start_date,end_date,content_due_at,publishing_date,budget,status,manager_id,hashtags,reference_links,internal_notes,created_at,campaign_owner_type,campaign_category,external_organization_name,external_contact_name,external_contact_mobile,external_contact_email,progress_percentage,target_completion_percentage,execution_completion_percentage,auto_complete_enabled,completion_mode,completed_at,progress_review_required,exclusivity_scope,exclusivity_days,exclusivity_start_basis")
     .eq("id", id)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
   if (!campaign) notFound();
 
-  const [managerResult, assignmentsResult, budgetResult] = await Promise.all([
+  const [brandsResult, policyTargetsResult] = await Promise.all([
+    supabase.from("brands").select("id,name_ar,name_en,logo_url,primary_color,whatsapp_number,contact_email,default_exclusivity_scope,default_exclusivity_days,default_exclusivity_start_basis").eq("is_active",true).order("name_en"),
+    supabase.from("campaign_exclusivity_brands").select("brand_id").eq("campaign_id",id),
+  ]);
+  if (brandsResult.error) throw new Error(brandsResult.error.message);
+  if (policyTargetsResult.error) throw new Error(policyTargetsResult.error.message);
+
+  const [managerResult, assignmentsResult, budgetResult, applicationCountResult] = await Promise.all([
     campaign.manager_id
       ? supabase.from("profiles").select("full_name").eq("id", campaign.manager_id).maybeSingle()
       : Promise.resolve({ data: null as { full_name: string } | null, error: null }),
@@ -105,12 +114,19 @@ export default async function CampaignDetailsPage({
       .eq("campaign_id", id)
       .order("created_at", { ascending: false }),
     supabase.rpc("campaign_budget_summary", { p_campaign_id: id }),
+    supabase
+      .from("campaign_applications")
+      .select("id", { count: "exact", head: true })
+      .eq("campaign_id", id)
+      .in("status", ["pending", "shortlisted"]),
   ]);
 
   if (assignmentsResult.error) throw new Error(assignmentsResult.error.message);
   if (budgetResult.error) throw new Error(budgetResult.error.message);
+  if (applicationCountResult.error) throw new Error(applicationCountResult.error.message);
 
   const assignments = (assignmentsResult.data ?? []) as unknown as AssignmentRow[];
+  const pendingApplicationCount = applicationCountResult.count ?? 0;
   const coordinatorIds = [...new Set(assignments.map((row) => row.coordinator_id).filter((value): value is string => Boolean(value)))];
   const { data: coordinatorRows, error: coordinatorError } = coordinatorIds.length
     ? await supabase.from("profiles").select("id,full_name").in("id", coordinatorIds)
@@ -137,13 +153,76 @@ export default async function CampaignDetailsPage({
         eyebrow={`${copy.common.campaigns} / ${campaign.brand || copy.common.unspecified}`}
         title={campaign.name}
         description={[campaign.product, campaign.campaign_type].filter(Boolean).join(" · ") || copy.details.campaignBrief}
-        actionHref={canManage ? `/dashboard/campaigns/${id}/influencers/add` : "/dashboard/campaigns"}
-        actionLabel={canManage ? copy.details.addInfluencer : copy.details.back}
+        actionHref={canManage ? `/dashboard/campaigns/${id}/participants/draft` : "/dashboard/campaigns"}
+        actionLabel={canManage ? dashboardDictionary.operations.draft.title : copy.details.back}
         actionIcon={canManage ? "plus" : "arrow"}
       />
 
       {query.created === "1" ? <SuccessMessage>{copy.details.createdSuccess}</SuccessMessage> : null}
       {query.assignment ? <SuccessMessage>{copy.details.assignmentSuccess}</SuccessMessage> : null}
+      {query.brand_policy_saved === "1" ? <SuccessMessage>{dashboardDictionary.exclusivity.policySaved}</SuccessMessage> : null}
+      {query.brand_policy_error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-black text-rose-700">{locale === "ar" ? "تعذر حفظ سياسة البراند والحظر. راجع القيم وحاول مرة أخرى." : "Unable to save the brand and exclusivity policy. Review the values and try again."}</div> : null}
+
+      {canManage ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href={`/dashboard/campaigns/${id}/applications`}
+            className="group relative inline-flex items-center gap-3 rounded-2xl border border-[#E5D8EB] bg-white px-4 py-3 text-sm font-black text-[#6D4E82] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#FBF8FD] hover:shadow-md"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F4EEFA] text-[#79588F]">
+              <DashboardIcon name="campaigns" className="h-4 w-4" />
+            </span>
+            <span>{locale === "ar" ? "فرصة المجتمع" : "Community opportunity"}</span>
+          </Link>
+
+          <Link
+            href="#campaign-participants"
+            className="group relative inline-flex items-center gap-3 rounded-2xl border border-[#E5D8EB] bg-white px-4 py-3 text-sm font-black text-[#6D4E82] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#FBF8FD] hover:shadow-md"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F4EEFA] text-[#79588F]">
+              <DashboardIcon name="users" className="h-4 w-4" />
+            </span>
+            <span>{locale === "ar" ? "المشاركون في الحملة" : "Campaign participants"}</span>
+            <CountBadge count={assignments.length} />
+          </Link>
+
+          <Link
+            href={`/dashboard/campaigns/${id}/participants/draft`}
+            className="group relative inline-flex items-center gap-3 rounded-2xl border border-[#E5D8EB] bg-white px-4 py-3 text-sm font-black text-[#6D4E82] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#FBF8FD] hover:shadow-md"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F4EEFA] text-[#79588F]">
+              <DashboardIcon name="users" className="h-4 w-4" />
+            </span>
+            <span>{dashboardDictionary.operations.draft.title}</span>
+          </Link>
+
+          <Link
+            href={`/dashboard/campaigns/${id}/applications/review`}
+            className="group relative inline-flex items-center gap-3 rounded-2xl border border-[#E5D8EB] bg-white px-4 py-3 text-sm font-black text-[#6D4E82] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#FBF8FD] hover:shadow-md"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F4EEFA] text-[#79588F]">
+              <DashboardIcon name="bell" className="h-4 w-4" />
+            </span>
+            <span>{locale === "ar" ? "طلبات الانضمام" : "Join requests"}</span>
+            {pendingApplicationCount > 0 ? <CountBadge count={pendingApplicationCount} /> : null}
+          </Link>
+        </div>
+      ) : null}
+
+      <CampaignBrandPolicyPanel
+        locale={locale}
+        dictionary={dashboardDictionary}
+        campaignId={id}
+        campaign={{
+          brand_id: campaign.brand_id,
+          exclusivity_scope: campaign.exclusivity_scope,
+          exclusivity_days: campaign.exclusivity_days,
+          exclusivity_start_basis: campaign.exclusivity_start_basis,
+        }}
+        brands={brandsResult.data ?? []}
+        blockedBrandIds={(policyTargetsResult.data ?? []).map((row) => row.brand_id)}
+        canManage={canManage}
+      />
 
       <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#A775C0] via-[#5B6FC7] to-[#8492DA] p-6 text-white shadow-[0_24px_65px_rgba(74,88,162,0.22)] sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -207,6 +286,7 @@ export default async function CampaignDetailsPage({
       </CampaignPanel>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
+        <div id="campaign-participants" className="scroll-mt-28">
         <CampaignPanel title={copy.details.assignments}>
           {assignments.length === 0 ? (
             <EmptyCampaignState text={copy.details.noAssignments} />
@@ -226,6 +306,7 @@ export default async function CampaignDetailsPage({
             </div>
           )}
         </CampaignPanel>
+        </div>
 
         <div className="space-y-6">
           <CampaignPanel title={copy.details.timeline}>
@@ -320,6 +401,18 @@ function getAssignmentLabels(locale: CampaignLocale) {
 function SuccessMessage({ children }: { children: React.ReactNode }) {
   return <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-black text-emerald-700">{children}</div>;
 }
+function CountBadge({ count }: { count: number }) {
+  const label = count > 5 ? "5+" : String(count);
+  return (
+    <span
+      aria-label={`${count}`}
+      className="inline-flex min-w-6 items-center justify-center rounded-full bg-[#E8435A] px-1.5 py-0.5 text-[11px] font-black leading-5 text-white shadow-[0_4px_12px_rgba(232,67,90,0.28)]"
+    >
+      {label}
+    </span>
+  );
+}
+
 function HeroMetric({ label, value }: { label: string; value: string }) {
   return <div className="rounded-2xl border border-white/15 bg-white/10 px-3 py-4 backdrop-blur"><p className="text-[10px] font-bold text-white/65">{label}</p><p className="mt-2 truncate text-sm font-black text-white">{value}</p></div>;
 }

@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { calculateInfluencerPerformance } from "@/lib/influencer-portal/performance";
 import { requireInfluencerAccount } from "@/lib/influencer-portal/require-influencer-account";
+import { normalizeAppLocale, type AppLocale } from "@/lib/i18n/app";
+import { getAppDictionary, type AppDictionary } from "@/lib/i18n/app-dictionary";
 
 const activeStatuses = new Set([
   "invited",
@@ -26,8 +29,14 @@ type AssignmentRow = {
   campaigns: CampaignRow | CampaignRow[] | null;
 };
 type PlatformIdRow = { id: string };
+type Copy = AppDictionary["portalDashboard"];
 
 export default async function InfluencerPortalDashboard() {
+  const store = await cookies();
+  const locale = normalizeAppLocale(
+    store.get("app_locale")?.value ?? store.get("dashboard_locale")?.value,
+  );
+  const copy = getAppDictionary(locale).portalDashboard;
   const { admin, influencer } = await requireInfluencerAccount();
 
   const [{ data: socialRows }, { data: assignmentRows }, { data: financial }] =
@@ -138,68 +147,65 @@ export default async function InfluencerPortalDashboard() {
     activeStatuses.has(String(row.status)),
   );
   const pendingContent = contentRows.filter((row) =>
-    ["draft", "needs_changes", "submitted", "under_review"].includes(
-      row.status,
-    ),
+    ["draft", "needs_changes", "submitted", "under_review"].includes(row.status),
   ).length;
   const totalPending = paymentRows
     .filter((row) => !["paid", "cancelled"].includes(row.status))
     .reduce(
       (sum, row) =>
         sum +
-        Number(
-          row.expected_amount ?? row.amount ?? 0,
-        ) -
+        Number(row.expected_amount ?? row.amount ?? 0) -
         Number(row.paid_amount ?? 0),
       0,
     );
 
   const bankStatus = financial?.bank_profile_status ?? "incomplete";
+  const currentLevel = copy.levels[performance.level];
+  const currentClassification = copy.classifications[performance.classification];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-no-auto-translate>
       <section className="overflow-hidden rounded-[30px] bg-[linear-gradient(135deg,#6074D3,#8E9BEA)] p-6 text-white shadow-[0_22px_70px_rgba(70,90,175,0.24)] sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <p className="text-sm font-bold text-white/75">لوحة المؤثر</p>
+            <p className="text-sm font-bold text-white/75">{copy.eyebrow}</p>
             <h1 className="mt-2 text-3xl font-black">
-              أهلًا {influencer.full_name}
+              {replace(copy.welcome, { name: influencer.full_name })}
             </h1>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-white/80">
-              تابعي الحملات والمحتوى والمستحقات، وراقبي تقدم ملف أعمالك وتصنيفك
-              داخل المنصة.
+              {copy.description}
             </p>
           </div>
           <div className="rounded-[24px] border border-white/20 bg-white/12 p-5 text-center backdrop-blur">
-            <p className="text-xs font-black text-white/70">درجة الأداء</p>
+            <p className="text-xs font-black text-white/70">{copy.performanceScore}</p>
             <p className="mt-1 text-4xl font-black">{performance.score}</p>
-            <p className="mt-1 text-xs font-bold">{performance.level}</p>
+            <p className="mt-1 text-xs font-bold">{currentLevel}</p>
           </div>
         </div>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="اكتمال الملف" value={`${influencer.profile_completion ?? 0}%`} />
-        <Metric label="التصنيف" value={performance.classification} />
-        <Metric label="الحملات النشطة" value={String(activeAssignments.length)} />
-        <Metric label="المستحقات قيد الإجراء" value={`${money(totalPending)} ر.س`} />
+        <Metric label={copy.profileCompletion} value={`${influencer.profile_completion ?? 0}%`} />
+        <Metric label={copy.classification} value={currentClassification} />
+        <Metric label={copy.activeCampaigns} value={String(activeAssignments.length)} />
+        <Metric label={copy.pendingPayments} value={`${money(totalPending, locale)} ${copy.currency}`} />
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.09)]">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-[#9F6EB8]">الحملات الحالية</p>
-              <h2 className="mt-1 text-xl font-black">المهام المفتوحة</h2>
+              <p className="text-sm font-bold text-[#9F6EB8]">{copy.currentCampaigns}</p>
+              <h2 className="mt-1 text-xl font-black">{copy.openTasks}</h2>
             </div>
             <Link href="/portal/campaigns" className="text-sm font-black text-[#9A68B5]">
-              عرض جميع الحملات
+              {copy.viewAllCampaigns}
             </Link>
           </div>
 
           <div className="mt-5 space-y-3">
             {activeAssignments.length === 0 ? (
-              <Empty text="لا توجد حملات نشطة حاليًا." />
+              <Empty text={copy.noActiveCampaigns} />
             ) : (
               activeAssignments.slice(0, 5).map((assignment) => {
                 const campaign = relation(assignment.campaigns);
@@ -210,14 +216,14 @@ export default async function InfluencerPortalDashboard() {
                   >
                     <div>
                       <p className="font-black text-[#4A315C]">
-                        {campaign?.name ?? "حملة"}
+                        {campaign?.name ?? copy.campaignFallback}
                       </p>
                       <p className="mt-1 text-xs text-[#8D7C94]">
-                        {campaign?.brand ?? "دار الأميرات"}
+                        {campaign?.brand ?? copy.brandFallback}
                       </p>
                     </div>
                     <span className="rounded-full bg-[#F7F0FA] px-3 py-1.5 text-xs font-bold text-[#5E72CF]">
-                      {statusLabel(String(assignment.status))}
+                      {statusLabel(String(assignment.status), copy)}
                     </span>
                   </div>
                 );
@@ -228,39 +234,42 @@ export default async function InfluencerPortalDashboard() {
 
         <div className="space-y-5">
           <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.09)]">
-            <p className="text-sm font-bold text-[#9F6EB8]">خطوات مطلوبة</p>
-            <h2 className="mt-1 text-xl font-black">جاهزية الحساب</h2>
+            <p className="text-sm font-bold text-[#9F6EB8]">{copy.requiredSteps}</p>
+            <h2 className="mt-1 text-xl font-black">{copy.accountReadiness}</h2>
             <div className="mt-5 space-y-3">
               <Readiness
                 done={(influencer.profile_completion ?? 0) >= 80}
-                label="اكتمال الملف الشخصي"
+                label={copy.readinessProfile}
               />
-              <Readiness done={pendingContent === 0} label="لا توجد تعديلات محتوى معلقة" />
-              <Readiness done={bankStatus === "approved"} label="بيانات البنك معتمدة" />
+              <Readiness done={pendingContent === 0} label={copy.readinessContent} />
+              <Readiness done={bankStatus === "approved"} label={copy.readinessBank} />
             </div>
             {bankStatus !== "approved" ? (
               <Link
                 href="/portal/profile/payment-details"
                 className="mt-5 flex h-12 items-center justify-center rounded-2xl bg-[#9A68B5] text-sm font-black text-white"
               >
-                مراجعة بيانات البنك
+                {copy.reviewBank}
               </Link>
             ) : null}
           </div>
 
           <div className="rounded-[28px] bg-[linear-gradient(145deg,#432A57,#8959A2)] p-6 text-white shadow-[0_20px_55px_rgba(51,68,127,0.22)]">
-            <p className="text-xs font-black text-white/65">المستوى الحالي</p>
+            <p className="text-xs font-black text-white/65">{copy.currentLevel}</p>
             <div className="mt-2 flex items-end justify-between gap-4">
               <div>
-                <p className="text-2xl font-black">{performance.level}</p>
+                <p className="text-2xl font-black">{currentLevel}</p>
                 <p className="mt-1 text-xs font-bold text-white/70">
                   {performance.nextLevel
-                    ? `${performance.progressToNext}% نحو ${performance.nextLevel}`
-                    : "وصلتِ لأعلى مستوى"}
+                    ? replace(copy.towardNext, {
+                        progress: performance.progressToNext,
+                        level: copy.levels[performance.nextLevel],
+                      })
+                    : copy.highestLevel}
                 </p>
               </div>
               <Link href="/portal/performance" className="text-xs font-black text-white">
-                تفاصيل الأداء ←
+                {copy.performanceDetails} {locale === "ar" ? "←" : "→"}
               </Link>
             </div>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15">
@@ -294,9 +303,7 @@ function Readiness({ done, label }: { done: boolean; label: string }) {
     <div className="flex items-center gap-3 rounded-2xl bg-[#FBF8FD] p-3">
       <span
         className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${
-          done
-            ? "bg-emerald-100 text-emerald-700"
-            : "bg-amber-100 text-amber-700"
+          done ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
         }`}
       >
         {done ? "✓" : "!"}
@@ -314,23 +321,16 @@ function Empty({ text }: { text: string }) {
   );
 }
 
-function money(value: number) {
-  return new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(
-    Math.max(0, value),
-  );
+function money(value: number, locale: AppLocale) {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-US", {
+    maximumFractionDigits: 0,
+  }).format(Math.max(0, value));
 }
 
-function statusLabel(value: string) {
-  const labels: Record<string, string> = {
-    invited: "تمت الدعوة",
-    accepted: "تم القبول",
-    product_pending: "بانتظار المنتج",
-    brief_pending: "بانتظار البريف",
-    content_pending: "بانتظار المحتوى",
-    under_review: "قيد المراجعة",
-    needs_changes: "مطلوب تعديل",
-    approved: "المحتوى معتمد",
-    payment_pending: "بانتظار الدفع",
-  };
-  return labels[value] ?? value;
+function statusLabel(value: string, copy: Copy) {
+  return (copy.statuses as Record<string, string>)[value] ?? value;
+}
+
+function replace(template: string, values: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? `{${key}}`));
 }

@@ -1,13 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-
-const benefits = [
-  "فرص تعاون وحملات متنوعة مع دار الأميرات",
-  "تجربة المنتجات ومشاركة رأيك وملاحظاتك معنا",
-  "هدايا وعينات وتجارب حصرية لصُنّاع المحتوى (PR)",
-  "إدارة ملفك وحساباتك وفرصك من مكان واحد",
-  "متابعة الحملات والتعاونات والمستحقات بعد تفعيل حسابك",
-];
+import { cookies } from "next/headers";
+import { normalizeAppLocale } from "@/lib/i18n/app";
+import { getAppDictionary } from "@/lib/i18n/app-dictionary";
 
 const socialPlatforms = [
   { label: "YT", className: "bg-[#ff0033] text-white" },
@@ -16,12 +11,6 @@ const socialPlatforms = [
   { label: "SC", className: "bg-[#ffeb3b] text-black" },
 ];
 
-const footerFeatures = [
-  { icon: "gift", title: "هدايا وتجارب حصرية", text: "لأعضاء مجتمعنا المميزين" },
-  { icon: "megaphone", title: "حملات مستمرة", text: "مع علامات تجارية رائدة" },
-  { icon: "shield", title: "منصة موثوقة وآمنة", text: "لإدارة تعاوناتك بسهولة" },
-  { icon: "chart", title: "تطوير ونمو مستمر", text: "ندعم رحلتك كصانع محتوى" },
-];
 
 function CheckIcon() {
   return (
@@ -60,10 +49,17 @@ function MiniIcon({ type }: { type: string }) {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const cookieStore = await cookies();
+  const locale = normalizeAppLocale(cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value);
+  const t = getAppDictionary(locale).home;
+  const benefits = t.benefits;
+  const footerFeatures = t.features;
+
   return (
     <main
       dir="inherit"
+      data-no-auto-translate
       className="min-h-screen overflow-hidden bg-[#fbf8ff] font-['Tajawal',Tahoma,Arial,sans-serif] text-[#36205d]"
     >
       <div className="relative isolate overflow-hidden">
@@ -73,10 +69,10 @@ export default function HomePage() {
 
         <header className="border-b border-[#eadff4]/75 bg-white/80 backdrop-blur-xl">
           <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-4 sm:px-8 lg:px-12">
-            <Link href="/" aria-label="الصفحة الرئيسية" className="shrink-0">
+            <Link href="/" aria-label={t.ariaHome} className="shrink-0">
               <Image
                 src="/da-logo.png"
-                alt="DA - دار الأميرات"
+                alt={t.ariaHome}
                 width={150}
                 height={72}
                 priority
@@ -85,19 +81,19 @@ export default function HomePage() {
             </Link>
 
             <nav className="hidden items-center gap-7 text-sm font-bold text-[#655877] lg:flex">
-              <a href="#home" className="relative text-[#8b56bd] after:absolute after:-bottom-3 after:right-0 after:h-0.5 after:w-full after:rounded-full after:bg-[#9b67c9]">الرئيسية</a>
-              <a href="#about" className="transition hover:text-[#8b56bd]">عن المنصة</a>
-              <a href="#how" className="transition hover:text-[#8b56bd]">كيف نعمل</a>
-              <a href="#opportunities" className="transition hover:text-[#8b56bd]">الفرص</a>
-              <a href="#faq" className="transition hover:text-[#8b56bd]">الأسئلة الشائعة</a>
-              <a href="#contact" className="transition hover:text-[#8b56bd]">تواصل معنا</a>
+              <a href="#home" className="relative text-[#8b56bd] after:absolute after:-bottom-3 after:right-0 after:h-0.5 after:w-full after:rounded-full after:bg-[#9b67c9]">{t.nav.home}</a>
+              <a href="#about" className="transition hover:text-[#8b56bd]">{t.nav.about}</a>
+              <a href="#how" className="transition hover:text-[#8b56bd]">{t.nav.how}</a>
+              <a href="#opportunities" className="transition hover:text-[#8b56bd]">{t.nav.opportunities}</a>
+              <a href="#faq" className="transition hover:text-[#8b56bd]">{t.nav.faq}</a>
+              <a href="#contact" className="transition hover:text-[#8b56bd]">{t.nav.contact}</a>
             </nav>
 
             <Link
               href="/login"
               className="inline-flex items-center gap-2 rounded-2xl border border-[#c9a9e6] bg-white/85 px-4 py-3 text-sm font-black text-[#7b4eaa] shadow-[0_10px_25px_rgba(116,75,157,.08)] transition hover:-translate-y-0.5 hover:bg-[#fbf7ff] sm:px-6"
             >
-              <span>تسجيل الدخول</span>
+              <span>{t.login}</span>
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="12" cy="8" r="3" /><path d="M5 20c0-4 3-7 7-7s7 3 7 7" />
               </svg>
@@ -116,9 +112,9 @@ export default function HomePage() {
 
                 <div className="grid items-center gap-4 rounded-[24px] border border-[#efe6f7] bg-gradient-to-l from-white to-[#fdfaff] p-5 sm:grid-cols-[1fr_auto]">
                   <div>
-                    <span className="inline-flex items-center gap-2 rounded-full bg-[#f4edf9] px-3 py-1.5 text-xs font-black text-[#8256a8]">ملفك الشخصي</span>
-                    <h3 className="mt-3 text-2xl font-black text-[#352052]">أكملي ملفك</h3>
-                    <p className="mt-1 text-xs font-bold text-[#887b98]">اكتملي ملفك لزيادة فرص التعاون</p>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-[#f4edf9] px-3 py-1.5 text-xs font-black text-[#8256a8]">{t.profileCard.label}</span>
+                    <h3 className="mt-3 text-2xl font-black text-[#352052]">{t.profileCard.title}</h3>
+                    <p className="mt-1 text-xs font-bold text-[#887b98]">{t.profileCard.description}</p>
                     <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-[#eee6f5]">
                       <div className="h-full w-3/4 rounded-full bg-gradient-to-l from-[#7d4ab4] to-[#a66fd1]" />
                     </div>
@@ -132,10 +128,10 @@ export default function HomePage() {
                 <div className="mt-4 rounded-[24px] border border-[#efe6f7] bg-white p-5">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-base font-black text-[#462a68]">حساباتك الاجتماعية</h3>
-                      <p className="mt-1 text-xs font-semibold text-[#978aa6]">اربط حساباتك لزيادة فرصك في الحملات</p>
+                      <h3 className="text-base font-black text-[#462a68]">{t.profileCard.socialTitle}</h3>
+                      <p className="mt-1 text-xs font-semibold text-[#978aa6]">{t.profileCard.socialDescription}</p>
                     </div>
-                    <button type="button" className="rounded-full border border-[#d9c4ea] px-4 py-2 text-xs font-black text-[#8557ad]">+ إضافة حساب</button>
+                    <button type="button" className="rounded-full border border-[#d9c4ea] px-4 py-2 text-xs font-black text-[#8557ad]">{t.profileCard.addAccount}</button>
                   </div>
                   <div className="mt-5 flex items-center gap-3" dir="ltr">
                     {socialPlatforms.map((platform) => (
@@ -148,8 +144,8 @@ export default function HomePage() {
 
                 <div id="opportunities" className="mt-4 rounded-[24px] border border-[#efe6f7] bg-white p-5">
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-base font-black text-[#462a68]">فرص متاحة لك</h3>
-                    <span className="rounded-full bg-[#f5eefb] px-3 py-1 text-[11px] font-black text-[#8e5dbc]">جديد</span>
+                    <h3 className="text-base font-black text-[#462a68]">{t.profileCard.opportunitiesTitle}</h3>
+                    <span className="rounded-full bg-[#f5eefb] px-3 py-1 text-[11px] font-black text-[#8e5dbc]">{t.profileCard.new}</span>
                   </div>
                   <div className="grid gap-4 rounded-[20px] bg-[#fcf9ff] p-4 sm:grid-cols-[112px_1fr]">
                     <div className="flex min-h-[116px] items-center justify-center rounded-[18px] bg-[linear-gradient(145deg,#f4e9fb,#d8b9eb)] p-4">
@@ -160,24 +156,24 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div className="flex flex-col justify-center">
-                      <h4 className="font-black text-[#482a69]">تجربة مجموعة العناية الجديدة</h4>
-                      <p className="mt-1 text-xs font-semibold text-[#9487a4]">منتجات العناية بالبشرة · إصدار جديد</p>
+                      <h4 className="font-black text-[#482a69]">{t.profileCard.sampleTitle}</h4>
+                      <p className="mt-1 text-xs font-semibold text-[#9487a4]">{t.profileCard.sampleDescription}</p>
                       <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black text-[#8a58b4]">
                         <span className="rounded-full bg-[#f2e8f9] px-3 py-1">PR</span>
-                        <span className="rounded-full bg-[#f2e8f9] px-3 py-1">تجربة منتجات</span>
-                        <span className="rounded-full bg-[#f2e8f9] px-3 py-1">هدية</span>
+                        <span className="rounded-full bg-[#f2e8f9] px-3 py-1">{t.profileCard.productTrial}</span>
+                        <span className="rounded-full bg-[#f2e8f9] px-3 py-1">{t.profileCard.gift}</span>
                       </div>
-                      <button type="button" className="mt-4 w-fit rounded-full border border-[#d7c0e7] px-4 py-2 text-xs font-black text-[#8254aa]">عرض التفاصيل ←</button>
+                      <button type="button" className="mt-4 w-fit rounded-full border border-[#d7c0e7] px-4 py-2 text-xs font-black text-[#8254aa]">{t.profileCard.viewDetails} {locale === "ar" ? "←" : "→"}</button>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4 grid items-center gap-4 rounded-[24px] border border-[#efe6f7] bg-gradient-to-l from-[#fff] to-[#fcf8ff] p-5 sm:grid-cols-[1fr_130px]">
                   <div>
-                    <p className="text-xs font-black text-[#8758ae]">دعوات المجتمع وPR</p>
-                    <h4 className="mt-2 font-black text-[#482a69]">فعاليات حصرية لصُنّاع المحتوى</h4>
-                    <p className="mt-1 text-xs font-semibold text-[#9588a4]">جلسات تعريفية وتجارب خاصة بأعضاء المجتمع</p>
-                    <button type="button" className="mt-4 rounded-full border border-[#d8c4e8] px-4 py-2 text-xs font-black text-[#8355aa]">اكتشف المزيد</button>
+                    <p className="text-xs font-black text-[#8758ae]">{t.profileCard.communityInvites}</p>
+                    <h4 className="mt-2 font-black text-[#482a69]">{t.profileCard.exclusiveEvents}</h4>
+                    <p className="mt-1 text-xs font-semibold text-[#9588a4]">{t.profileCard.eventDescription}</p>
+                    <button type="button" className="mt-4 rounded-full border border-[#d8c4e8] px-4 py-2 text-xs font-black text-[#8355aa]">{t.profileCard.discover}</button>
                   </div>
                   <div className="h-24 rounded-[18px] bg-[radial-gradient(circle_at_50%_30%,#d9a6ed,#8c54b4_55%,#57316f)] shadow-inner" />
                 </div>
@@ -186,12 +182,12 @@ export default function HomePage() {
           </div>
 
           <div className="order-1 flex flex-col justify-center lg:order-2 lg:pr-3">
-            <span className="w-fit rounded-full bg-[#f0e5f8] px-4 py-2 text-sm font-black text-[#8a58b4]">منصة صُنّاع المحتوى</span>
+            <span className="w-fit rounded-full bg-[#f0e5f8] px-4 py-2 text-sm font-black text-[#8a58b4]">{t.badge}</span>
             <h1 className="mt-6 max-w-3xl text-[2.65rem] font-black leading-[1.2] tracking-[-0.02em] text-[#3e1f67] sm:text-5xl lg:text-[4.2rem]">
-              اصنع، جرّب، وشاركنا رأيك
+              {t.heroTitle}
             </h1>
             <p id="about" className="mt-6 max-w-3xl text-base font-semibold leading-8 text-[#756a82] sm:text-lg sm:leading-9">
-              مجتمع دار الأميرات لصُنّاع المحتوى، حيث نشاركك منتجاتنا وتجاربنا وفرص التعاون، ونستمع لصوتك وملاحظاتك لنصنع تجارب أفضل معًا.
+              {t.heroDescription}
             </p>
 
             <div id="how" className="mt-8 space-y-4">
@@ -208,17 +204,20 @@ export default function HomePage() {
                 href="/portal-access/request"
                 className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-gradient-to-l from-[#7f4bb5] to-[#a66bcf] px-7 text-base font-black text-white shadow-[0_18px_38px_rgba(126,74,181,.25)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(126,74,181,.3)]"
               >
-                انضم إلى مجتمع صُنّاع المحتوى
-                <span aria-hidden>←</span>
+                {t.join}
+                <span aria-hidden>{locale === "ar" ? "←" : "→"}</span>
               </Link>
               <Link
                 href="/login"
                 className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl border border-[#b98ed8] bg-white/75 px-7 text-base font-black text-[#7a4ba4] backdrop-blur transition hover:-translate-y-0.5 hover:bg-white"
               >
-                تسجيل الدخول
-                <span aria-hidden>←</span>
+                {t.login}
+                <span aria-hidden>{locale === "ar" ? "←" : "→"}</span>
               </Link>
             </div>
+            <p className="mt-3 text-xs font-bold leading-6 text-[#8F8297]">
+              {t.legalPrefix} <Link href="/terms" className="font-black text-[#8A58B4] underline">{t.terms}</Link> {t.and} <Link href="/privacy" className="font-black text-[#8A58B4] underline">{t.privacy}</Link>. {t.legalSuffix}
+            </p>
 
             <div className="mt-7 flex items-center gap-4 text-sm font-bold text-[#786c84]">
               <div className="flex -space-x-2 space-x-reverse" dir="ltr">
@@ -227,8 +226,8 @@ export default function HomePage() {
                 ))}
               </div>
               <div>
-                <div className="font-black text-[#574461]">مجتمع من صُنّاع المحتوى</div>
-                <div className="mt-0.5 text-xs font-semibold text-[#94879f]">نجرّب، نشارك، وننمو معًا</div>
+                <div className="font-black text-[#574461]">{t.communityTitle}</div>
+                <div className="mt-0.5 text-xs font-semibold text-[#94879f]">{t.communitySubtitle}</div>
               </div>
             </div>
           </div>
@@ -248,8 +247,8 @@ export default function HomePage() {
           </div>
 
           <div id="contact" className="mt-6 flex flex-col items-center justify-between gap-3 px-2 text-center text-xs font-semibold text-[#9a8ca5] sm:flex-row sm:text-right">
-            <p>منصة صُنّاع المحتوى · دار الأميرات</p>
-            <Link href="/staff/login" className="transition hover:text-[#8153a9]">دخول الموظفين والإدارة</Link>
+            <p>{t.footer}</p>
+            <Link href="/staff/login" className="transition hover:text-[#8153a9]">{t.staff}</Link>
           </div>
         </section>
       </div>

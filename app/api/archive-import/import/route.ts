@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { legacySmartSuiteDisabledResponse } from "@/lib/legacy/smartsuite";
 import * as XLSX from "xlsx";
 
 export const runtime = "nodejs";
@@ -161,6 +162,9 @@ const VOUCHER_BRANCH_IDS: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
+  const legacyDisabled = legacySmartSuiteDisabledResponse();
+  if (legacyDisabled) return legacyDisabled;
+
   const errors: ImportError[] = [];
 
   try {

@@ -1,13 +1,22 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { requireInfluencerAccount } from "@/lib/influencer-portal/require-influencer-account";
+import { normalizeAppLocale, type AppLocale } from "@/lib/i18n/app";
+import { getAppDictionary, type AppDictionary } from "@/lib/i18n/app-dictionary";
 
 type CampaignRow = { name: string; brand: string | null };
 type AssignmentRow = {
   id: string;
   campaigns: CampaignRow | CampaignRow[] | null;
 };
+type Copy = AppDictionary["payments"];
 
 export default async function InfluencerPaymentsPage() {
+  const store = await cookies();
+  const locale = normalizeAppLocale(
+    store.get("app_locale")?.value ?? store.get("dashboard_locale")?.value,
+  );
+  const copy = getAppDictionary(locale).payments;
   const { admin, influencer } = await requireInfluencerAccount();
 
   const [{ data: assignments }, { data: financial }] = await Promise.all([
@@ -26,16 +35,11 @@ export default async function InfluencerPaymentsPage() {
 
   const assignmentRows = (assignments ?? []) as AssignmentRow[];
   const assignmentIds = assignmentRows.map((row) => row.id);
-  const campaignByAssignment = new Map<
-    string,
-    { name: string; brand: string | null }
-  >();
+  const campaignByAssignment = new Map<string, { name: string; brand: string | null }>();
 
   for (const assignment of assignmentRows) {
     const campaign = relation(assignment.campaigns);
-    if (campaign) {
-      campaignByAssignment.set(assignment.id, campaign);
-    }
+    if (campaign) campaignByAssignment.set(assignment.id, campaign);
   }
 
   let payments: Array<{
@@ -74,50 +78,46 @@ export default async function InfluencerPaymentsPage() {
   const totalRemaining = Math.max(0, totalExpected - totalPaid);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-no-auto-translate>
       <section className="rounded-[28px] bg-[linear-gradient(135deg,#9C68B9,#BE95D0)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
-        <p className="text-sm font-black text-white/70">المستحقات</p>
-        <h1 className="mt-2 text-2xl font-black">المدفوعات وحالة البنك</h1>
+        <p className="text-sm font-black text-white/70">{copy.eyebrow}</p>
+        <h1 className="mt-2 text-2xl font-black">{copy.title}</h1>
         <p className="mt-3 max-w-3xl text-sm font-semibold leading-7 text-white/78">
-          تابعي المستحقات المسجلة لكل حملة. بيانات البنك تظهر مقنّعة داخل حسابك،
-          ولا تظهر كاملة إلا للإدارة المالية.
+          {copy.description}
         </p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <Metric label="إجمالي المستحق" value={`${money(totalExpected)} ر.س`} />
-        <Metric label="تم دفعه" value={`${money(totalPaid)} ر.س`} />
-        <Metric label="المتبقي" value={`${money(totalRemaining)} ر.س`} />
+        <Metric label={copy.totalExpected} value={`${money(totalExpected, locale)} ${copy.currency}`} />
+        <Metric label={copy.totalPaid} value={`${money(totalPaid, locale)} ${copy.currency}`} />
+        <Metric label={copy.remaining} value={`${money(totalRemaining, locale)} ${copy.currency}`} />
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-[#9F6EB8]">الملف المالي</p>
-              <h2 className="mt-1 text-xl font-black">بيانات البنك المقنّعة</h2>
+              <p className="text-sm font-bold text-[#9F6EB8]">{copy.financialProfile}</p>
+              <h2 className="mt-1 text-xl font-black">{copy.maskedBank}</h2>
             </div>
-            <StatusBadge status={financial?.bank_profile_status ?? "incomplete"} />
+            <StatusBadge status={financial?.bank_profile_status ?? "incomplete"} copy={copy} />
           </div>
 
           <div className="mt-5 space-y-4 rounded-2xl bg-[#FCF9FD] p-5">
-            <Info label="اسم البنك" value={financial?.bank_name || "غير مضاف"} />
+            <Info label={copy.bankName} value={financial?.bank_name || copy.notAdded} />
+            <Info label={copy.accountHolder} value={maskName(financial?.account_holder_name ?? null, copy.notAdded)} />
             <Info
-              label="صاحب الحساب"
-              value={maskName(financial?.account_holder_name ?? null)}
-            />
-            <Info
-              label="الآيبان"
+              label={copy.iban}
               value={maskIban(financial?.iban ?? null, financial?.iban_last4 ?? null)}
               ltr
             />
             <Info
-              label="تأكيد المؤثر"
-              value={financial?.influencer_confirmed_at ? "تم التأكيد" : "بانتظار التأكيد"}
+              label={copy.creatorConfirmation}
+              value={financial?.influencer_confirmed_at ? copy.confirmed : copy.awaitingConfirmation}
             />
             <Info
-              label="مراجعة المالية"
-              value={financial?.finance_reviewed_at ? "تمت المراجعة" : "بانتظار المراجعة"}
+              label={copy.financeReview}
+              value={financial?.finance_reviewed_at ? copy.reviewed : copy.awaitingReview}
             />
           </div>
 
@@ -131,17 +131,17 @@ export default async function InfluencerPaymentsPage() {
             href="/portal/profile/payment-details"
             className="mt-5 flex h-13 items-center justify-center rounded-2xl bg-[#9A68B5] px-5 py-3 text-sm font-black text-white"
           >
-            تأكيد أو تحديث بيانات البنك
+            {copy.updateBank}
           </Link>
         </div>
 
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
-          <p className="text-sm font-bold text-[#9F6EB8]">سجل المستحقات</p>
-          <h2 className="mt-1 text-xl font-black">الحملات والمدفوعات</h2>
+          <p className="text-sm font-bold text-[#9F6EB8]">{copy.historyEyebrow}</p>
+          <h2 className="mt-1 text-xl font-black">{copy.historyTitle}</h2>
 
           <div className="mt-5 space-y-3">
             {payments.length === 0 ? (
-              <Empty text="لا توجد مستحقات مسجلة حاليًا." />
+              <Empty text={copy.empty} />
             ) : (
               payments.map((payment) => {
                 const campaign = campaignByAssignment.get(payment.assignment_id);
@@ -155,19 +155,19 @@ export default async function InfluencerPaymentsPage() {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <p className="font-black text-[#4A315C]">
-                          {campaign?.name ?? "حملة"}
+                          {campaign?.name ?? copy.campaignFallback}
                         </p>
                         <p className="mt-1 text-xs font-bold text-[#8D7C94]">
-                          {campaign?.brand ?? "دار الأميرات"} · {typeLabel(payment.type)}
+                          {campaign?.brand ?? copy.brandFallback} · {typeLabel(payment.type, copy)}
                         </p>
                       </div>
-                      <StatusBadge status={payment.status} />
+                      <StatusBadge status={payment.status} copy={copy} />
                     </div>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <Mini label="المستحق" value={`${money(expected)} ر.س`} />
-                      <Mini label="المدفوع" value={`${money(paid)} ر.س`} />
-                      <Mini label="المتبقي" value={`${money(Math.max(0, expected - paid))} ر.س`} />
+                      <Mini label={copy.expected} value={`${money(expected, locale)} ${copy.currency}`} />
+                      <Mini label={copy.paid} value={`${money(paid, locale)} ${copy.currency}`} />
+                      <Mini label={copy.remaining} value={`${money(Math.max(0, expected - paid), locale)} ${copy.currency}`} />
                     </div>
                   </article>
                 );
@@ -193,19 +193,11 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Info({
-  label,
-  value,
-  ltr = false,
-}: {
-  label: string;
-  value: string;
-  ltr?: boolean;
-}) {
+function Info({ label, value, ltr = false }: { label: string; value: string; ltr?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-xs font-bold text-[#94839C]">{label}</span>
-      <span className="text-sm font-black text-[#5C456B]" dir={ltr ? "ltr" : "rtl"}>
+      <span className="text-sm font-black text-[#5C456B]" dir={ltr ? "ltr" : "auto"}>
         {value}
       </span>
     </div>
@@ -229,31 +221,15 @@ function Empty({ text }: { text: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    incomplete: "غير مكتملة",
-    needs_confirmation: "بانتظار التأكيد",
-    pending_review: "بانتظار المالية",
-    approved: "معتمدة",
-    update_pending: "تحديث قيد المراجعة",
-    rejected: "مطلوب تحديث",
-    draft: "مسودة",
-    awaiting_approval: "بانتظار الاعتماد",
-    ready_for_finance: "جاهز للمالية",
-    partially_paid: "مدفوع جزئيًا",
-    paid: "تم الدفع",
-    cancelled: "ملغي",
-  };
+function StatusBadge({ status, copy }: { status: string; copy: Copy }) {
   const positive = ["approved", "paid"].includes(status);
   return (
     <span
       className={`rounded-full px-3 py-1.5 text-xs font-black ${
-        positive
-          ? "bg-emerald-50 text-emerald-700"
-          : "bg-amber-50 text-amber-800"
+        positive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"
       }`}
     >
-      {labels[status] ?? status}
+      {(copy.statuses as Record<string, string>)[status] ?? status}
     </span>
   );
 }
@@ -264,8 +240,8 @@ function maskIban(value: string | null, fallbackLast4: string | null) {
   return `SA•• •••• •••• •••• ••${last4}`;
 }
 
-function maskName(value: string | null) {
-  if (!value?.trim()) return "غير مضاف";
+function maskName(value: string | null, fallback: string) {
+  if (!value?.trim()) return fallback;
   return value
     .trim()
     .split(/\s+/)
@@ -273,17 +249,12 @@ function maskName(value: string | null) {
     .join(" ");
 }
 
-function money(value: number) {
-  return new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(value);
+function money(value: number, locale: AppLocale) {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-US", {
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
-function typeLabel(value: string) {
-  const labels: Record<string, string> = {
-    bank_transfer: "تحويل بنكي",
-    voucher: "قسيمة",
-    product: "منتجات",
-    commission: "عمولة",
-    other: "مقابل آخر",
-  };
-  return labels[value] ?? value;
+function typeLabel(value: string, copy: Copy) {
+  return (copy.types as Record<string, string>)[value] ?? value;
 }

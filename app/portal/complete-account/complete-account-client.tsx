@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { AppLocale } from "@/lib/i18n/app";
+import type { FlowDictionary } from "@/lib/i18n/flow-dictionary";
 
 type AssignmentSummary = {
   id: string;
@@ -15,7 +17,17 @@ type AssignmentSummary = {
   };
 };
 
-export default function CompleteAccountClient({ token }: { token: string }) {
+type Copy = FlowDictionary["completeAccount"];
+
+export default function CompleteAccountClient({
+  token,
+  locale,
+  copy,
+}: {
+  token: string;
+  locale: AppLocale;
+  copy: Copy;
+}) {
   const supabase = useMemo(() => createClient(), []);
   const [assignment, setAssignment] = useState<AssignmentSummary | null>(null);
   const [email, setEmail] = useState("");
@@ -31,7 +43,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
     async function loadPage() {
       if (!token) {
         if (!cancelled) {
-          setError("رابط التكليف غير مكتمل.");
+          setError(copy.missingToken);
           setLoading(false);
         }
         return;
@@ -44,7 +56,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
         );
         const result = await response.json();
         if (!response.ok) {
-          throw new Error(result.message || "تعذر تحميل التكليف.");
+          throw new Error(copy.loadFailed);
         }
         if (cancelled) return;
 
@@ -60,9 +72,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
       } catch (loadError) {
         if (!cancelled) {
           setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "تعذر تحميل التكليف.",
+            loadError instanceof Error ? loadError.message : copy.loadFailed,
           );
         }
       } finally {
@@ -78,7 +88,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [supabase, token]);
+  }, [supabase, token, copy]);
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -95,18 +105,16 @@ export default function CompleteAccountClient({ token }: { token: string }) {
       });
 
       if (signInError) {
-        throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+        throw new Error(copy.invalidCredentials);
       }
 
-      setMessage("تم تسجيل الدخول، جاري فتح بيانات الدفع...");
+      setMessage(copy.loginSuccess);
       window.location.replace(
         `/portal/profile/payment-details?assignment=${encodeURIComponent(assignment.id)}`,
       );
     } catch (loginError) {
       setError(
-        loginError instanceof Error
-          ? loginError.message
-          : "تعذر تسجيل الدخول.",
+        loginError instanceof Error ? loginError.message : copy.loginFailed,
       );
     } finally {
       setSubmitting(false);
@@ -115,35 +123,36 @@ export default function CompleteAccountClient({ token }: { token: string }) {
 
   return (
     <main
+      lang={locale}
       dir="inherit"
+      data-no-auto-translate
       className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(216,221,247,0.82),transparent_30%),linear-gradient(135deg,#FFFDFF,#F9F5FB)] px-4 py-8 font-['Tajawal',Tahoma,Arial,sans-serif] text-[#432A57]"
     >
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 flex items-center justify-between rounded-[24px] border border-white/90 bg-white/82 px-5 py-4 shadow-[0_18px_55px_rgba(67,82,155,0.11)] backdrop-blur-xl">
           <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/da-logo.png"
-              alt="دار الأميرات"
+              alt="DA"
               className="h-14 w-14 rounded-2xl object-contain"
             />
             <div>
-              <p className="text-xs font-black text-[#8F7E98]">بوابة المؤثر</p>
-              <h1 className="text-lg font-black text-[#432A57]">
-                استكمال بيانات الدفع
-              </h1>
+              <p className="text-xs font-black text-[#8F7E98]">{copy.portalLabel}</p>
+              <h1 className="text-lg font-black text-[#432A57]">{copy.headerTitle}</h1>
             </div>
           </div>
           <Link
             href={`/portal/assignments/${encodeURIComponent(token)}`}
             className="text-sm font-black text-[#A170BA]"
           >
-            العودة للتكليف
+            {copy.backToAssignment}
           </Link>
         </header>
 
         {loading ? (
           <div className="rounded-[28px] bg-white/85 p-12 text-center font-black text-[#A170BA] shadow-xl">
-            جاري التحقق...
+            {copy.checking}
           </div>
         ) : null}
 
@@ -157,30 +166,27 @@ export default function CompleteAccountClient({ token }: { token: string }) {
           <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
             <section className="rounded-[30px] bg-[linear-gradient(145deg,#AD7EC4,#8959A2)] p-7 text-white shadow-[0_25px_70px_rgba(74,88,162,0.25)]">
               <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black">
-                بعد رفع رابط النشر
+                {copy.afterPublish}
               </span>
-              <h2 className="mt-5 text-2xl font-black">
-                الحساب مطلوب لحماية بيانات البنك
-              </h2>
+              <h2 className="mt-5 text-2xl font-black">{copy.bankProtectionTitle}</h2>
               <p className="mt-4 text-sm font-semibold leading-8 text-white/80">
-                الحساب يربط تكليفاتك ومستحقاتك في مكان واحد، ويعرض بيانات البنك
-                بشكل مقنّع لتأكيدها أو طلب تحديثها.
+                {copy.bankProtectionDescription}
               </p>
               <div className="mt-7 space-y-3 rounded-2xl border border-white/15 bg-white/10 p-5">
                 <Info
-                  label="الحملة"
-                  value={assignment.campaigns?.name ?? "تكليف حملة"}
+                  label={copy.campaign}
+                  value={assignment.campaigns?.name ?? copy.assignmentFallback}
                 />
                 <Info
-                  label="العلامة"
-                  value={assignment.campaigns?.brand ?? "غير محدد"}
+                  label={copy.brand}
+                  value={assignment.campaigns?.brand ?? copy.notSet}
                 />
                 <Info
-                  label="حالة الحساب"
+                  label={copy.accountStatus}
                   value={
                     assignment.paymentAccount.hasAccount
-                      ? "يوجد حساب مسجل"
-                      : "جاهز للتفعيل عبر البريد"
+                      ? copy.hasAccount
+                      : copy.readyForEmail
                   }
                 />
               </div>
@@ -189,27 +195,25 @@ export default function CompleteAccountClient({ token }: { token: string }) {
             <section className="rounded-[30px] border border-[#ECE1F1] bg-white/90 p-6 shadow-[0_20px_60px_rgba(67,82,155,0.10)] sm:p-7">
               <p className="text-sm font-black text-[#A170BA]">
                 {assignment.paymentAccount.hasAccount
-                  ? "الحساب موجود"
-                  : "تفعيل ذاتي بدون انتظار المنسق"}
+                  ? copy.accountExists
+                  : copy.selfActivation}
               </p>
               <h2 className="mt-2 text-2xl font-black">
                 {assignment.paymentAccount.hasAccount
-                  ? "تسجيل الدخول"
-                  : "فعّلي حسابك بالبريد"}
+                  ? copy.signInTitle
+                  : copy.activateTitle}
               </h2>
 
               {!assignment.paymentAccount.hasAccount ? (
                 <div className="mt-5 rounded-2xl border border-[#ECE1F1] bg-[#FCF9FD] p-5">
                   <p className="text-sm font-semibold leading-7 text-[#747E9E]">
-                    نطابق آخر 4 أرقام من جوالك مع الرقم المرتبط بالحملة، ثم نرسل
-                    OTP إلى البريد. بعد التأكيد تنشئين كلمة مرور وتدخلين بيانات
-                    البنك.
+                    {copy.activationDescription}
                   </p>
                   <Link
                     href={`/portal/activate-account?token=${encodeURIComponent(token)}`}
                     className="mt-4 flex h-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)]"
                   >
-                    تفعيل حساب المؤثر عبر البريد
+                    {copy.activateButton}
                   </Link>
                 </div>
               ) : null}
@@ -217,7 +221,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
               <div className="my-6 flex items-center gap-3">
                 <span className="h-px flex-1 bg-[#F3EDF7]" />
                 <span className="text-xs font-black text-[#99A1B9]">
-                  تسجيل الدخول للحساب الحالي
+                  {copy.existingLogin}
                 </span>
                 <span className="h-px flex-1 bg-[#F3EDF7]" />
               </div>
@@ -229,7 +233,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
                   autoComplete="email"
                   value={email}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
-                  placeholder="البريد الإلكتروني"
+                  placeholder={copy.emailPlaceholder}
                   className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 text-sm font-bold outline-none focus:border-[#A170BA]"
                   dir="ltr"
                 />
@@ -239,7 +243,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
                   autoComplete="current-password"
                   value={password}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
-                  placeholder="كلمة المرور"
+                  placeholder={copy.passwordPlaceholder}
                   className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 text-sm font-bold outline-none focus:border-[#A170BA]"
                   dir="ltr"
                 />
@@ -251,9 +255,7 @@ export default function CompleteAccountClient({ token }: { token: string }) {
                   disabled={submitting}
                   className="h-14 w-full rounded-2xl border border-[#BBC4EA] bg-white font-black text-[#9362AD] disabled:opacity-50"
                 >
-                  {submitting
-                    ? "جاري تسجيل الدخول..."
-                    : "تسجيل الدخول واستكمال الدفع"}
+                  {submitting ? copy.signingIn : copy.signInAndContinue}
                 </button>
               </form>
             </section>

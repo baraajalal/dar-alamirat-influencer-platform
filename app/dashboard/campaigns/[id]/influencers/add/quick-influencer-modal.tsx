@@ -22,6 +22,7 @@ type CreatedInfluencer = {
   availability_reason: string | null;
   blocking_campaign_id: string | null;
   blocking_campaign_name: string | null;
+  blocking_brand_name: string | null;
   blocked_until: string | null;
   days_remaining: number | null;
 };
@@ -59,7 +60,7 @@ export default function QuickInfluencerModal({ open, campaignId, locale, initial
       const response = await fetch(`/api/campaigns/${campaignId}/influencers/quick-create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, mobile, gender, city, platform, username, profileUrl }),
+        body: JSON.stringify({ fullName, mobile, gender, city, platform, username, profileUrl, locale }),
       });
       const payload = (await response.json()) as {
         influencer?: CreatedInfluencer;

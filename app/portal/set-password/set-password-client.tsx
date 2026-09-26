@@ -2,20 +2,33 @@
 
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { AppLocale } from "@/lib/i18n/app";
+import type { FlowDictionary } from "@/lib/i18n/flow-dictionary";
 
-function passwordError(value: string) {
-  if (value.length < 8) return "كلمة المرور يجب أن تكون 8 أحرف على الأقل.";
-  if (!/[a-z]/.test(value)) return "أضيفي حرفًا إنجليزيًا صغيرًا.";
-  if (!/[A-Z]/.test(value)) return "أضيفي حرفًا إنجليزيًا كبيرًا.";
-  if (!/[0-9]/.test(value)) return "أضيفي رقمًا واحدًا على الأقل.";
-  if (!/[^A-Za-z0-9]/.test(value)) return "أضيفي رمزًا خاصًا مثل ! أو @.";
+type Copy = FlowDictionary["portalSetPassword"];
+
+function passwordError(value: string, copy: Copy) {
+  if (value.length < 8) return copy.validation.min;
+  if (!/[a-z]/.test(value)) return copy.validation.lower;
+  if (!/[A-Z]/.test(value)) return copy.validation.upper;
+  if (!/[0-9]/.test(value)) return copy.validation.number;
+  if (!/[^A-Za-z0-9]/.test(value)) return copy.validation.symbol;
   return "";
+}
+
+function apiError(copy: Copy, code?: string) {
+  if (!code) return copy.activationFailed;
+  return copy.errors[code as keyof typeof copy.errors] ?? copy.activationFailed;
 }
 
 export default function SetPasswordClient({
   assignmentId,
+  locale,
+  copy,
 }: {
   assignmentId: string;
+  locale: AppLocale;
+  copy: Copy;
 }) {
   const supabase = useMemo(() => createClient(), []);
   const [password, setPassword] = useState("");
@@ -30,14 +43,14 @@ export default function SetPasswordClient({
     setError("");
     setMessage("");
 
-    const validationMessage = passwordError(password);
+    const validationMessage = passwordError(password, copy);
     if (validationMessage) {
       setError(validationMessage);
       return;
     }
 
     if (password !== confirmation) {
-      setError("كلمتا المرور غير متطابقتين.");
+      setError(copy.passwordMismatch);
       return;
     }
 
@@ -48,7 +61,7 @@ export default function SetPasswordClient({
         password,
       });
       if (updateError) {
-        throw new Error("تعذر حفظ كلمة المرور. أعيدي تسجيل الدخول وحاولي مرة أخرى.");
+        throw new Error(copy.saveFailed);
       }
 
       const response = await fetch(
@@ -60,23 +73,21 @@ export default function SetPasswordClient({
         },
       );
       const result = (await response.json()) as {
-        message?: string;
+        code?: string;
         nextPath?: string;
       };
 
       if (!response.ok) {
-        throw new Error(
-          result.message || "تعذر إكمال تفعيل حساب المؤثر.",
-        );
+        throw new Error(apiError(copy, result.code));
       }
 
-      setMessage(result.message ?? "تم تفعيل الحساب.");
+      setMessage(copy.activated);
       window.location.replace(result.nextPath || "/portal/dashboard");
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "تعذر إنشاء كلمة المرور.",
+          : copy.createFailed,
       );
     } finally {
       setSubmitting(false);
@@ -85,30 +96,32 @@ export default function SetPasswordClient({
 
   return (
     <main
+      lang={locale}
       dir="inherit"
+      data-no-auto-translate
       className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_right,#F4ECF7,#FBF7FC_45%,#f4f5f9)] px-4 py-10 font-['Tajawal',Tahoma,Arial,sans-serif]"
     >
       <div className="w-full max-w-lg rounded-[32px] border border-white bg-white p-7 shadow-[0_25px_70px_rgba(70,85,150,0.13)] sm:p-9">
         <div className="mb-7 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/da-logo.png"
-            alt="دار الأميرات"
+            alt="DA"
             className="mx-auto mb-4 h-24 w-24 rounded-2xl object-contain"
           />
-          <p className="text-sm font-bold text-[#6777CA]">آخر خطوة للتفعيل</p>
+          <p className="text-sm font-bold text-[#6777CA]">{copy.lastStep}</p>
           <h1 className="mt-1 text-2xl font-black text-[#2E3F73]">
-            أنشئي كلمة مرور خاصة
+            {copy.title}
           </h1>
           <p className="mt-2 text-sm leading-7 text-[#7C85A0]">
-            بعد الحفظ ستنتقلين مباشرة إلى بيانات البنك، ثم تظهر لك لوحة الحملات
-            والمستحقات وملف الأعمال.
+            {copy.description}
           </p>
         </div>
 
         <form onSubmit={submit} className="space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm font-black text-[#4C4052]">
-              كلمة المرور الجديدة
+              {copy.newPassword}
             </span>
             <input
               value={password}
@@ -124,7 +137,7 @@ export default function SetPasswordClient({
 
           <label className="block">
             <span className="mb-2 block text-sm font-black text-[#4C4052]">
-              تأكيد كلمة المرور
+              {copy.confirmPassword}
             </span>
             <input
               value={confirmation}
@@ -145,11 +158,11 @@ export default function SetPasswordClient({
               onChange={(event: ChangeEvent<HTMLInputElement>) => setShowPassword(event.target.checked)}
               className="h-4 w-4 accent-[#A170BA]"
             />
-            إظهار كلمة المرور
+            {copy.showPassword}
           </label>
 
           <div className="rounded-2xl bg-[#F8F3FA] px-4 py-3 text-xs leading-6 text-[#727C98]">
-            8 أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز خاص.
+            {copy.rules}
           </div>
 
           {message ? (
@@ -168,7 +181,7 @@ export default function SetPasswordClient({
             disabled={submitting}
             className="h-14 w-full rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)] disabled:opacity-50"
           >
-            {submitting ? "جاري التفعيل..." : "حفظ كلمة المرور والمتابعة"}
+            {submitting ? copy.activating : copy.saveAndContinue}
           </button>
         </form>
       </div>

@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { requireInfluencerAccount } from "@/lib/influencer-portal/require-influencer-account";
+import { normalizeAppLocale, type AppLocale } from "@/lib/i18n/app";
+import { getAppDictionary, type AppDictionary } from "@/lib/i18n/app-dictionary";
 
 type SocialAccountRow = {
   id: string;
@@ -9,8 +12,14 @@ type SocialAccountRow = {
   followers_count: number | string | null;
   last_checked_at: string | null;
 };
+type Copy = AppDictionary["profile"];
 
 export default async function InfluencerProfilePage() {
+  const store = await cookies();
+  const locale = normalizeAppLocale(
+    store.get("app_locale")?.value ?? store.get("dashboard_locale")?.value,
+  );
+  const copy = getAppDictionary(locale).profile;
   const { admin, influencer } = await requireInfluencerAccount();
   const { data: socialAccounts } = await admin
     .from("social_accounts")
@@ -21,13 +30,12 @@ export default async function InfluencerProfilePage() {
   const accounts = (socialAccounts ?? []) as SocialAccountRow[];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-no-auto-translate>
       <section className="rounded-[28px] bg-[linear-gradient(135deg,#9C68B9,#BE95D0)] p-6 text-white shadow-[0_20px_60px_rgba(70,90,175,0.20)]">
-        <p className="text-sm font-black text-white/70">ملفي</p>
-        <h1 className="mt-2 text-2xl font-black">البيانات والحسابات المرتبطة</h1>
+        <p className="text-sm font-black text-white/70">{copy.eyebrow}</p>
+        <h1 className="mt-2 text-2xl font-black">{copy.title}</h1>
         <p className="mt-3 max-w-3xl text-sm font-semibold leading-7 text-white/78">
-          راجعي بياناتك الأساسية وحسابات التواصل، وانتقلي إلى الملف المالي لتأكيد
-          البنك والآيبان أو إرسال تحديث للمالية.
+          {copy.description}
         </p>
       </section>
 
@@ -39,42 +47,40 @@ export default async function InfluencerProfilePage() {
             </div>
             <div>
               <p className="text-xl font-black text-[#4A315C]">{influencer.full_name}</p>
-              <p className="mt-1 text-sm font-bold text-[#8D7C94]">
-                حساب مؤثر مفعل
-              </p>
+              <p className="mt-1 text-sm font-bold text-[#8D7C94]">{copy.activeAccount}</p>
             </div>
           </div>
 
           <div className="mt-6 space-y-4 rounded-2xl bg-[#FCF9FD] p-5">
-            <Info label="البريد" value={maskEmail(influencer.email)} ltr />
-            <Info label="الجوال" value={maskMobile(influencer.mobile_e164)} ltr />
-            <Info label="المدينة" value={influencer.city || "غير مضافة"} />
-            <Info label="الدولة" value={influencer.country || "Saudi Arabia"} />
-            <Info label="اكتمال الملف" value={`${influencer.profile_completion ?? 0}%`} />
+            <Info label={copy.email} value={maskEmail(influencer.email, copy.maskedEmailFallback, copy.notAdded)} ltr />
+            <Info label={copy.mobile} value={maskMobile(influencer.mobile_e164)} ltr />
+            <Info label={copy.city} value={influencer.city || copy.notAdded} />
+            <Info label={copy.country} value={influencer.country || copy.defaultCountry} />
+            <Info label={copy.completion} value={`${influencer.profile_completion ?? 0}%`} />
           </div>
 
           <Link
             href="/portal/profile/payment-details"
             className="mt-5 flex h-13 items-center justify-center rounded-2xl bg-[#9A68B5] px-5 py-3 text-sm font-black text-white"
           >
-            فتح بيانات البنك الآمنة
+            {copy.openBank}
           </Link>
         </div>
 
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-[#9F6EB8]">حسابات التواصل</p>
-              <h2 className="mt-1 text-xl font-black">الحسابات المرتبطة بالملف</h2>
+              <p className="text-sm font-bold text-[#9F6EB8]">{copy.socialEyebrow}</p>
+              <h2 className="mt-1 text-xl font-black">{copy.socialTitle}</h2>
             </div>
             <span className="rounded-full bg-[#F7F0FA] px-3 py-1.5 text-xs font-black text-[#9362AD]">
-              {accounts.length} حساب
+              {replace(copy.accountCount, { count: number(accounts.length, locale) })}
             </span>
           </div>
 
           <div className="mt-5 space-y-3">
             {accounts.length === 0 ? (
-              <Empty text="لا توجد حسابات تواصل مرتبطة بالملف." />
+              <Empty text={copy.empty} />
             ) : (
               accounts.map((account) => (
                 <article
@@ -82,18 +88,16 @@ export default async function InfluencerProfilePage() {
                   className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#F3EDF7] bg-[#FEFCFF] p-4"
                 >
                   <div>
-                    <p className="font-black text-[#4A315C]">
-                      {platformLabel(account.platform)}
-                    </p>
-                    <p className="mt-1 text-xs font-bold text-[#8D7C94]">
+                    <p className="font-black text-[#4A315C]">{platformLabel(account.platform, copy)}</p>
+                    <p className="mt-1 text-xs font-bold text-[#8D7C94]" dir="ltr">
                       @{account.username}
                     </p>
                   </div>
-                  <div className="text-left">
+                  <div className="text-end">
                     <p className="font-black text-[#5C456B]">
-                      {number(Number(account.followers_count ?? 0))}
+                      {number(Number(account.followers_count ?? 0), locale)}
                     </p>
-                    <p className="mt-1 text-[11px] font-bold text-[#9AA2B9]">متابع</p>
+                    <p className="mt-1 text-[11px] font-bold text-[#9AA2B9]">{copy.followers}</p>
                   </div>
                 </article>
               ))
@@ -105,19 +109,11 @@ export default async function InfluencerProfilePage() {
   );
 }
 
-function Info({
-  label,
-  value,
-  ltr = false,
-}: {
-  label: string;
-  value: string;
-  ltr?: boolean;
-}) {
+function Info({ label, value, ltr = false }: { label: string; value: string; ltr?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-xs font-bold text-[#94839C]">{label}</span>
-      <span className="text-sm font-black text-[#5C456B]" dir={ltr ? "ltr" : "rtl"}>
+      <span className="text-sm font-black text-[#5C456B]" dir={ltr ? "ltr" : "auto"}>
         {value}
       </span>
     </div>
@@ -141,10 +137,10 @@ function initials(value: string) {
     .join("");
 }
 
-function maskEmail(value: string | null) {
-  if (!value) return "غير مضاف";
+function maskEmail(value: string | null, fallback: string, notAdded: string) {
+  if (!value) return notAdded;
   const [name, domain] = value.split("@");
-  if (!name || !domain) return "بريد مسجل";
+  if (!name || !domain) return fallback;
   return `${name.slice(0, 2)}${"•".repeat(Math.max(3, name.length - 2))}@${domain}`;
 }
 
@@ -153,19 +149,16 @@ function maskMobile(value: string) {
   return `+${digits.slice(0, 3)} •• ••• •${digits.slice(-3)}`;
 }
 
-function platformLabel(value: string) {
-  const labels: Record<string, string> = {
-    instagram: "إنستغرام",
-    tiktok: "تيك توك",
-    snapchat: "سناب شات",
-    youtube: "يوتيوب",
-    x: "X",
-    facebook: "فيسبوك",
-    other: "أخرى",
-  };
-  return labels[value] ?? value;
+function platformLabel(value: string, copy: Copy) {
+  return (copy.platforms as Record<string, string>)[value] ?? value;
 }
 
-function number(value: number) {
-  return new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(value);
+function number(value: number, locale: AppLocale) {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-US", {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function replace(template: string, values: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? `{${key}}`));
 }

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { hasPermission } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/require-user";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getDashboardDictionary, normalizeDashboardLocale, dashboardDirection } from "@/lib/i18n/dashboard";
 import CopyGuestLink from "./copy-guest-link";
-import { createGuestLink, revokeGuestLinks, reviewContentItem, reviewPublication } from "./actions";
+import ExecutionWorkflowPanel from "./execution-workflow-panel";
+import { createGuestLink, liftAssignmentExclusivity, revokeGuestLinks, reviewContentItem, reviewPublication, setAssignmentAttention } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -87,13 +90,19 @@ export default async function AssignmentManagementPage({
 }) {
   const { id: campaignId, assignmentId } = await params;
   const query = (await searchParams) ?? {};
+  const cookieStore = await cookies();
+  const locale = normalizeDashboardLocale(cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value);
+  const dictionary = getDashboardDictionary(locale);
+  const exclusivityCopy = dictionary.exclusivity;
+  const operationsCopy = dictionary.operations.assignmentSimple;
   const { profile, supabase } = await requirePermission("campaigns", "view");
   const canManageLinks = hasPermission(profile.role, "campaigns", "update");
+  const canManageWorkflow = hasPermission(profile.role, "campaigns", "update");
   const canReview = hasPermission(profile.role, "content", "approve");
 
   const { data: assignment, error } = await supabase
     .from("campaign_assignments")
-    .select("id,campaign_id,status,execution_type,other_execution_details,requires_content,content_due_at,publishing_date,branch,attendance_at,order_number,order_code,has_contract,contract_reference,agreement_date,payment_timing,agreed_amount,currency,campaigns(id,name,brand,product,brief,hashtags,reference_links),influencers(id,full_name,mobile_e164),assignment_platforms(id,required_deliverables,social_accounts(platform,username,profile_url),content_items(id,sequence_no,content_type,status,post_url,submitted_at,approved_at,latest_version_id,publication_verified_at))")
+    .select("id,campaign_id,status,source,accepted_at,execution_type,other_execution_details,requires_content,content_due_at,publishing_date,branch,attendance_at,order_number,order_code,has_contract,contract_reference,agreement_date,payment_timing,agreed_amount,currency,coordinator_progress,assignment_brief_override,brief_sent_at,brief_version_sent,product_required,product_fulfillment_status,product_dispatched_at,product_received_at,execution_notes,attention_required,attention_reason,exclusivity_scope,exclusivity_days,exclusivity_start_basis,exclusivity_start_at,exclusivity_end_at,exclusivity_policy_source,exclusivity_lifted_at,exclusivity_lift_reason,campaigns(id,name,brand,brand_id,product,brief,hashtags,reference_links),influencers(id,full_name,mobile_e164),assignment_platforms(id,required_deliverables,social_accounts(platform,username,profile_url),content_items(id,sequence_no,content_type,status,post_url,submitted_at,approved_at,latest_version_id,publication_verified_at))")
     .eq("id", assignmentId)
     .eq("campaign_id", campaignId)
     .maybeSingle();
@@ -106,7 +115,7 @@ export default async function AssignmentManagementPage({
   const contentIds = contentItems.map((item) => item.id);
   const admin = createAdminClient();
 
-  const [linksResult, versionsResult, reviewsResult, publicationsResult] = await Promise.all([
+  const [linksResult, versionsResult, reviewsResult, publicationsResult, exclusivityBrandsResult] = await Promise.all([
     admin
       .from("submission_links")
       .select("id,is_active,expires_at,used_at,last_opened_at,failed_attempts,max_attempts,locked_at,created_at")
@@ -133,9 +142,13 @@ export default async function AssignmentManagementPage({
           .in("content_item_id", contentIds)
           .order("submitted_at", { ascending: false })
       : Promise.resolve({ data: [], error: null }),
+    admin
+      .from("assignment_exclusivity_brands")
+      .select("brands(id,name_ar,name_en)")
+      .eq("assignment_id", assignmentId),
   ]);
 
-  for (const result of [linksResult, versionsResult, reviewsResult, publicationsResult]) {
+  for (const result of [linksResult, versionsResult, reviewsResult, publicationsResult, exclusivityBrandsResult]) {
     if (result.error) throw new Error(result.error.message);
   }
 
@@ -170,11 +183,17 @@ export default async function AssignmentManagementPage({
   const activeLink = linkRows.find((link) => link.is_active);
   const newToken = typeof query.new_token === "string" ? query.new_token : "";
   const newGuestPath = newToken ? `/portal/assignments/${newToken}` : "";
-  const campaign = assignment.campaigns as unknown as { id: string; name: string; brand: string | null; product: string | null; brief: string | null; hashtags: string[] | null; reference_links: string[] | null } | null;
+  const campaign = assignment.campaigns as unknown as { id: string; name: string; brand: string | null; brand_id: string | null; product: string | null; brief: string | null; hashtags: string[] | null; reference_links: string[] | null } | null;
   const influencer = assignment.influencers as unknown as { id: string; full_name: string; mobile_e164: string } | null;
+  const exclusivityBrandNames = ((exclusivityBrandsResult.data ?? []) as Array<{ brands: { id: string; name_ar: string; name_en: string } | { id: string; name_ar: string; name_en: string }[] | null }>)
+    .flatMap((row) => Array.isArray(row.brands) ? row.brands : row.brands ? [row.brands] : [])
+    .map((brand) => locale === "ar" ? brand.name_ar : brand.name_en);
+  const canLiftExclusivity = profile.role === "admin";
+  const exclusivityScope = String(assignment.exclusivity_scope ?? "none");
+  const exclusivityIsActive = exclusivityScope !== "none" && !assignment.exclusivity_lifted_at && Boolean(assignment.exclusivity_end_at) && new Date(String(assignment.exclusivity_end_at)).getTime() > Date.now();
 
   return (
-    <div dir="rtl" className="space-y-6">
+    <div data-no-auto-translate dir={dashboardDirection(locale)} className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <Link href={`/dashboard/campaigns/${campaignId}`} className="text-sm font-black text-[#A170BA]">← العودة للحملة</Link>
@@ -182,13 +201,19 @@ export default async function AssignmentManagementPage({
           <h1 className="mt-1 text-2xl font-black text-[#4C335F] sm:text-3xl">{influencer?.full_name ?? "مؤثر"} · {campaign?.name ?? "حملة"}</h1>
           <p dir="ltr" className="mt-2 text-right text-sm font-bold text-[#8D7B95]">{influencer?.mobile_e164 ?? "—"}</p>
         </div>
-        <span className="w-fit rounded-full bg-[#F7F0FA] px-4 py-2 text-xs font-black text-[#9362AD]">{assignmentStatus(assignment.status)}</span>
+        <span className="w-fit rounded-full bg-[#F7F0FA] px-4 py-2 text-xs font-black text-[#9362AD]">{assignmentStatus(String(assignment.status), locale)}</span>
       </div>
 
       {query.link_created === "1" ? <Banner tone="success">تم إنشاء رابط جديد. انسخيه الآن؛ لن يعرض النظام الرمز السري مرة أخرى بعد مغادرة الصفحة.</Banner> : null}
       {query.link_revoked === "1" ? <Banner tone="warning">تم إلغاء روابط المؤثر الحالية.</Banner> : null}
       {query.content_reviewed ? <Banner tone="success">تم حفظ قرار مراجعة المحتوى.</Banner> : null}
       {query.publication_reviewed ? <Banner tone="success">تم حفظ قرار مراجعة رابط النشر.</Banner> : null}
+      {query.workflow_updated ? <Banner tone="success">{locale === "ar" ? "تم تحديث مرحلة تنفيذ التكليف." : "Assignment execution stage updated."}</Banner> : null}
+      {query.workflow_error ? <Banner tone="warning">{locale === "ar" ? "تعذر تحديث مرحلة التنفيذ. راجع ترتيب الخطوات المطلوبة." : "Unable to update the execution stage. Review the required milestone order."}</Banner> : null}
+      {query.attention_updated === "1" ? <Banner tone="success">{operationsCopy.exceptionSaved}</Banner> : null}
+      {query.attention_error === "reason_required" ? <Banner tone="warning">{dictionary.operations.restriction.reasonRequired}</Banner> : null}
+      {query.exclusivity_lifted === "1" ? <Banner tone="success">{exclusivityCopy.liftedSuccess}</Banner> : null}
+      {query.exclusivity_error ? <Banner tone="warning">{query.exclusivity_error === "admin_only" ? exclusivityCopy.adminOnly : query.exclusivity_error === "reason_required" ? (locale === "ar" ? "سبب رفع الحظر مطلوب." : "A reason for lifting the restriction is required.") : (locale === "ar" ? "تعذر رفع الحظر. حاول مرة أخرى." : "Unable to lift the restriction. Try again.")}</Banner> : null}
       {query.content_review_error === "notes_required" ? (
         <Banner tone="warning">اكتبي ملاحظات التعديل أو سبب الرفض قبل تنفيذ القرار.</Banner>
       ) : null}
@@ -202,6 +227,75 @@ export default async function AssignmentManagementPage({
         <Metric label="روابط نشر معتمدة" value={String(contentItems.filter((item) => item.status === "published").length)} />
         <Metric label="المقابل" value={formatMoney(Number(assignment.agreed_amount ?? 0))} />
       </section>
+
+      <section className="rounded-[28px] border border-[#E9DFF0] bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-black text-[#4C335F]">{operationsCopy.executionSummary}</h2>
+            <p className="mt-1 max-w-3xl text-xs font-semibold leading-6 text-[#88758F]">{operationsCopy.executionSummaryHint}</p>
+          </div>
+          {Boolean(assignment.attention_required) ? <span className="rounded-full bg-rose-50 px-3 py-2 text-xs font-black text-rose-700">{operationsCopy.needsAttention}</span> : null}
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <CompactInfo label={operationsCopy.currentStatus} value={assignmentStatus(String(assignment.status), locale)} />
+          <CompactInfo label={operationsCopy.mode} value={collaborationTypeLabel(String(assignment.execution_type ?? ""), Boolean(assignment.product_required), Number(assignment.agreed_amount ?? 0), locale)} />
+          <CompactInfo label={operationsCopy.orderNumber} value={String(assignment.order_number || assignment.order_code || operationsCopy.noOrder)} />
+          <CompactInfo label={operationsCopy.dueDate} value={formatDateTimeLocalized(assignment.content_due_at ? String(assignment.content_due_at) : null, locale)} />
+          <CompactInfo label={operationsCopy.publishDate} value={formatDateLocalized(assignment.publishing_date ? String(assignment.publishing_date) : null, locale)} />
+        </div>
+        <p className="mt-4 rounded-2xl bg-[#FBF8FD] px-4 py-3 text-xs font-semibold leading-6 text-[#765F80]">{operationsCopy.inheritedFlow}</p>
+        {Boolean(assignment.attention_required) ? <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3"><p className="text-xs font-black text-rose-800">{operationsCopy.needsAttention}</p><p className="mt-1 text-sm font-semibold text-rose-700">{String(assignment.attention_reason || "—")}</p></div> : null}
+        {canManageWorkflow ? (
+          <div className="mt-4">
+            {Boolean(assignment.attention_required) ? (
+              <form action={setAssignmentAttention}>
+                <input type="hidden" name="campaign_id" value={campaignId}/><input type="hidden" name="assignment_id" value={assignmentId}/><input type="hidden" name="attention" value="false"/>
+                <button className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-black text-emerald-700">{operationsCopy.clearAttention}</button>
+              </form>
+            ) : (
+              <details className="rounded-2xl border border-[#EEE4F2] bg-[#FCFAFD] p-4">
+                <summary className="cursor-pointer text-xs font-black text-[#6D467F]">{operationsCopy.markAttention}</summary>
+                <form action={setAssignmentAttention} className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input type="hidden" name="campaign_id" value={campaignId}/><input type="hidden" name="assignment_id" value={assignmentId}/><input type="hidden" name="attention" value="true"/>
+                  <input name="reason" required placeholder={operationsCopy.attentionReason} className="h-11 flex-1 rounded-xl border border-[#E7DCEB] bg-white px-3 text-sm font-semibold outline-none focus:border-[#A170BA]"/>
+                  <button className="rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-black text-white">{operationsCopy.markAttention}</button>
+                </form>
+              </details>
+            )}
+          </div>
+        ) : null}
+      </section>
+
+      <details className="rounded-[24px] border border-[#E9DFF0] bg-white p-5 shadow-sm">
+        <summary className="cursor-pointer list-none">
+          <div className="flex items-center justify-between gap-4">
+            <div><h2 className="text-sm font-black text-[#4C335F]">{operationsCopy.advancedWorkflow}</h2><p className="mt-1 text-xs font-semibold leading-6 text-[#88758F]">{operationsCopy.advancedWorkflowHint}</p></div>
+            <span className="rounded-full bg-[#F4EEFA] px-3 py-1.5 text-xs font-black text-[#6658A8]">{dictionary.operations.common.showMore}</span>
+          </div>
+        </summary>
+        <div className="mt-5">
+          <ExecutionWorkflowPanel
+            locale={locale}
+            campaignId={campaignId}
+            assignmentId={assignmentId}
+            status={String(assignment.status)}
+            acceptedAt={assignment.accepted_at ? String(assignment.accepted_at) : null}
+            briefSentAt={assignment.brief_sent_at ? String(assignment.brief_sent_at) : null}
+            briefVersionSent={assignment.brief_version_sent === null ? null : Number(assignment.brief_version_sent)}
+            campaignBrief={campaign?.brief ?? null}
+            assignmentBriefOverride={assignment.assignment_brief_override ? String(assignment.assignment_brief_override) : null}
+            productRequired={Boolean(assignment.product_required)}
+            productFulfillmentStatus={String(assignment.product_fulfillment_status ?? "not_required")}
+            productDispatchedAt={assignment.product_dispatched_at ? String(assignment.product_dispatched_at) : null}
+            productReceivedAt={assignment.product_received_at ? String(assignment.product_received_at) : null}
+            contentDueAt={assignment.content_due_at ? String(assignment.content_due_at) : null}
+            publishingDate={assignment.publishing_date ? String(assignment.publishing_date) : null}
+            executionNotes={assignment.execution_notes ? String(assignment.execution_notes) : null}
+            coordinatorProgress={Number(assignment.coordinator_progress ?? 0)}
+            canManage={canManageWorkflow}
+          />
+        </div>
+      </details>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.65fr)]">
         <section className="space-y-5">
@@ -278,6 +372,37 @@ export default async function AssignmentManagementPage({
                 ) : null}
               </div>
             ) : null}
+          </Panel>
+
+          <Panel title={exclusivityCopy.title}>
+            <div className="space-y-3">
+              <Info label={exclusivityCopy.scope} value={exclusivityScope === "all" ? exclusivityCopy.allCampaigns : exclusivityScope === "brands" ? exclusivityCopy.selectedBrands : exclusivityCopy.noRestriction} />
+              {exclusivityScope !== "none" ? <Info label={exclusivityCopy.days} value={`${Number(assignment.exclusivity_days ?? 0)} ${exclusivityCopy.day}`} /> : null}
+              {assignment.exclusivity_start_at ? <Info label={exclusivityCopy.starts} value={formatLocalizedDateTime(String(assignment.exclusivity_start_at), locale)} /> : null}
+              {assignment.exclusivity_end_at ? <Info label={exclusivityCopy.ends} value={formatLocalizedDateTime(String(assignment.exclusivity_end_at), locale)} /> : null}
+              {exclusivityScope === "brands" && exclusivityBrandNames.length ? <Info label={exclusivityCopy.brands} value={exclusivityBrandNames.join("، ")} /> : null}
+              {assignment.exclusivity_lifted_at ? (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">
+                  <p className="font-black">{exclusivityCopy.lifted}</p>
+                  {assignment.exclusivity_lift_reason ? <p className="mt-1">{assignment.exclusivity_lift_reason}</p> : null}
+                </div>
+              ) : exclusivityIsActive ? (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800">
+                  {interpolate(exclusivityCopy.activeUntil, { date: formatLocalizedDateTime(String(assignment.exclusivity_end_at), locale) })}
+                </div>
+              ) : null}
+              {canLiftExclusivity && exclusivityIsActive ? (
+                <form action={liftAssignmentExclusivity} className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                  <input type="hidden" name="campaign_id" value={campaignId} />
+                  <input type="hidden" name="assignment_id" value={assignmentId} />
+                  <label className="text-xs font-black text-rose-800">{exclusivityCopy.liftReason}</label>
+                  <textarea name="reason" minLength={5} required rows={3} placeholder={exclusivityCopy.liftReasonPlaceholder} className="mt-2 w-full rounded-xl border border-rose-200 bg-white p-3 text-sm font-bold outline-none focus:border-rose-400" />
+                  <button type="submit" className="mt-3 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-black text-white">{exclusivityCopy.lift}</button>
+                </form>
+              ) : exclusivityIsActive && !canLiftExclusivity ? (
+                <p className="text-xs font-bold text-[#95849D]">{exclusivityCopy.adminOnly}</p>
+              ) : null}
+            </div>
           </Panel>
 
           <Panel title="تفاصيل التكليف">
@@ -379,7 +504,22 @@ function Info({ label, value }: { label: string; value: string }) { return <div 
 function Empty({ text }: { text: string }) { return <div className="rounded-2xl border border-dashed border-[#E5D5EC] bg-[#FDFBFE] p-5 text-center text-xs font-bold text-[#95849D]">{text}</div>; }
 function Banner({ tone, children }: { tone: "success" | "warning"; children: React.ReactNode }) { return <div className={`rounded-2xl border px-5 py-4 text-sm font-black ${tone === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>{children}</div>; }
 function Status({ status }: { status: string }) { const tone = ["approved", "published"].includes(status) ? "bg-emerald-50 text-emerald-700" : ["needs_changes", "rejected"].includes(status) ? "bg-rose-50 text-rose-700" : "bg-[#F7F0FA] text-[#9362AD]"; return <span className={`rounded-full px-3 py-1.5 text-xs font-black ${tone}`}>{contentStatus(status)}</span>; }
-function assignmentStatus(value: string) { const map: Record<string,string> = { invited:"تمت الدعوة",accepted:"تم القبول",product_pending:"بانتظار المنتج",brief_pending:"بانتظار البريف",content_pending:"بانتظار المحتوى",under_review:"قيد المراجعة",needs_changes:"مطلوب تعديلات",approved:"المحتوى معتمد",payment_pending:"جاهز لإجراء الدفع",paid:"تم الدفع",closed:"مغلق",rejected:"مرفوض",cancelled:"ملغي" }; return map[value] ?? value; }
+function interpolate(value: string, replacements: Record<string, string>) {
+  return Object.entries(replacements).reduce((text, [key, replacement]) => text.replaceAll(`{${key}}`, replacement), value);
+}
+function formatLocalizedDateTime(value: string | null, locale: "ar" | "en") {
+  if (!value) return locale === "ar" ? "غير محدد" : "Not specified";
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh" }).format(new Date(value));
+}
+function assignmentStatus(value: string, locale: "ar" | "en") {
+  const ar: Record<string,string> = { invited:"تمت الدعوة",accepted:"تم القبول",product_pending:"بانتظار المنتج",brief_pending:"بانتظار البريف",content_pending:"بانتظار المحتوى",under_review:"قيد المراجعة",needs_changes:"مطلوب تعديلات",approved:"المحتوى معتمد",payment_pending:"جاهز لإجراء الدفع",paid:"تم الدفع",closed:"مغلق",rejected:"مرفوض",cancelled:"ملغي" };
+  const en: Record<string,string> = { invited:"Invited",accepted:"Accepted",product_pending:"Waiting for product",brief_pending:"Waiting for brief",content_pending:"Waiting for content",under_review:"Under review",needs_changes:"Changes requested",approved:"Content approved",payment_pending:"Ready for payment",paid:"Paid",closed:"Closed",rejected:"Rejected",cancelled:"Cancelled" };
+  return (locale === "ar" ? ar : en)[value] ?? value;
+}
+function CompactInfo({ label, value }: { label: string; value: string }) { return <div className="rounded-2xl border border-[#EEE4F2] bg-[#FCFAFD] px-4 py-3"><p className="text-[10px] font-black text-[#9A8FA0]">{label}</p><p className="mt-1 truncate text-xs font-black text-[#5B4667]">{value}</p></div>; }
+function collaborationTypeLabel(executionType: string, productRequired: boolean, amount: number, locale: "ar" | "en") { if (productRequired && amount > 0) return locale === "ar" ? "PR + مدفوع" : "PR + Paid"; if (productRequired) return locale === "ar" ? "PR / منتج" : "PR / Product"; if (executionType === "in_branch") return locale === "ar" ? "حضوري" : "Attendance"; if (amount > 0) return locale === "ar" ? "إعلان مدفوع" : "Paid content"; return locale === "ar" ? "محتوى" : "Content"; }
+function formatDateTimeLocalized(value: string | null, locale: "ar" | "en") { if (!value) return "—"; const date = new Date(value); if (Number.isNaN(date.getTime())) return "—"; return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh" }).format(date); }
+function formatDateLocalized(value: string | null, locale: "ar" | "en") { if (!value) return "—"; const date = new Date(`${value}T12:00:00+03:00`); if (Number.isNaN(date.getTime())) return "—"; return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", { dateStyle: "medium", timeZone: "Asia/Riyadh" }).format(date); }
 function contentStatus(value: string) { const map: Record<string,string> = { draft:"بانتظار المسودة",submitted:"تم الإرسال",under_review:"قيد المراجعة",needs_changes:"مطلوب تعديل",approved:"معتمد",rejected:"مرفوض",published:"منشور ومعتمد" }; return map[value] ?? value; }
 function reviewDecision(value: string) { return value === "approve" ? "اعتماد" : value === "needs_changes" ? "طلب تعديل" : "رفض"; }
 function publicationState(value: string) { return value === "approved" ? "معتمد" : value === "needs_changes" ? "أعيد للتصحيح" : value === "rejected" ? "مرفوض" : "بانتظار التحقق"; }

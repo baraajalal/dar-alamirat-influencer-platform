@@ -1,2 +1,10 @@
+import { cookies } from "next/headers";
 import InfluencerOnboardingWizard from "@/components/influencer-onboarding-wizard";
-export default function PortalAccessRequestPage() { return <InfluencerOnboardingWizard />; }
+import { normalizeAppLocale } from "@/lib/i18n/app";
+import { getAppDictionary } from "@/lib/i18n/app-dictionary";
+
+export default async function PortalAccessRequestPage() {
+  const cookieStore = await cookies();
+  const locale = normalizeAppLocale(cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value);
+  return <InfluencerOnboardingWizard locale={locale} copy={getAppDictionary(locale).onboarding} />;
+}

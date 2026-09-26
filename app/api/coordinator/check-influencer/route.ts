@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { legacySmartSuiteDisabledResponse } from "@/lib/legacy/smartsuite";
 
 const SMARTSUITE_API_URL = "https://app.smartsuite.com/api/v1";
 
@@ -592,6 +593,9 @@ async function checkInfluencer(mobile: string) {
 }
 
 export async function POST(request: Request) {
+  const legacyDisabled = legacySmartSuiteDisabledResponse();
+  if (legacyDisabled) return legacyDisabled;
+
   try {
     const body = await request.json();
 
@@ -628,6 +632,9 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const legacyDisabled = legacySmartSuiteDisabledResponse();
+  if (legacyDisabled) return legacyDisabled;
+
   try {
     const url = new URL(request.url);
     const mobile = url.searchParams.get("mobile") || "";
