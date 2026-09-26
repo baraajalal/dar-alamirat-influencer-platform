@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import type { AppLocale } from "@/lib/i18n/app";
+import type { AppDictionary } from "@/lib/i18n/app-dictionary";
 
 type ProfilePayload = {
   influencer: { id: string; fullName: string };
@@ -32,16 +34,9 @@ type ProfilePayload = {
   } | null;
 };
 
-const statusLabels: Record<string, string> = {
-  incomplete: "البيانات غير مكتملة",
-  needs_confirmation: "بانتظار تأكيدك",
-  pending_review: "بانتظار مراجعة المالية",
-  approved: "معتمدة",
-  update_pending: "تحديث بانتظار المراجعة",
-  rejected: "مطلوب تحديث",
-};
+type Copy = AppDictionary["paymentDetails"];
 
-export default function PaymentDetailsClient({ assignmentId }: { assignmentId: string }) {
+export default function PaymentDetailsClient({ assignmentId, locale, copy }: { assignmentId: string; locale: AppLocale; copy: Copy }) {
   const [payload, setPayload] = useState<ProfilePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -56,19 +51,17 @@ export default function PaymentDetailsClient({ assignmentId }: { assignmentId: s
       const query = assignmentId ? `?assignment=${encodeURIComponent(assignmentId)}` : "";
       const response = await fetch(`/api/influencer/payment-profile${query}`, { cache: "no-store" });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "تعذر تحميل بيانات الدفع.");
+      if (!response.ok) throw new Error(locale === "ar" && result.message ? result.message : copy.loadFailed);
       setPayload(result);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "تعذر تحميل بيانات الدفع.");
+      setError(loadError instanceof Error ? loadError.message : copy.loadFailed);
     } finally {
       setLoading(false);
     }
-  }, [assignmentId]);
+  }, [assignmentId, copy.loadFailed, locale]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void load();
-    }, 0);
+    const timer = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timer);
   }, [load]);
 
@@ -80,16 +73,13 @@ export default function PaymentDetailsClient({ assignmentId }: { assignmentId: s
       const formData = new FormData();
       formData.set("action", "confirm");
       const query = assignmentId ? `?assignment=${encodeURIComponent(assignmentId)}` : "";
-      const response = await fetch(`/api/influencer/payment-profile${query}`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(`/api/influencer/payment-profile${query}`, { method: "POST", body: formData });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "تعذر تأكيد البيانات.");
-      setMessage(result.message);
+      if (!response.ok) throw new Error(locale === "ar" && result.message ? result.message : copy.confirmFailed);
+      setMessage(locale === "ar" && result.message ? result.message : copy.confirmCorrect);
       await load();
     } catch (confirmError) {
-      setError(confirmError instanceof Error ? confirmError.message : "تعذر تأكيد البيانات.");
+      setError(confirmError instanceof Error ? confirmError.message : copy.confirmFailed);
     } finally {
       setSubmitting(false);
     }
@@ -100,157 +90,84 @@ export default function PaymentDetailsClient({ assignmentId }: { assignmentId: s
     setSubmitting(true);
     setMessage("");
     setError("");
-
     try {
       const form = event.currentTarget;
       const formData = new FormData(form);
       formData.set("action", "update");
       const query = assignmentId ? `?assignment=${encodeURIComponent(assignmentId)}` : "";
-      const response = await fetch(`/api/influencer/payment-profile${query}`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(`/api/influencer/payment-profile${query}`, { method: "POST", body: formData });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "تعذر إرسال التحديث.");
-      setMessage(result.message);
+      if (!response.ok) throw new Error(locale === "ar" && result.message ? result.message : copy.updateFailed);
+      setMessage(locale === "ar" && result.message ? result.message : copy.submit);
       setShowUpdate(false);
       form.reset();
       await load();
     } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : "تعذر إرسال التحديث.");
+      setError(updateError instanceof Error ? updateError.message : copy.updateFailed);
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <main
-      dir="inherit"
-      className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(216,221,247,0.82),transparent_30%),linear-gradient(135deg,#FFFDFF,#F9F5FB)] px-4 py-8 font-['Tajawal',Tahoma,Arial,sans-serif] text-[#432A57]"
-    >
+    <main data-no-auto-translate className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(216,221,247,0.82),transparent_30%),linear-gradient(135deg,#FFFDFF,#F9F5FB)] px-4 py-8 font-['Tajawal',Tahoma,Arial,sans-serif] text-[#432A57]">
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 flex items-center justify-between rounded-[24px] border border-white/90 bg-white/82 px-5 py-4 shadow-[0_18px_55px_rgba(67,82,155,0.11)] backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <img src="/da-logo.png" alt="دار الأميرات" className="h-14 w-14 rounded-2xl object-contain" />
-            <div>
-              <p className="text-xs font-black text-[#8F7E98]">حساب المؤثر</p>
-              <h1 className="text-lg font-black text-[#432A57]">بيانات الدفع البنكية</h1>
-            </div>
+            <img src="/da-logo.png" alt="Dar Al Amirat" className="h-14 w-14 rounded-2xl object-contain" />
+            <div><p className="text-xs font-black text-[#8F7E98]">{copy.accountLabel}</p><h1 className="text-lg font-black text-[#432A57]">{copy.title}</h1></div>
           </div>
-          <Link href="/portal-access" className="text-sm font-black text-[#A170BA]">بوابة المؤثر</Link>
+          <Link href="/portal/dashboard" className="text-sm font-black text-[#A170BA]">{copy.portal}</Link>
         </header>
 
-        {loading ? (
-          <div className="rounded-[28px] bg-white/85 p-12 text-center font-black text-[#A170BA] shadow-xl">جاري تحميل البيانات...</div>
-        ) : null}
-
-        {error ? (
-          <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-bold leading-7 text-rose-700">{error}</div>
-        ) : null}
-        {message ? (
-          <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold leading-7 text-emerald-700">{message}</div>
-        ) : null}
+        {loading ? <div className="rounded-[28px] bg-white/85 p-12 text-center font-black text-[#A170BA] shadow-xl">{copy.loading}</div> : null}
+        {error ? <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-bold leading-7 text-rose-700">{error}</div> : null}
+        {message ? <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold leading-7 text-emerald-700">{message}</div> : null}
 
         {!loading && payload ? (
           <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
             <section className="rounded-[30px] border border-[#ECE1F1] bg-white/92 p-6 shadow-[0_20px_60px_rgba(67,82,155,0.10)] sm:p-7">
               <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-black text-[#A170BA]">{payload.influencer.fullName}</p>
-                  <h2 className="mt-1 text-2xl font-black">تأكدي من بياناتك</h2>
-                  <p className="mt-2 text-sm font-semibold leading-7 text-[#806F8A]">تظهر البيانات بشكل مقنّع. لا يتم عرض رقم الآيبان أو الهوية كاملين داخل الصفحة.</p>
-                </div>
-                <StatusBadge status={payload.profile.status} />
+                <div><p className="text-sm font-black text-[#A170BA]">{payload.influencer.fullName}</p><h2 className="mt-1 text-2xl font-black">{copy.verifyTitle}</h2><p className="mt-2 text-sm font-semibold leading-7 text-[#806F8A]">{copy.verifyDescription}</p></div>
+                <StatusBadge status={payload.profile.status} copy={copy} />
               </div>
 
               <div className="mt-6 space-y-3 rounded-2xl bg-[#FCF9FD] p-5">
-                <MaskedRow label="اسم البنك" value={payload.profile.bankName} />
-                <MaskedRow label="صاحب الحساب" value={payload.profile.accountHolderMasked} />
-                <MaskedRow label="رقم الآيبان" value={payload.profile.ibanMasked} />
-                <MaskedRow label="الهوية / الإقامة / السجل" value={payload.profile.identityMasked} />
-                <MaskedRow label="شهادة الآيبان" value={payload.profile.certificateUploaded ? "مرفوعة" : "غير مرفوعة"} />
+                <MaskedRow label={copy.bankName} value={payload.profile.bankName} />
+                <MaskedRow label={copy.accountHolder} value={payload.profile.accountHolderMasked} />
+                <MaskedRow label={copy.iban} value={payload.profile.ibanMasked} />
+                <MaskedRow label={copy.identity} value={payload.profile.identityMasked} />
+                <MaskedRow label={copy.certificate} value={payload.profile.certificateUploaded ? copy.uploaded : copy.notUploaded} />
               </div>
 
-              {payload.profile.reviewNotes ? (
-                <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold leading-7 text-rose-700">
-                  ملاحظة المالية: {payload.profile.reviewNotes}
-                </div>
-              ) : null}
-
-              {payload.pendingRequest ? (
-                <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                  <p className="font-black text-amber-900">يوجد تحديث قيد المراجعة</p>
-                  <p className="mt-2 text-sm font-semibold text-amber-800">{payload.pendingRequest.bankName} · {payload.pendingRequest.ibanMasked}</p>
-                </div>
-              ) : null}
+              {payload.profile.reviewNotes ? <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold leading-7 text-rose-700"><span className="font-black">{copy.financeNote} </span>{payload.profile.reviewNotes}</div> : null}
+              {payload.pendingRequest ? <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4"><p className="font-black text-amber-900">{copy.pendingTitle}</p><p className="mt-2 text-sm font-semibold text-amber-800">{payload.pendingRequest.bankName} · {payload.pendingRequest.ibanMasked}</p></div> : null}
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={confirmCurrent}
-                  disabled={submitting || !payload.profile.hasDetails || Boolean(payload.pendingRequest)}
-                  className="h-14 rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)] disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  البيانات صحيحة
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowUpdate((value) => !value)}
-                  disabled={Boolean(payload.pendingRequest)}
-                  className="h-14 rounded-2xl border border-[#BBC4EA] bg-[#FCF9FD] px-5 text-sm font-black text-[#9362AD] disabled:opacity-45"
-                >
-                  تحديث بيانات البنك
-                </button>
+                <button type="button" onClick={confirmCurrent} disabled={submitting || !payload.profile.hasDetails || Boolean(payload.pendingRequest)} className="h-14 rounded-2xl bg-[linear-gradient(135deg,#A06DB9,#84539E)] px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(79,96,182,0.25)] disabled:cursor-not-allowed disabled:opacity-45">{copy.confirmCorrect}</button>
+                <button type="button" onClick={() => setShowUpdate((value) => !value)} disabled={Boolean(payload.pendingRequest)} className="h-14 rounded-2xl border border-[#BBC4EA] bg-[#FCF9FD] px-5 text-sm font-black text-[#9362AD] disabled:opacity-45">{copy.updateBank}</button>
               </div>
             </section>
 
             <aside className="space-y-5">
               <section className="rounded-[28px] bg-[linear-gradient(145deg,#AD7EC4,#8959A2)] p-6 text-white shadow-[0_22px_60px_rgba(74,88,162,0.23)]">
-                <h3 className="text-xl font-black">جاهزية التحويل</h3>
-                <div className="mt-5 space-y-3">
-                  <Step done={Boolean(payload.profile.confirmedAt)} label="تأكيد المؤثر للبيانات" />
-                  <Step done={payload.profile.status === "approved"} label="اعتماد المالية" />
-                  <Step done={payload.profile.status === "approved"} label="جاهز لإكمال اعتماد الدفع" />
-                </div>
+                <h3 className="text-xl font-black">{copy.transferReadiness}</h3>
+                <div className="mt-5 space-y-3"><Step done={Boolean(payload.profile.confirmedAt)} label={copy.steps.creator} /><Step done={payload.profile.status === "approved"} label={copy.steps.finance} /><Step done={payload.profile.status === "approved"} label={copy.steps.payment} /></div>
               </section>
-
-              <section className="rounded-[24px] border border-[#F0E8F4] bg-white/90 p-5 text-sm font-semibold leading-7 text-[#727C9F] shadow-[0_14px_42px_rgba(67,82,155,0.07)]">
-                البيانات الكاملة لا تظهر للمنسق أو المراجع. المالية والإدارة فقط تستطيعان مراجعة التفاصيل اللازمة للتحويل.
-              </section>
+              <section className="rounded-[24px] border border-[#F0E8F4] bg-white/90 p-5 text-sm font-semibold leading-7 text-[#727C9F] shadow-[0_14px_42px_rgba(67,82,155,0.07)]">{copy.privacyNote}</section>
             </aside>
           </div>
         ) : null}
 
         {showUpdate && !payload?.pendingRequest ? (
           <section className="mt-6 rounded-[30px] border border-[#ECE1F1] bg-white/94 p-6 shadow-[0_20px_60px_rgba(67,82,155,0.10)] sm:p-7">
-            <h2 className="text-xl font-black">إرسال بيانات بنك جديدة</h2>
-            <p className="mt-2 text-sm font-semibold leading-7 text-[#806F8A]">لن تستبدل البيانات الحالية حتى تعتمد المالية الطلب الجديد.</p>
-
+            <h2 className="text-xl font-black">{copy.newTitle}</h2><p className="mt-2 text-sm font-semibold leading-7 text-[#806F8A]">{copy.newDescription}</p>
             <form onSubmit={submitUpdate} className="mt-6 grid gap-4 sm:grid-cols-2">
-              <Field name="bankName" label="اسم البنك" required />
-              <Field name="accountHolderName" label="اسم صاحب الحساب" required />
-              <Field name="iban" label="رقم الآيبان" placeholder="SA00 0000 0000 0000 0000 0000" required />
-              <Field name="ibanConfirmation" label="تأكيد رقم الآيبان" required />
-              <label className="block">
-                <span className="mb-2 block text-sm font-black text-[#624B72]">نوع الوثيقة</span>
-                <select name="identityType" className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 text-sm font-bold outline-none focus:border-[#A170BA]">
-                  <option value="">يحدد تلقائيًا من الرقم</option>
-                  <option value="national_id">هوية وطنية</option>
-                  <option value="residency">إقامة</option>
-                  <option value="commercial_registration">سجل تجاري / رقم منشأة</option>
-                </select>
-              </label>
-              <Field name="identityNumber" label="رقم الهوية أو الإقامة أو السجل" inputMode="numeric" />
-              <label className="block">
-                <span className="mb-2 block text-sm font-black text-[#624B72]">شهادة الآيبان</span>
-                <input name="certificate" type="file" accept="image/*,application/pdf" className="w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] p-3 text-xs font-bold" />
-              </label>
-              <div className="sm:col-span-2 flex flex-wrap gap-3 pt-2">
-                <button type="submit" disabled={submitting} className="rounded-2xl bg-[#A170BA] px-6 py-3 text-sm font-black text-white disabled:opacity-50">
-                  {submitting ? "جاري الإرسال..." : "إرسال للمراجعة"}
-                </button>
-                <button type="button" onClick={() => setShowUpdate(false)} className="rounded-2xl border border-[#EBDDF2] px-6 py-3 text-sm font-black text-[#A170BA]">إلغاء</button>
-              </div>
+              <Field name="bankName" label={copy.fields.bankName} required /><Field name="accountHolderName" label={copy.fields.accountHolder} required /><Field name="iban" label={copy.fields.iban} placeholder="SA00 0000 0000 0000 0000 0000" required /><Field name="ibanConfirmation" label={copy.fields.ibanConfirmation} required />
+              <label className="block"><span className="mb-2 block text-sm font-black text-[#624B72]">{copy.fields.identityType}</span><select name="identityType" className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 text-sm font-bold outline-none focus:border-[#A170BA]"><option value="">{copy.fields.identityAuto}</option><option value="national_id">{copy.fields.nationalId}</option><option value="residency">{copy.fields.residency}</option><option value="commercial_registration">{copy.fields.commercialRegistration}</option></select></label>
+              <Field name="identityNumber" label={copy.fields.identityNumber} inputMode="numeric" />
+              <label className="block"><span className="mb-2 block text-sm font-black text-[#624B72]">{copy.fields.certificate}</span><input name="certificate" type="file" accept="image/*,application/pdf" className="w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] p-3 text-xs font-bold" /></label>
+              <div className="sm:col-span-2 flex flex-wrap gap-3 pt-2"><button type="submit" disabled={submitting} className="rounded-2xl bg-[#A170BA] px-6 py-3 text-sm font-black text-white disabled:opacity-50">{submitting ? copy.submitting : copy.submit}</button><button type="button" onClick={() => setShowUpdate(false)} className="rounded-2xl border border-[#EBDDF2] px-6 py-3 text-sm font-black text-[#A170BA]">{copy.cancel}</button></div>
             </form>
           </section>
         ) : null}
@@ -259,56 +176,7 @@ export default function PaymentDetailsClient({ assignmentId }: { assignmentId: s
   );
 }
 
-function MaskedRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-[#F3EDF7] pb-3 last:border-0 last:pb-0">
-      <span className="text-xs font-bold text-[#9098B0]">{label}</span>
-      <span className="text-left text-sm font-black text-[#624B72]" dir="ltr">{value}</span>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const approved = status === "approved";
-  return (
-    <span className={`rounded-full px-3 py-1.5 text-xs font-black ${approved ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>
-      {statusLabels[status] ?? status}
-    </span>
-  );
-}
-
-function Step({ done, label }: { done: boolean; label: string }) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-3">
-      <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${done ? "bg-emerald-300 text-emerald-950" : "bg-white/15 text-white"}`}>{done ? "✓" : "•"}</span>
-      <span className="text-sm font-bold">{label}</span>
-    </div>
-  );
-}
-
-function Field({
-  name,
-  label,
-  placeholder,
-  required,
-  inputMode,
-}: {
-  name: string;
-  label: string;
-  placeholder?: string;
-  required?: boolean;
-  inputMode?: "numeric" | "text";
-}) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-black text-[#624B72]">{label}</span>
-      <input
-        name={name}
-        required={required}
-        placeholder={placeholder}
-        inputMode={inputMode}
-        className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 text-sm font-bold outline-none focus:border-[#A170BA]"
-      />
-    </label>
-  );
-}
+function MaskedRow({ label, value }: { label: string; value: string }) { return <div className="flex items-center justify-between gap-4 border-b border-[#F3EDF7] pb-3 last:border-0 last:pb-0"><span className="text-xs font-bold text-[#9098B0]">{label}</span><span className="text-left text-sm font-black text-[#624B72]" dir="ltr">{value}</span></div>; }
+function StatusBadge({ status, copy }: { status: string; copy: Copy }) { const approved = status === "approved"; return <span className={`rounded-full px-3 py-1.5 text-xs font-black ${approved ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{(copy.statuses as Record<string, string>)[status] ?? status}</span>; }
+function Step({ done, label }: { done: boolean; label: string }) { return <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-3"><span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${done ? "bg-emerald-300 text-emerald-950" : "bg-white/15 text-white"}`}>{done ? "✓" : "•"}</span><span className="text-sm font-bold">{label}</span></div>; }
+function Field({ name, label, placeholder, required, inputMode }: { name: string; label: string; placeholder?: string; required?: boolean; inputMode?: "numeric" | "text" }) { return <label className="block"><span className="mb-2 block text-sm font-black text-[#624B72]">{label}</span><input name={name} required={required} placeholder={placeholder} inputMode={inputMode} className="h-14 w-full rounded-2xl border border-[#EBDDF2] bg-[#FDFBFE] px-4 text-sm font-bold outline-none focus:border-[#A170BA]" /></label>; }

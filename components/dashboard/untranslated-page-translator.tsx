@@ -5,6 +5,19 @@ import { usePathname } from "next/navigation";
 import type { DashboardLocale } from "@/lib/i18n/dashboard";
 
 const EXACT: Record<string, string> = {
+  "طلبات الانضمام والتفعيل": "Join and activation applications",
+  "مراجعة طلب الانضمام": "Review join application",
+  "فتح مسار المراجعة": "Open review workflow",
+  "فتح المراجعة": "Open review",
+  "لا يوجد طلب انضمام": "No join application",
+  "لا يوجد طلب انضمام مرتبط": "No linked join application",
+  "اعتماد وإنشاء رابط التفعيل": "Approve and create activation link",
+  "إعادة إنشاء رابط التفعيل": "Regenerate activation link",
+  "اعتماد وإنشاء رابط": "Approve and create link",
+  "طلب تعديل": "Request changes",
+  "إنشاء رابط تعديل": "Create edit link",
+  "رفض الطلب": "Reject application",
+  "الموافقات القانونية": "Legal consents",
   "طلب شخصي": "Personal request",
   "لاستخدام الحملة": "Campaign use",
   "مرتبط بمستحقات مالية": "Linked to financial dues",

@@ -39,6 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   // إدارة النظام
   { href: "/dashboard/access-requests", label: "accessRequests", icon: "access", resource: "access_requests", section: "system" },
   { href: "/dashboard/users", label: "users", icon: "users", resource: "users", section: "system" },
+  { href: "/dashboard/brands", label: "brands", icon: "campaigns", resource: "brands", section: "system" },
 
   // خصائص مخطط لها ولم تُفتح بعد
   { href: "/dashboard/settings", label: "settings", icon: "settings", resource: "settings", disabled: true, section: "soon" },

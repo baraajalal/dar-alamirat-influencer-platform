@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { legacySmartSuiteDisabledResponse } from "@/lib/legacy/smartsuite";
 
 const SMARTSUITE_API_URL = "https://app.smartsuite.com/api/v1";
 
@@ -54,6 +55,9 @@ async function listRecords(tableId: string) {
 }
 
 export async function POST(request: Request) {
+  const legacyDisabled = legacySmartSuiteDisabledResponse();
+  if (legacyDisabled) return legacyDisabled;
+
   try {
     if (!COORDINATORS_TABLE_ID) {
       return NextResponse.json(

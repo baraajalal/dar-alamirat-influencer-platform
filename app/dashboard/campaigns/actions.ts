@@ -17,7 +17,7 @@ function schema(locale: CampaignLocale) {
   return z
     .object({
       name: z.string().trim().min(3, ar ? "اسم الحملة يجب أن يكون 3 أحرف على الأقل" : "Campaign name must be at least 3 characters").max(180),
-      brand: z.string().trim().min(1, ar ? "اختاري أو اكتبي اسم البراند" : "Select or enter a brand").max(120),
+      brandId: z.string().uuid(ar ? "اختاري البراند" : "Select a brand"),
       product: z.string().trim().max(180).optional().default(""),
       campaignType: z.string().trim().max(120).optional().default(""),
       brief: z.string().trim().max(10000).optional().default(""),
@@ -37,6 +37,9 @@ function schema(locale: CampaignLocale) {
       externalContactName: z.string().trim().max(180).optional().default(""),
       externalContactMobile: z.string().trim().max(40).optional().default(""),
       externalContactEmail: z.string().trim().email().optional().or(z.literal("")),
+      exclusivityScope: z.enum(["inherit", "none", "brands", "all"]),
+      exclusivityDays: z.string().trim().optional().default(""),
+      exclusivityStartBasis: z.enum(["inherit", "publishing_date", "accepted_at"]),
       autoCompleteEnabled: z.boolean(),
       completionMode: z
         .enum(["manual", "all_required_targets", "any_primary_target", "all_required_targets_and_assignments"])
@@ -57,6 +60,16 @@ function schema(locale: CampaignLocale) {
             code: "custom",
             path: ["budget"],
             message: ar ? "الميزانية يجب أن تكون رقمًا موجبًا" : "Budget must be a positive number",
+          });
+        }
+      }
+      if (!["inherit", "none"].includes(value.exclusivityScope)) {
+        const days = Number(value.exclusivityDays);
+        if (!Number.isInteger(days) || days < 1 || days > 365) {
+          context.addIssue({
+            code: "custom",
+            path: ["exclusivityDays"],
+            message: ar ? "مدة الحظر يجب أن تكون بين 1 و365 يومًا" : "Exclusivity must be between 1 and 365 days",
           });
         }
       }
@@ -97,7 +110,7 @@ export async function createCampaign(
 
   const parsed = schema(locale).safeParse({
     name: field("name"),
-    brand: field("brand"),
+    brandId: field("brand_id"),
     product: field("product"),
     campaignType: field("campaign_type"),
     brief: field("brief"),
@@ -125,6 +138,10 @@ export async function createCampaign(
     externalContactMobile: field("external_contact_mobile"),
     externalContactEmail: field("external_contact_email"),
 
+    exclusivityScope: field("exclusivity_scope") || "inherit",
+    exclusivityDays: field("exclusivity_days"),
+    exclusivityStartBasis: field("exclusivity_start_basis") || "inherit",
+
     autoCompleteEnabled,
 
     completionMode: autoCompleteEnabled
@@ -148,6 +165,21 @@ export async function createCampaign(
   }
 
   const value = parsed.data;
+  const blockedBrandIds = Array.from(new Set(formData.getAll("exclusivity_brand_ids").map((item) => String(item)).filter((item) => item && item !== value.brandId)));
+  if (value.exclusivityScope === "brands" && blockedBrandIds.length === 0) {
+    return { ok: false, message: ar ? "اختاري براندًا محظورًا واحدًا على الأقل." : "Select at least one blocked brand." };
+  }
+
+  const { data: brandRow, error: brandError } = await supabase
+    .from("brands")
+    .select("id,name_ar,name_en,is_active")
+    .eq("id", value.brandId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (brandError || !brandRow) {
+    return { ok: false, message: ar ? "البراند المحدد غير متاح." : "The selected brand is not available." };
+  }
 
   const managerId =
     profile.role === "admin" && value.managerId
@@ -162,7 +194,8 @@ export async function createCampaign(
     .from("campaigns")
     .insert({
       name: value.name,
-      brand: value.brand,
+      brand_id: value.brandId,
+      brand: brandRow.name_en || brandRow.name_ar,
 
       product: value.product || null,
       campaign_type: value.campaignType || null,
@@ -216,6 +249,10 @@ export async function createCampaign(
           ? null
           : value.externalContactEmail || null,
 
+      exclusivity_scope: value.exclusivityScope === "inherit" ? null : value.exclusivityScope,
+      exclusivity_days: ["inherit", "none"].includes(value.exclusivityScope) ? null : Number(value.exclusivityDays),
+      exclusivity_start_basis: value.exclusivityStartBasis === "inherit" ? null : value.exclusivityStartBasis,
+
       auto_complete_enabled: value.autoCompleteEnabled,
 
       completion_mode: value.autoCompleteEnabled
@@ -242,6 +279,17 @@ export async function createCampaign(
     };
   }
 
+  if (value.exclusivityScope === "brands") {
+    if (blockedBrandIds.length) {
+      const { error: targetsError } = await supabase.from("campaign_exclusivity_brands").insert(
+        blockedBrandIds.map((brandId) => ({ campaign_id: campaign.id, brand_id: brandId })),
+      );
+      if (targetsError) {
+        console.error("CREATE_CAMPAIGN_EXCLUSIVITY_TARGETS_ERROR", targetsError);
+      }
+    }
+  }
+
   await supabase.from("activity_logs").insert({
     actor_id: profile.id,
     entity_type: "campaign",
@@ -249,7 +297,8 @@ export async function createCampaign(
     action: "campaign_created",
     metadata: {
       name: value.name,
-      brand: value.brand,
+      brand_id: value.brandId,
+      brand: brandRow.name_en || brandRow.name_ar,
       status: value.status,
     },
   });

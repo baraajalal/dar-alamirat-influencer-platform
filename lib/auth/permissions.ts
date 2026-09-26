@@ -10,6 +10,7 @@ export type PermissionResource =
   | "dashboard"
   | "influencers"
   | "campaigns"
+  | "brands"
   | "content"
   | "payments"
   | "messages"
@@ -37,6 +38,7 @@ export const ROLE_PERMISSIONS: PermissionMatrix = {
     dashboard: ["view", "manage"],
     influencers: ["view", "create", "update", "delete", "approve", "manage"],
     campaigns: ["view", "create", "update", "delete", "approve", "manage"],
+    brands: ["view", "create", "update", "delete", "manage"],
     content: ["view", "create", "update", "delete", "approve", "manage"],
     payments: ["view", "create", "update", "approve", "pay", "manage"],
     messages: ["view", "create", "update", "delete", "manage"],
@@ -49,6 +51,7 @@ export const ROLE_PERMISSIONS: PermissionMatrix = {
     dashboard: ["view"],
     influencers: ["view", "create", "update"],
     campaigns: ["view", "create", "update"],
+    brands: ["view"],
     content: ["view", "create", "update"],
     payments: ["view"],
     messages: ["view", "create"],
@@ -58,6 +61,7 @@ export const ROLE_PERMISSIONS: PermissionMatrix = {
   finance: {
     dashboard: ["view"],
     campaigns: ["view"],
+    brands: ["view"],
     influencers: ["view"],
     payments: ["view", "create", "update", "approve", "pay"],
     reports: ["view"],
@@ -66,6 +70,7 @@ export const ROLE_PERMISSIONS: PermissionMatrix = {
   reviewer: {
     dashboard: ["view"],
     campaigns: ["view"],
+    brands: ["view"],
     influencers: ["view"],
     content: ["view", "update", "approve"],
     messages: ["view", "create"],
@@ -75,6 +80,7 @@ export const ROLE_PERMISSIONS: PermissionMatrix = {
     dashboard: ["view"],
     influencers: ["view"],
     campaigns: ["view"],
+    brands: ["view"],
     content: ["view"],
     payments: ["view"],
     reports: ["view"],

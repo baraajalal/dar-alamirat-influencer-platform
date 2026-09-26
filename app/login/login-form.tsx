@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login } from "./actions";
+import type { AppLocale } from "@/lib/i18n/app";
+import type { AppDictionary } from "@/lib/i18n/app-dictionary";
 
 function UserIcon() {
   return (
@@ -50,11 +52,11 @@ function FloralDecoration() {
   );
 }
 
-export default function LoginForm({ error, registered }: { error?: string; registered: boolean }) {
+export default function LoginForm({ error, registered, locale, copy }: { error?: string; registered: boolean; locale: AppLocale; copy: AppDictionary["login"] }) {
   const [showPassword, setShowPassword] = useState(false);
   const [switchingLocale, setSwitchingLocale] = useState(false);
   const router = useRouter();
-  const isEnglish = typeof document !== "undefined" && document.documentElement.lang === "en";
+  const isEnglish = locale === "en";
 
   async function setLocale(locale: "ar" | "en") {
     if (switchingLocale) return;
@@ -76,7 +78,7 @@ export default function LoginForm({ error, registered }: { error?: string; regis
   }
 
   return (
-    <main dir="inherit" className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_15%_15%,rgba(216,221,247,0.8),transparent_34%),radial-gradient(circle_at_86%_78%,rgba(169,185,230,0.45),transparent_28%),linear-gradient(135deg,#FFFDFF_0%,#FAF7FC_52%,#F7F0F9_100%)] px-4 py-10 font-['Tajawal',Tahoma,Arial,sans-serif]">
+    <main dir="inherit" data-no-auto-translate className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_15%_15%,rgba(216,221,247,0.8),transparent_34%),radial-gradient(circle_at_86%_78%,rgba(169,185,230,0.45),transparent_28%),linear-gradient(135deg,#FFFDFF_0%,#FAF7FC_52%,#F7F0F9_100%)] px-4 py-10 font-['Tajawal',Tahoma,Arial,sans-serif]">
       <section className="relative w-full max-w-[500px] overflow-hidden rounded-[2.6rem] border border-white/80 bg-white/78 shadow-[0_35px_100px_rgba(67,82,155,0.18)] backdrop-blur-2xl">
         <FloralDecoration />
         <div className="relative z-10 px-6 pb-8 pt-6 sm:px-10 sm:pb-10 sm:pt-8">
@@ -92,40 +94,40 @@ export default function LoginForm({ error, registered }: { error?: string; regis
           </div>
 
           <div className="mb-7 text-center">
-            <h1 className="text-3xl font-black tracking-tight text-[#432A57] sm:text-[2rem]">تسجيل الدخول لصانع المحتوى</h1>
-            <p className="mx-auto mt-3 max-w-sm text-sm font-medium leading-7 text-[#806F8A]">المنصة المتكاملة لإدارة الحملات والتعاون والفرص مع دار الأميرات</p>
+            <h1 className="text-3xl font-black tracking-tight text-[#432A57] sm:text-[2rem]">{copy.title}</h1>
+            <p className="mx-auto mt-3 max-w-sm text-sm font-medium leading-7 text-[#806F8A]">{copy.description}</p>
           </div>
 
-          {registered && <div className="mb-5 rounded-2xl border border-[#E2CFEA] bg-[#F8F1FA] px-4 py-3 text-sm font-bold leading-7 text-[#6F477E]">تم تفعيل حسابك بنجاح، ويمكنك تسجيل الدخول الآن.</div>}
-          {error && <div className="mb-5 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-bold leading-7 text-red-700">{error === "staff_account_use_staff_login" ? (isEnglish ? "This is a staff account. Please use the staff login page." : "هذا حساب موظف. يرجى استخدام صفحة دخول الموظفين.") : error}</div>}
+          {registered && <div className="mb-5 rounded-2xl border border-[#E2CFEA] bg-[#F8F1FA] px-4 py-3 text-sm font-bold leading-7 text-[#6F477E]">{copy.registered}</div>}
+          {error && <div className="mb-5 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-bold leading-7 text-red-700">{error === "staff_account_use_staff_login" ? copy.staffAccount : error}</div>}
 
           <form action={login} className="space-y-4">
             <label className="relative block">
-              <span className="sr-only">البريد الإلكتروني أو رقم الجوال</span>
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#A170BA]"><UserIcon /></span>
-              <input name="identifier" type="text" required autoComplete="username" inputMode="email" placeholder="البريد الإلكتروني أو رقم الجوال" className="h-16 w-full rounded-2xl border border-[#EBDDF2] bg-white/78 pr-12 pl-4 text-sm font-semibold text-[#432A57] outline-none transition placeholder:text-[#A797AE] hover:border-[#D8BDE3] focus:border-[#A170BA] focus:bg-white focus:shadow-[0_0_0_4px_rgba(104,119,200,0.12)]" dir="inherit" />
+              <span className="sr-only">{copy.identifier}</span>
+              <span className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-[#A170BA]"><UserIcon /></span>
+              <input name="identifier" type="text" required autoComplete="username" inputMode="email" placeholder={copy.identifier} className="h-16 w-full rounded-2xl border border-[#EBDDF2] bg-white/78 ps-12 pe-4 text-sm font-semibold text-[#432A57] outline-none transition placeholder:text-[#A797AE] hover:border-[#D8BDE3] focus:border-[#A170BA] focus:bg-white focus:shadow-[0_0_0_4px_rgba(104,119,200,0.12)]" dir="inherit" />
             </label>
 
             <label className="relative block">
-              <span className="sr-only">كلمة المرور</span>
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#A170BA]"><LockIcon /></span>
-              <input name="password" type={showPassword ? "text" : "password"} required autoComplete="current-password" placeholder="كلمة المرور" className="h-16 w-full rounded-2xl border border-[#EBDDF2] bg-white/78 pr-12 pl-12 text-sm font-semibold text-[#432A57] outline-none transition placeholder:text-[#A797AE] hover:border-[#D8BDE3] focus:border-[#A170BA] focus:bg-white focus:shadow-[0_0_0_4px_rgba(104,119,200,0.12)]" dir="inherit" />
-              <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute left-4 top-1/2 -translate-y-1/2 rounded-lg p-1 text-[#8E7898] transition hover:bg-[#F6F0F9] hover:text-[#7F568E]" aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}><EyeIcon open={showPassword} /></button>
+              <span className="sr-only">{copy.password}</span>
+              <span className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-[#A170BA]"><LockIcon /></span>
+              <input name="password" type={showPassword ? "text" : "password"} required autoComplete="current-password" placeholder={copy.password} className="h-16 w-full rounded-2xl border border-[#EBDDF2] bg-white/78 ps-12 pe-12 text-sm font-semibold text-[#432A57] outline-none transition placeholder:text-[#A797AE] hover:border-[#D8BDE3] focus:border-[#A170BA] focus:bg-white focus:shadow-[0_0_0_4px_rgba(104,119,200,0.12)]" dir="inherit" />
+              <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute end-4 top-1/2 -translate-y-1/2 rounded-lg p-1 text-[#8E7898] transition hover:bg-[#F6F0F9] hover:text-[#7F568E]" aria-label={showPassword ? copy.hidePassword : copy.showPassword}><EyeIcon open={showPassword} /></button>
             </label>
 
             <div className="flex items-center justify-between gap-4 px-1 text-sm">
-              <label className="flex cursor-pointer items-center gap-2 font-bold text-[#75677B]"><input type="checkbox" name="remember" className="h-4 w-4 rounded border-[#DBC8E2] accent-[#A170BA]" />تذكرني</label>
-              <button type="button" disabled aria-disabled="true" title="سيتم تفعيل استعادة كلمة المرور لاحقًا" className="cursor-not-allowed font-bold text-[#A170BA] opacity-55">نسيت كلمة المرور؟</button>
+              <label className="flex cursor-pointer items-center gap-2 font-bold text-[#75677B]"><input type="checkbox" name="remember" className="h-4 w-4 rounded border-[#DBC8E2] accent-[#A170BA]" />{copy.remember}</label>
+              <button type="button" disabled aria-disabled="true" title={copy.forgotTitle} className="cursor-not-allowed font-bold text-[#A170BA] opacity-55">{copy.forgot}</button>
             </div>
 
-            <button type="submit" className="relative mt-2 h-16 w-full overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#A06DB9_0%,#84539E_100%)] px-6 text-base font-black text-white shadow-[0_18px_35px_rgba(79,96,182,0.30)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(79,96,182,0.36)] focus:outline-none focus:ring-4 focus:ring-[#D8BDE3]/55 active:translate-y-0"><span className="relative">تسجيل الدخول</span></button>
+            <button type="submit" className="relative mt-2 h-16 w-full overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#A06DB9_0%,#84539E_100%)] px-6 text-base font-black text-white shadow-[0_18px_35px_rgba(79,96,182,0.30)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(79,96,182,0.36)] focus:outline-none focus:ring-4 focus:ring-[#D8BDE3]/55 active:translate-y-0"><span className="relative">{copy.submit}</span></button>
           </form>
 
           <div className="mt-7 space-y-3 text-center text-sm font-semibold text-[#806F8A]">
-            <div>{isEnglish ? "Don't have an account?" : "ليس لديك حساب؟"} <Link href="/" className="font-black text-[#8B56BD] hover:text-[#754A93]">{isEnglish ? "Submit your profile" : "تسجيل بياناتك"}</Link></div>
+            <div>{copy.noAccount} <Link href="/" className="font-black text-[#8B56BD] hover:text-[#754A93]">{copy.submitProfile}</Link></div>
             <div className="border-t border-[#EBDDF2] pt-4">
-              <span>{isEnglish ? "Dar Al Amirat staff?" : "من موظفي دار الأميرات؟"} </span>
-              <Link href="/staff/login" className="font-black text-[#8B56BD] underline decoration-[#D8BDE3] underline-offset-4 hover:text-[#754A93]">{isEnglish ? "Staff login" : "دخول الموظفين"}</Link>
+              <span>{copy.staffQuestion} </span>
+              <Link href="/staff/login" className="font-black text-[#8B56BD] underline decoration-[#D8BDE3] underline-offset-4 hover:text-[#754A93]">{copy.staffLogin}</Link>
             </div>
           </div>
         </div>

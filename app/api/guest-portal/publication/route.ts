@@ -31,22 +31,22 @@ export async function POST(request: NextRequest) {
 
     const session = await requireGuestSession(token);
     if (!session) {
-      return NextResponse.json({ message: "انتهت جلسة الرابط. تحققي من رقم الجوال مرة أخرى." }, { status: 401 });
+      return NextResponse.json({ code: "GUEST_SESSION_EXPIRED", message: "انتهت جلسة الرابط. تحققي من رقم الجوال مرة أخرى." }, { status: 401 });
     }
 
     if (!contentItemId || !platform || !postUrl) {
-      return NextResponse.json({ message: "حددي المنصة وأضيفي رابط النشر الصحيح." }, { status: 400 });
+      return NextResponse.json({ code: "PUBLICATION_FIELDS_REQUIRED", message: "حددي المنصة وأضيفي رابط النشر الصحيح." }, { status: 400 });
     }
     if (proof && proof.size > MAX_PROOF_SIZE) {
-      return NextResponse.json({ message: "حجم إثبات النشر أكبر من 10MB." }, { status: 413 });
+      return NextResponse.json({ code: "PROOF_TOO_LARGE", message: "حجم إثبات النشر أكبر من 10MB." }, { status: 413 });
     }
     if (proof && !ALLOWED_PROOF_TYPES.has(proof.type)) {
-      return NextResponse.json({ message: "إثبات النشر يجب أن يكون صورة أو PDF." }, { status: 415 });
+      return NextResponse.json({ code: "PROOF_UNSUPPORTED", message: "إثبات النشر يجب أن يكون صورة أو PDF." }, { status: 415 });
     }
 
     const publishedAt = publishedAtInput ? new Date(publishedAtInput) : null;
     if (publishedAt && Number.isNaN(publishedAt.getTime())) {
-      return NextResponse.json({ message: "تاريخ النشر غير صحيح." }, { status: 400 });
+      return NextResponse.json({ code: "INVALID_PUBLISHED_AT", message: "تاريخ النشر غير صحيح." }, { status: 400 });
     }
 
     const { admin, assignmentId, link } = session;
@@ -59,10 +59,10 @@ export async function POST(request: NextRequest) {
 
     if (itemError) throw new Error(itemError.message);
     if (!contentItem) {
-      return NextResponse.json({ message: "عنصر المحتوى لا يتبع هذا التكليف." }, { status: 403 });
+      return NextResponse.json({ code: "CONTENT_NOT_OWNED", message: "عنصر المحتوى لا يتبع هذا التكليف." }, { status: 403 });
     }
     if (!["approved", "published"].includes(contentItem.status)) {
-      return NextResponse.json({ message: "يجب اعتماد المحتوى أولًا قبل إرسال رابط النشر." }, { status: 409 });
+      return NextResponse.json({ code: "CONTENT_NOT_APPROVED", message: "يجب اعتماد المحتوى أولًا قبل إرسال رابط النشر." }, { status: 409 });
     }
 
     let screenshotPath: string | null = null;
@@ -176,12 +176,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      code: "PUBLICATION_SUBMITTED",
       message: "تم إرسال رابط النشر للمراجعة.",
       publicationId: publication.id,
       accountCompletion,
     });
   } catch (error) {
     console.error("Guest publication submission failed:", error);
-    return NextResponse.json({ message: "تعذر إرسال رابط النشر حاليًا." }, { status: 500 });
+    return NextResponse.json({ code: "PUBLICATION_FAILED", message: "تعذر إرسال رابط النشر حاليًا." }, { status: 500 });
   }
 }

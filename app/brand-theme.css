@@ -56,8 +56,64 @@
 
 html[dir="rtl"] body,
 html[lang="ar"] body { font-family: "Tajawal",Tahoma,Arial,"Segoe UI",sans-serif !important; }
+
+/* English typography: intentionally more compact than Arabic.
+   Times New Roman is a system font, so no external font file is required. */
 html[dir="ltr"] body,
-html[lang="en"] body { font-family: "Poppins","Segoe UI",Arial,sans-serif !important; }
+html[lang="en"] body {
+  font-family: "Times New Roman", Times, serif !important;
+}
+
+/* Some legacy screens still carry a local Tajawal/Poppins utility on nested
+   containers. Force the selected English typeface consistently without
+   affecting the Arabic experience. */
+html[lang="en"] body :where(*) {
+  font-family: "Times New Roman", Times, serif !important;
+}
+
+/* Compact English type scale. Keep layout spacing unchanged while reducing
+   only the common Tailwind typography utilities. */
+html[lang="en"] .text-xs { font-size: .70rem !important; }
+html[lang="en"] .text-sm { font-size: .80rem !important; }
+html[lang="en"] .text-base { font-size: .92rem !important; }
+html[lang="en"] .text-lg { font-size: 1.04rem !important; }
+html[lang="en"] .text-xl { font-size: 1.15rem !important; }
+html[lang="en"] .text-2xl { font-size: 1.35rem !important; }
+html[lang="en"] .text-3xl { font-size: 1.65rem !important; }
+html[lang="en"] .text-4xl { font-size: 2rem !important; }
+html[lang="en"] .text-5xl { font-size: 2.4rem !important; }
+html[lang="en"] .text-6xl { font-size: 2.85rem !important; }
+
+/* Registration/onboarding uses dedicated CSS instead of Tailwind text sizes. */
+html[lang="en"] .da-brand-name { font-size: .72rem; }
+html[lang="en"] .da-page-title { font-size: clamp(1.02rem,1.8vw,1.34rem); }
+html[lang="en"] .da-page-subtitle { font-size: .60rem; letter-spacing: .055em; }
+html[lang="en"] .da-button { font-size: .78rem; }
+html[lang="en"] .da-kicker { font-size: .68rem; }
+html[lang="en"] .da-intro-copy h2 { font-size: clamp(1.72rem,3.6vw,2.78rem); line-height: 1.18; }
+html[lang="en"] .da-intro-copy p { font-size: .90rem; line-height: 1.75; }
+html[lang="en"] .da-mini-features span { font-size: .70rem; }
+html[lang="en"] .da-completion-head p { font-size: .72rem; }
+html[lang="en"] .da-completion-head strong { font-size: 1.02rem; }
+html[lang="en"] .da-completion-number { font-size: 2.1rem; }
+html[lang="en"] .da-completion-note { font-size: .71rem; }
+html[lang="en"] .da-step-badge { font-size: .84rem; }
+html[lang="en"] .da-section-heading h2 { font-size: 1.06rem; }
+html[lang="en"] .da-section-heading p { font-size: .58rem; letter-spacing: .055em; }
+html[lang="en"] .da-field-label { font-size: .78rem; }
+html[lang="en"] .da-field-hint { font-size: .65rem; }
+
+/* Times New Roman already has stronger natural stroke contrast. Avoid the
+   oversized/heavy feel inherited from the Arabic/Poppins heading system. */
+html[lang="en"] h1,
+html[lang="en"] h2,
+html[lang="en"] h3,
+html[lang="en"] h4,
+html[lang="en"] h5,
+html[lang="en"] h6 {
+  font-weight: 700;
+  letter-spacing: 0;
+}
 
 html,body { background: var(--da-page) !important; color: var(--da-text); }
 body {

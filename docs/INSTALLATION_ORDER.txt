@@ -1,0 +1,22 @@
+Dar Al Amirat beta.9.1.1 - installation order
+
+1) Stop the local Next.js dev server if it is running.
+2) Run INSTALL.ps1 from the extracted release folder.
+   - The installer creates a timestamped backup before changing the project.
+   - Existing .env files are preserved and are NOT overwritten.
+3) Supabase SQL Editor: run project\docs\UNIFIED_OPERATIONS_PREFLIGHT.sql.
+   Continue only if summary = READY.
+4) Supabase SQL Editor: run project\docs\UNIFIED_OPERATIONS_DB_PATCH.sql once.
+5) Supabase SQL Editor: run project\docs\UNIFIED_OPERATIONS_POSTCHECK.sql.
+   Confirm summary = INSTALLED.
+6) PowerShell:
+   cd C:\DA-Creator-Beta\influencer_beta_work
+   npm ci
+   npm run i18n:audit
+   npm run typecheck
+   npm run build
+   npm run dev
+7) Test existing staff login and existing creator login first.
+8) Test Participant Draft, simplified Assignment, coordinator My Work, restriction controls and portal account tools.
+
+Do not run supabase db push for this manual installation.

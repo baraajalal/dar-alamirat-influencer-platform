@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const session = await requireGuestSession(token);
 
     if (!session) {
-      return NextResponse.json({ message: "يجب التحقق من رقم الجوال أولًا." }, { status: 401 });
+      return NextResponse.json({ code: "GUEST_SESSION_REQUIRED", message: "يجب التحقق من رقم الجوال أولًا." }, { status: 401 });
     }
 
     const { admin, assignmentId } = session;
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
 
     if (assignmentError) throw new Error(assignmentError.message);
     if (!assignment) {
-      return NextResponse.json({ message: "لم يتم العثور على التكليف." }, { status: 404 });
+      return NextResponse.json({ code: "ASSIGNMENT_NOT_FOUND", message: "لم يتم العثور على التكليف." }, { status: 404 });
     }
 
     const [{ data: platforms, error: platformError }, { data: compensations, error: compensationError }, { data: payments, error: paymentError }] = await Promise.all([
@@ -243,6 +243,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      code: "ASSIGNMENT_LOADED",
       assignment: {
         ...assignment,
         platforms: platformDto,
@@ -253,6 +254,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Guest assignment load failed:", error);
-    return NextResponse.json({ message: "تعذر تحميل بيانات التكليف حاليًا." }, { status: 500 });
+    return NextResponse.json({ code: "ASSIGNMENT_LOAD_FAILED", message: "تعذر تحميل بيانات التكليف حاليًا." }, { status: 500 });
   }
 }

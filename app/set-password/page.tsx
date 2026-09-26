@@ -1,5 +1,8 @@
 import Image from "next/image";
+import { cookies } from "next/headers";
 import { setInvitedUserPassword } from "./actions";
+import { normalizeAppLocale } from "@/lib/i18n/app";
+import { getFlowDictionary } from "@/lib/i18n/flow-dictionary";
 
 export default async function SetPasswordPage({
   searchParams,
@@ -8,18 +11,20 @@ export default async function SetPasswordPage({
 }) {
   const params = await searchParams;
   const errorCode = typeof params.error === "string" ? params.error : undefined;
-
-  const messages: Record<string, string> = {
-    password_short: "كلمة المرور يجب أن تكون 8 أحرف على الأقل.",
-    password_weak: "استخدمي حرفًا كبيرًا وحرفًا صغيرًا ورقمًا واحدًا على الأقل.",
-    password_mismatch: "كلمتا المرور غير متطابقتين.",
-    update_failed: "تعذر حفظ كلمة المرور. افتحي رابط الدعوة مرة أخرى.",
-    profile_update_failed: "تم حفظ كلمة المرور، لكن تعذر تفعيل ملف المؤثر. تواصلي مع الإدارة.",
-  };
+  const cookieStore = await cookies();
+  const locale = normalizeAppLocale(
+    cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value,
+  );
+  const copy = getFlowDictionary(locale).invitedPassword;
+  const errorMessage = errorCode
+    ? copy.errors[errorCode as keyof typeof copy.errors] ?? copy.errors.default
+    : null;
 
   return (
     <main
+      lang={locale}
       dir="inherit"
+      data-no-auto-translate
       className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_right,#F4ECF7,#FBF7FC_45%,#f4f5f9)] px-4 py-10"
     >
       <div className="w-full max-w-md rounded-[32px] border border-white bg-white p-7 shadow-[0_25px_70px_rgba(70,85,150,0.13)] sm:p-9">
@@ -27,31 +32,31 @@ export default async function SetPasswordPage({
           <div className="relative mx-auto mb-4 h-20 w-28 rounded-2xl bg-[#f2f4ff]">
             <Image
               src="/da-logo.png"
-              alt="دار الأميرات"
+              alt="DA"
               fill
               className="object-contain p-2"
               priority
             />
           </div>
-          <p className="text-sm font-bold text-[#6777ca]">دعوة بوابة المؤثر</p>
+          <p className="text-sm font-bold text-[#6777ca]">{copy.inviteLabel}</p>
           <h1 className="mt-1 text-2xl font-black text-[#2e3f73]">
-            إنشاء كلمة المرور
+            {copy.title}
           </h1>
           <p className="mt-2 text-sm leading-7 text-[#7c85a0]">
-            بعد حفظ كلمة المرور سيتم تفعيل حسابك وتحويلك إلى لوحة الحملات والمستحقات.
+            {copy.description}
           </p>
         </div>
 
-        {errorCode && (
+        {errorMessage ? (
           <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold leading-7 text-red-700">
-            {messages[errorCode] ?? "حدث خطأ غير متوقع."}
+            {errorMessage}
           </div>
-        )}
+        ) : null}
 
         <form action={setInvitedUserPassword} className="space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm font-black text-[#4C335F]">
-              كلمة المرور الجديدة
+              {copy.newPassword}
             </span>
             <input
               className="input-v4"
@@ -66,7 +71,7 @@ export default async function SetPasswordPage({
 
           <label className="block">
             <span className="mb-2 block text-sm font-black text-[#4C335F]">
-              تأكيد كلمة المرور
+              {copy.confirmPassword}
             </span>
             <input
               className="input-v4"
@@ -80,14 +85,14 @@ export default async function SetPasswordPage({
           </label>
 
           <p className="rounded-2xl bg-[#F8F3FA] px-4 py-3 text-xs leading-6 text-[#727c98]">
-            يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل، وحرف إنجليزي كبير، وحرف صغير، ورقم.
+            {copy.rules}
           </p>
 
           <button
             type="submit"
             className="w-full rounded-2xl bg-[#9c68b9] px-6 py-4 font-black text-white shadow-lg shadow-[#9c68b9]/20 transition hover:bg-[#5266c5]"
           >
-            تفعيل الحساب والدخول
+            {copy.submit}
           </button>
         </form>
       </div>

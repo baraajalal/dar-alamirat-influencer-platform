@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enforceRegistrationRateLimit } from "@/lib/influencers/rate-limit";
+import { LEGAL_DOCUMENT_VERSIONS } from "@/lib/legal/versions";
+import { PORTAL_ACCESS_OPEN_STATUSES, PORTAL_ACCESS_STATUS } from "@/lib/domain/portal-access";
 import {
   isSaudiMobile,
   lookupInfluencerRegistration,
@@ -29,7 +31,7 @@ export async function POST(request: Request) {
         {
           success: false,
           message:
-            parsed.error.issues[0]?.message ?? "بيانات طلب التفعيل غير صحيحة",
+            parsed.error.issues[0]?.message ?? "بيانات طلب الانضمام غير صحيحة",
         },
         { status: 400 },
       );
@@ -65,7 +67,7 @@ export async function POST(request: Request) {
           success: false,
           code: "MULTIPLE_MATCHES",
           message:
-            "وجدنا أكثر من ملف مرتبط بهذا الرقم. يرجى التواصل مع الإدارة قبل طلب التفعيل.",
+            "وجدنا أكثر من ملف مرتبط بهذا الرقم. يرجى التواصل مع الإدارة قبل إعادة إرسال طلب الانضمام.",
         },
         { status: 409 },
       );
@@ -77,7 +79,7 @@ export async function POST(request: Request) {
           success: false,
           code: "PROFILE_REQUIRED",
           message:
-            "يجب حفظ ملف المؤثر أولًا قبل طلب تفعيل بوابة المستخدم.",
+            "يجب حفظ ملف المؤثر أولًا قبل إرسال طلب الانضمام.",
         },
         { status: 404 },
       );
@@ -97,6 +99,32 @@ export async function POST(request: Request) {
 
     const influencerId = lookup.internal.existingInfluencerId;
     const admin = createAdminClient();
+
+    const { data: consents, error: consentsError } = await admin
+      .from("influencer_legal_consents")
+      .select("document_type,document_version")
+      .eq("influencer_id", influencerId)
+      .in("document_type", ["terms", "privacy"]);
+
+    if (consentsError) throw consentsError;
+
+    const hasCurrentTerms = (consents ?? []).some(
+      (item) => item.document_type === "terms" && item.document_version === LEGAL_DOCUMENT_VERSIONS.terms,
+    );
+    const hasCurrentPrivacy = (consents ?? []).some(
+      (item) => item.document_type === "privacy" && item.document_version === LEGAL_DOCUMENT_VERSIONS.privacy,
+    );
+
+    if (!hasCurrentTerms || !hasCurrentPrivacy) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "CONSENT_REQUIRED",
+          message: "يجب الموافقة على الإصدار الحالي من الشروط والأحكام وسياسة الخصوصية قبل إرسال طلب الانضمام.",
+        },
+        { status: 409 },
+      );
+    }
 
     const { data: assignments, error: assignmentsError } = await admin
       .from("campaign_assignments")
@@ -127,7 +155,7 @@ export async function POST(request: Request) {
       .from("portal_access_requests")
       .select("id,status")
       .eq("influencer_id", influencerId)
-      .in("status", ["pending", "approved", "needs_changes"])
+      .in("status", PORTAL_ACCESS_OPEN_STATUSES)
       .maybeSingle();
 
     if (existingRequestError) throw existingRequestError;
@@ -138,21 +166,37 @@ export async function POST(request: Request) {
       : "self_service";
     const priority = hasFinancialRequirement ? "high" : "normal";
 
-    if (existingRequest) {
-      const { error: updateError } = await admin
-        .from("portal_access_requests")
-        .update({
-          requested_email: email,
-          normalized_mobile: normalizedMobile,
-          request_reason: reason,
-          priority,
-          status: "pending",
-          submitted_at: now,
-          updated_at: now,
-        })
-        .eq("id", existingRequest.id);
+    let createdNewRequest = false;
 
-      if (updateError) throw updateError;
+    if (existingRequest) {
+      if (existingRequest.status === PORTAL_ACCESS_STATUS.submitted) {
+        const { error: updateError } = await admin
+          .from("portal_access_requests")
+          .update({
+            requested_email: email,
+            normalized_mobile: normalizedMobile,
+            request_reason: reason,
+            priority,
+            updated_at: now,
+          })
+          .eq("id", existingRequest.id)
+          .eq("status", PORTAL_ACCESS_STATUS.submitted);
+
+        if (updateError) throw updateError;
+      } else {
+        const existingMessages: Record<string, string> = {
+          [PORTAL_ACCESS_STATUS.underReview]: "طلب انضمامك تحت المراجعة بالفعل. لا تحتاج إلى إرسال طلب جديد.",
+          [PORTAL_ACCESS_STATUS.needsChanges]: "طلبك بانتظار التعديلات المطلوبة. استخدم رابط التعديل الآمن الذي أرسله لك الفريق.",
+          [PORTAL_ACCESS_STATUS.approved]: "تمت الموافقة على طلب انضمامك. استخدم رابط التفعيل الذي شاركه معك الفريق لإكمال إنشاء الحساب.",
+        };
+
+        return NextResponse.json({
+          success: true,
+          code: "REQUEST_ALREADY_OPEN",
+          status: existingRequest.status,
+          message: existingMessages[existingRequest.status] ?? "لديك طلب انضمام مفتوح بالفعل.",
+        });
+      }
     } else {
       const { error: insertError } = await admin
         .from("portal_access_requests")
@@ -162,10 +206,12 @@ export async function POST(request: Request) {
           normalized_mobile: normalizedMobile,
           request_reason: reason,
           priority,
+          status: PORTAL_ACCESS_STATUS.submitted,
           submitted_at: now,
         });
 
       if (insertError) throw insertError;
+      createdNewRequest = true;
     }
 
     const { error: influencerUpdateError } = await admin
@@ -173,6 +219,7 @@ export async function POST(request: Request) {
       .update({
         portal_access_requested_at: now,
         portal_access_required: hasFinancialRequirement,
+        account_status: "pending_review",
         updated_at: now,
       })
       .eq("id", influencerId)
@@ -184,7 +231,7 @@ export async function POST(request: Request) {
       actor_id: null,
       entity_type: "influencer",
       entity_id: influencerId,
-      action: "portal_access_requested",
+      action: createdNewRequest ? "portal_access_submitted" : "portal_access_submission_refreshed",
       metadata: {
         reason,
         priority,
@@ -195,7 +242,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message:
-        "تم تسجيل طلب تفعيل بوابة المؤثر. ستراجع الإدارة الطلب، وبعد الموافقة سيشارك الموظف معك رابط التفعيل مباشرة دون بريد إلكتروني.",
+        "تم تسجيل طلب انضمامك للمجتمع. سيراجع الفريق الطلب، وبعد الموافقة سيشارك معك الموظف رابط تفعيل الحساب مباشرة.",
     });
   } catch (error) {
     if (error instanceof Error && error.message === "RATE_LIMITED") {
@@ -213,7 +260,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        message: "تعذر إرسال طلب التفعيل حاليًا. يرجى المحاولة مرة أخرى.",
+        message: "تعذر إرسال طلب الانضمام حاليًا. يرجى المحاولة مرة أخرى.",
       },
       { status: 500 },
     );

@@ -27,6 +27,7 @@ type InfluencerResult = {
   availability_reason: string | null;
   blocking_campaign_id: string | null;
   blocking_campaign_name: string | null;
+  blocking_brand_name: string | null;
   blocked_until: string | null;
   days_remaining: number | null;
 };
@@ -148,7 +149,7 @@ export default function AssignmentForm({
       setSearchMessage("");
       try {
         const response = await fetch(
-          `/api/campaigns/${campaignId}/influencers/search?q=${encodeURIComponent(trimmed)}`,
+          `/api/campaigns/${campaignId}/influencers/search?q=${encodeURIComponent(trimmed)}&lang=${locale}`,
           { signal: controller.signal, cache: "no-store" },
         );
         const payload = (await response.json()) as { results?: InfluencerResult[]; message?: string };
@@ -344,8 +345,8 @@ export default function AssignmentForm({
       <input type="hidden" name="execution_type" value={executionType} />
       <input type="hidden" name="other_execution_details" value={otherExecutionDetails} />
       <input type="hidden" name="requires_content" value={String(effectiveRequiresContent)} />
-      <input type="hidden" name="content_due_at_iso" value="" />
-      <input type="hidden" name="publishing_date" value="" />
+      <input ref={contentDueIsoRef} type="hidden" name="content_due_at_iso" defaultValue="" />
+      <input type="hidden" name="publishing_date" value={publishingDate} />
       <input type="hidden" name="branch_name" value={executionType === "in_branch" ? branchName : ""} />
       <input ref={attendanceIsoRef} type="hidden" name="attendance_at_iso" />
       <input type="hidden" name="order_number" value={executionType === "home" ? orderNumber : ""} />
@@ -521,6 +522,16 @@ export default function AssignmentForm({
             </div>
           ) : null}
 
+          {effectiveRequiresContent ? (
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <Field label={t.contentDue}>
+                <input type="datetime-local" value={contentDueLocal} onChange={(event) => setContentDueLocal(event.target.value)} className={inputClass} />
+              </Field>
+              <Field label={t.publishingDate}>
+                <input type="date" value={publishingDate} onChange={(event) => setPublishingDate(event.target.value)} className={inputClass} />
+              </Field>
+            </div>
+          ) : null}
 
           <WizardFooter locale={locale} step={step} nextDisabled={!collaborationValid} onPrevious={() => goTo(1)} onNext={() => goTo(3)} />
         </CampaignPanel>
@@ -714,10 +725,20 @@ function SummaryItem({ label, value }: { label: string; value: string }) { retur
 function Spinner() { return <span className="block h-5 w-5 animate-spin rounded-full border-2 border-[#C7CEEA] border-t-[#A170BA]" />; }
 
 function availabilityDescription(influencer: InfluencerResult, locale: CampaignLocale) {
+  const date = influencer.blocked_until ? new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", { dateStyle: "medium" }).format(new Date(influencer.blocked_until)) : "—";
+  if (influencer.availability_reason === "all_campaigns_exclusivity") {
+    return locale === "ar"
+      ? `حظر على جميع الحملات بسبب ${influencer.blocking_campaign_name ?? "حملة سابقة"} حتى ${date}.`
+      : `Blocked from all campaigns because of ${influencer.blocking_campaign_name ?? "a previous campaign"} until ${date}.`;
+  }
+  if (influencer.availability_reason === "brand_exclusivity") {
+    return locale === "ar"
+      ? `الحملة الحالية تتعارض مع حظر براندات مرتبط بـ ${influencer.blocking_campaign_name ?? "حملة سابقة"}${influencer.blocking_brand_name ? ` (${influencer.blocking_brand_name})` : ""} حتى ${date}.`
+      : `This campaign conflicts with brand exclusivity from ${influencer.blocking_campaign_name ?? "a previous campaign"}${influencer.blocking_brand_name ? ` (${influencer.blocking_brand_name})` : ""} until ${date}.`;
+  }
   if (influencer.availability_reason === "active_assignment") return locale === "ar" ? `مرتبط حاليًا بحملة ${influencer.blocking_campaign_name ?? "أخرى"}.` : `Currently assigned to ${influencer.blocking_campaign_name ?? "another campaign"}.`;
   if (influencer.availability_reason === "settlement_pending") return locale === "ar" ? `لم تتم تسوية كامل مستحقاته في حملة ${influencer.blocking_campaign_name ?? "سابقة"}.` : `Final settlement is pending for ${influencer.blocking_campaign_name ?? "a previous campaign"}.`;
   if (influencer.availability_reason === "cooldown") {
-    const date = influencer.blocked_until ? new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", { dateStyle: "medium" }).format(new Date(influencer.blocked_until)) : "—";
     return locale === "ar" ? `فترة الحظر مستمرة حتى ${date}${influencer.days_remaining ? `، المتبقي ${influencer.days_remaining} يومًا` : ""}.` : `Cooldown continues until ${date}${influencer.days_remaining ? `, ${influencer.days_remaining} days remaining` : ""}.`;
   }
   return locale === "ar" ? "غير متاح للربط حاليًا." : "Currently unavailable for assignment.";

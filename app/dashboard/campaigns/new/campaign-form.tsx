@@ -7,23 +7,25 @@ import { getCampaignCopy, type CampaignLocale } from "../campaign-copy";
 import { CampaignPanel, CampaignSectionTitle } from "../campaign-ui";
 
 type Manager = { id: string; full_name: string; role: string };
+type Brand = { id: string; name_ar: string; name_en: string; default_exclusivity_scope: string; default_exclusivity_days: number; default_exclusivity_start_basis: string };
 type Props = {
   locale: CampaignLocale;
   managers: Manager[];
+  brands: Brand[];
   currentUserId: string;
   currentUserRole: string;
 };
 
 const initialState: CampaignActionState = { ok: false, message: "" };
-const brands = ["Pastel", "Rom&nd", "ARMAF Beauté", "Show by Pastel", "دار الأميرات"];
-
-export default function CampaignForm({ locale, managers, currentUserId, currentUserRole }: Props) {
+export default function CampaignForm({ locale, managers, brands, currentUserId, currentUserRole }: Props) {
   const copy = getCampaignCopy(locale);
   const [state, formAction, pending] = useActionState(createCampaign, initialState);
   const [status, setStatus] = useState<"draft" | "active" | "paused">("draft");
   const [contentDueLocal, setContentDueLocal] = useState("");
   const [ownerType, setOwnerType] = useState<"internal" | "external_supplier" | "joint">("internal");
   const [autoComplete, setAutoComplete] = useState(false);
+  const [exclusivityScope, setExclusivityScope] = useState<"inherit" | "none" | "brands" | "all">("inherit");
+  const [brandId, setBrandId] = useState("");
   const contentDueIsoRef = useRef<HTMLInputElement | null>(null);
   const currentManager = useMemo(() => managers.find((manager) => manager.id === currentUserId), [currentUserId, managers]);
 
@@ -58,9 +60,11 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
           <Field label={copy.form.name} required error={state.fieldErrors?.name?.[0]}>
             <input name="name" className={inputClass} placeholder={copy.form.namePlaceholder} />
           </Field>
-          <Field label={copy.form.brand} required error={state.fieldErrors?.brand?.[0]}>
-            <input name="brand" list="campaign-brands" className={inputClass} placeholder={copy.form.brandPlaceholder} />
-            <datalist id="campaign-brands">{brands.map((brand) => <option key={brand} value={brand} />)}</datalist>
+          <Field label={copy.form.brand} required error={state.fieldErrors?.brandId?.[0]}>
+            <select name="brand_id" className={inputClass} value={brandId} onChange={(event) => setBrandId(event.target.value)} required>
+              <option value="">{copy.form.brandPlaceholder}</option>
+              {brands.map((brand) => <option key={brand.id} value={brand.id}>{locale === "ar" ? brand.name_ar : brand.name_en}</option>)}
+            </select>
           </Field>
           <Field label={copy.form.product}>
             <input name="product" className={inputClass} placeholder={copy.form.productPlaceholder} />
@@ -114,7 +118,32 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
       </CampaignPanel>
 
       <CampaignPanel>
-        <CampaignSectionTitle number="03" title={locale === "ar" ? "التقدم والإكمال التلقائي" : "Progress and automatic completion"} description={locale === "ar" ? "يمكن إضافة أهداف الحملة بعد الإنشاء، وسيُحدّث النظام التقدم تلقائيًا." : "Targets can be added after creation and progress will update automatically."} />
+        <CampaignSectionTitle number="03" title={locale === "ar" ? "سياسة الحصرية والحظر" : "Exclusivity policy"} description={locale === "ar" ? "اتركها حسب البراند أو خصص الحظر لهذه الحملة. يتم تثبيت السياسة على تكليف المؤثر عند إضافته." : "Use the brand default or override exclusivity for this campaign. The policy is snapshotted when a creator is assigned."} />
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
+          <Field label={locale === "ar" ? "نطاق الحظر" : "Restriction scope"}>
+            <select name="exclusivity_scope" className={inputClass} value={exclusivityScope} onChange={(event) => setExclusivityScope(event.target.value as typeof exclusivityScope)}>
+              <option value="inherit">{locale === "ar" ? "حسب إعداد البراند" : "Use brand default"}</option>
+              <option value="none">{locale === "ar" ? "بدون حظر" : "No exclusivity"}</option>
+              <option value="brands">{locale === "ar" ? "حظر براندات محددة" : "Selected brands only"}</option>
+              <option value="all">{locale === "ar" ? "حظر جميع الحملات" : "All campaigns"}</option>
+            </select>
+          </Field>
+          <Field label={locale === "ar" ? "مدة الحظر بالأيام" : "Exclusivity days"}>
+            <input name="exclusivity_days" type="number" min="0" max="365" defaultValue="45" className={inputClass} disabled={exclusivityScope === "inherit" || exclusivityScope === "none"} />
+          </Field>
+          <Field label={locale === "ar" ? "بداية المدة" : "Start basis"}>
+            <select name="exclusivity_start_basis" className={inputClass} defaultValue="inherit" disabled={exclusivityScope === "inherit" || exclusivityScope === "none"}>
+              <option value="inherit">{locale === "ar" ? "حسب إعداد البراند" : "Use brand default"}</option>
+              <option value="publishing_date">{locale === "ar" ? "من تاريخ النشر" : "From publishing date"}</option>
+              <option value="accepted_at">{locale === "ar" ? "من تاريخ قبول التكليف" : "From assignment acceptance"}</option>
+            </select>
+          </Field>
+        </div>
+        {exclusivityScope === "brands" ? <div className="mt-5"><p className="mb-3 text-xs font-black text-[#5B668E]">{locale === "ar" ? "البراندات المحظورة" : "Blocked brands"}</p><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{brands.filter((brand) => brand.id !== brandId).map((brand) => <label key={brand.id} className="flex items-center gap-3 rounded-2xl border border-[#ECE1F1] bg-[#FCF9FD] p-3"><input name="exclusivity_brand_ids" value={brand.id} type="checkbox" className="h-5 w-5"/><span className="text-sm font-black text-[#513865]">{locale === "ar" ? brand.name_ar : brand.name_en}</span></label>)}</div></div> : null}
+      </CampaignPanel>
+
+      <CampaignPanel>
+        <CampaignSectionTitle number="04" title={locale === "ar" ? "التقدم والإكمال التلقائي" : "Progress and automatic completion"} description={locale === "ar" ? "يمكن إضافة أهداف الحملة بعد الإنشاء، وسيُحدّث النظام التقدم تلقائيًا." : "Targets can be added after creation and progress will update automatically."} />
         <label className="mt-6 flex items-center gap-3 rounded-2xl border border-[#ECE1F1] bg-[#FDFBFE] p-4">
           <input name="auto_complete_enabled" type="checkbox" checked={autoComplete} onChange={(event) => setAutoComplete(event.target.checked)} className="h-5 w-5" />
           <span className="font-black text-[#513865]">{locale === "ar" ? "تفعيل الإكمال التلقائي للحملة" : "Enable automatic campaign completion"}</span>
@@ -133,7 +162,7 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
       </CampaignPanel>
 
       <CampaignPanel>
-        <CampaignSectionTitle number="04" title={copy.form.section2} description={copy.form.section2Hint} />
+        <CampaignSectionTitle number="05" title={copy.form.section2} description={copy.form.section2Hint} />
         <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           <Field label={copy.form.startDate}><input name="start_date" type="date" className={inputClass} /></Field>
           <Field label={copy.form.endDate} error={state.fieldErrors?.endDate?.[0]}><input name="end_date" type="date" className={inputClass} /></Field>
@@ -165,7 +194,7 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
       </CampaignPanel>
 
       <CampaignPanel>
-        <CampaignSectionTitle number="05" title={copy.form.section3} description={copy.form.section3Hint} />
+        <CampaignSectionTitle number="06" title={copy.form.section3} description={copy.form.section3Hint} />
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {statuses.map((option) => {
             const active = status === option.value;
@@ -181,7 +210,7 @@ export default function CampaignForm({ locale, managers, currentUserId, currentU
       </CampaignPanel>
 
       <CampaignPanel>
-        <CampaignSectionTitle number="06" title={copy.form.section4} description={copy.form.section4Hint} />
+        <CampaignSectionTitle number="07" title={copy.form.section4} description={copy.form.section4Hint} />
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
           <Field label={copy.form.hashtags}><textarea name="hashtags" className={textareaClass} placeholder={copy.form.hashtagsPlaceholder} /></Field>
           <Field label={copy.form.references}><textarea name="reference_links" dir="ltr" className={`${textareaClass} text-left`} placeholder={copy.form.referencesPlaceholder} /></Field>

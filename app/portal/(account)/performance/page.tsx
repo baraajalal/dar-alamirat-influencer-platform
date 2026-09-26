@@ -1,5 +1,8 @@
+import { cookies } from "next/headers";
 import { calculateInfluencerPerformance } from "@/lib/influencer-portal/performance";
 import { requireInfluencerAccount } from "@/lib/influencer-portal/require-influencer-account";
+import { normalizeAppLocale, type AppLocale } from "@/lib/i18n/app";
+import { getAppDictionary } from "@/lib/i18n/app-dictionary";
 
 const completedStatuses = new Set(["paid", "closed"]);
 
@@ -12,6 +15,11 @@ type AssignmentRow = { id: string; status: string };
 type PlatformIdRow = { id: string };
 
 export default async function InfluencerPerformancePage() {
+  const store = await cookies();
+  const locale = normalizeAppLocale(
+    store.get("app_locale")?.value ?? store.get("dashboard_locale")?.value,
+  );
+  const copy = getAppDictionary(locale).performance;
   const { admin, influencer } = await requireInfluencerAccount();
 
   const [{ data: socialRows }, { data: assignmentRows }] = await Promise.all([
@@ -69,9 +77,7 @@ export default async function InfluencerPerformancePage() {
     (sum, row) => sum + Number(row.followers_count ?? 0),
     0,
   );
-  const averageViews = average(
-    socials.map((row) => Number(row.average_views ?? 0)),
-  );
+  const averageViews = average(socials.map((row) => Number(row.average_views ?? 0)));
   const averageEngagement = average(
     socials.map((row) => Number(row.engagement_rate ?? 0)),
   );
@@ -100,33 +106,35 @@ export default async function InfluencerPerformancePage() {
     approvedPublications,
   });
 
+  const level = copy.levels[performance.level];
+  const classification = copy.classifications[performance.classification];
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-no-auto-translate>
       <section className="rounded-[30px] bg-[linear-gradient(135deg,#432A57,#9A68B5)] p-6 text-white shadow-[0_22px_70px_rgba(51,68,127,0.24)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
-            <p className="text-sm font-black text-white/65">الأداء والتصنيف</p>
+            <p className="text-sm font-black text-white/65">{copy.eyebrow}</p>
             <h1 className="mt-2 text-3xl font-black">
-              {performance.level} · {performance.classification}
+              {level} · {classification}
             </h1>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-white/76">
-              الدرجة تعكس اكتمال الملف، إتمام الحملات، جودة المحتوى، الاستجابة
-              للتعديلات، واعتماد روابط النشر.
+              {copy.description}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs font-black text-white/60">الدرجة الحالية</p>
+            <p className="text-xs font-black text-white/60">{copy.currentScore}</p>
             <p className="mt-1 text-6xl font-black">{performance.score}</p>
           </div>
         </div>
 
         <div className="mt-7">
           <div className="flex items-center justify-between text-xs font-black text-white/70">
-            <span>{performance.level}</span>
+            <span>{level}</span>
             <span>
               {performance.nextLevel
-                ? `المستوى التالي: ${performance.nextLevel}`
-                : "أعلى مستوى"}
+                ? replace(copy.nextLevel, { level: copy.levels[performance.nextLevel] })
+                : copy.highestLevel}
             </span>
           </div>
           <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/15">
@@ -139,35 +147,35 @@ export default async function InfluencerPerformancePage() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <ScoreCard label="اكتمال الملف" value={performance.metrics.completion} weight="15%" />
-        <ScoreCard label="إتمام الحملات" value={performance.metrics.delivery} weight="25%" />
-        <ScoreCard label="جودة المحتوى" value={performance.metrics.contentQuality} weight="25%" />
-        <ScoreCard label="الاستجابة للتعديلات" value={performance.metrics.revisionResponse} weight="15%" />
-        <ScoreCard label="دقة روابط النشر" value={performance.metrics.publicationAccuracy} weight="20%" />
+        <ScoreCard label={copy.metrics.completion} value={performance.metrics.completion} weight="15%" />
+        <ScoreCard label={copy.metrics.delivery} value={performance.metrics.delivery} weight="25%" />
+        <ScoreCard label={copy.metrics.contentQuality} value={performance.metrics.contentQuality} weight="25%" />
+        <ScoreCard label={copy.metrics.revisionResponse} value={performance.metrics.revisionResponse} weight="15%" />
+        <ScoreCard label={copy.metrics.publicationAccuracy} value={performance.metrics.publicationAccuracy} weight="20%" />
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
-          <p className="text-sm font-bold text-[#9F6EB8]">ملخص الأرقام</p>
-          <h2 className="mt-1 text-xl font-black">مؤشرات الحساب</h2>
+          <p className="text-sm font-bold text-[#9F6EB8]">{copy.summaryEyebrow}</p>
+          <h2 className="mt-1 text-xl font-black">{copy.summaryTitle}</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <Stat label="إجمالي المتابعين" value={number(followers)} />
-            <Stat label="متوسط المشاهدات" value={number(averageViews)} />
-            <Stat label="متوسط التفاعل" value={`${averageEngagement.toFixed(2)}%`} />
-            <Stat label="الحملات المكتملة" value={`${completedAssignments}/${assignments.length}`} />
-            <Stat label="المحتوى المعتمد" value={`${approvedContent}/${contentRows.length}`} />
-            <Stat label="روابط النشر المعتمدة" value={`${approvedPublications}/${publicationRows.length}`} />
+            <Stat label={copy.stats.followers} value={number(followers, locale)} />
+            <Stat label={copy.stats.averageViews} value={number(averageViews, locale)} />
+            <Stat label={copy.stats.averageEngagement} value={`${averageEngagement.toFixed(2)}%`} />
+            <Stat label={copy.stats.completedCampaigns} value={`${completedAssignments}/${assignments.length}`} />
+            <Stat label={copy.stats.approvedContent} value={`${approvedContent}/${contentRows.length}`} />
+            <Stat label={copy.stats.approvedPublications} value={`${approvedPublications}/${publicationRows.length}`} />
           </div>
         </div>
 
         <div className="rounded-[28px] border border-white bg-white/90 p-6 shadow-[0_16px_45px_rgba(68,82,140,0.08)]">
-          <p className="text-sm font-bold text-[#9F6EB8]">كيف يتحسن المستوى؟</p>
-          <h2 className="mt-1 text-xl font-black">خطوات عملية</h2>
+          <p className="text-sm font-bold text-[#9F6EB8]">{copy.tipsEyebrow}</p>
+          <h2 className="mt-1 text-xl font-black">{copy.tipsTitle}</h2>
           <div className="mt-5 space-y-3">
-            <Tip done={(influencer.profile_completion ?? 0) >= 90} text="إكمال الملف إلى 90% أو أكثر" />
-            <Tip done={performance.metrics.delivery >= 80} text="إتمام الحملات المفتوحة دون تأخير" />
-            <Tip done={performance.metrics.contentQuality >= 80} text="رفع محتوى ينجح من المراجعة الأولى" />
-            <Tip done={performance.metrics.publicationAccuracy >= 90} text="إضافة روابط نشر صحيحة وفي الموعد" />
+            <Tip done={(influencer.profile_completion ?? 0) >= 90} text={copy.tips.profile} />
+            <Tip done={performance.metrics.delivery >= 80} text={copy.tips.campaigns} />
+            <Tip done={performance.metrics.contentQuality >= 80} text={copy.tips.content} />
+            <Tip done={performance.metrics.publicationAccuracy >= 90} text={copy.tips.publications} />
           </div>
         </div>
       </section>
@@ -212,9 +220,7 @@ function Tip({ done, text }: { done: boolean; text: string }) {
     <div className="flex items-center gap-3 rounded-2xl bg-[#FCF9FD] p-4">
       <span
         className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${
-          done
-            ? "bg-emerald-100 text-emerald-700"
-            : "bg-amber-100 text-amber-700"
+          done ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
         }`}
       >
         {done ? "✓" : "•"}
@@ -230,6 +236,12 @@ function average(values: number[]) {
   return valid.reduce((sum, value) => sum + value, 0) / valid.length;
 }
 
-function number(value: number) {
-  return new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(value);
+function number(value: number, locale: AppLocale) {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-US", {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function replace(template: string, values: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? `{${key}}`));
 }

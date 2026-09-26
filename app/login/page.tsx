@@ -1,4 +1,7 @@
+import { cookies } from "next/headers";
 import LoginForm from "./login-form";
+import { normalizeAppLocale } from "@/lib/i18n/app";
+import { getAppDictionary } from "@/lib/i18n/app-dictionary";
 
 export default async function LoginPage({
   searchParams,
@@ -9,22 +12,14 @@ export default async function LoginPage({
   }>;
 }) {
   const params = await searchParams;
-  const errorCode =
-    typeof params.error === "string" ? params.error : undefined;
+  const cookieStore = await cookies();
+  const locale = normalizeAppLocale(cookieStore.get("app_locale")?.value ?? cookieStore.get("dashboard_locale")?.value);
+  const copy = getAppDictionary(locale).login;
+  const errorCode = typeof params.error === "string" ? params.error : undefined;
   const registered = params.registered === "1";
-
-  const errorMessages: Record<string, string> = {
-    missing_credentials: "يرجى إدخال البريد الإلكتروني أو رقم الجوال وكلمة المرور.",
-    invalid_credentials: "البريد الإلكتروني أو رقم الجوال أو كلمة المرور غير صحيحة.",
-    profile_not_found: "الحساب غير مربوط بملف مؤثر داخل النظام.",
-    account_disabled: "تم تعطيل هذا الحساب. يرجى التواصل مع الإدارة.",
-    invalid_activation_session:
-      "انتهت جلسة التفعيل. افتحي رابط الحملة وابدئي التفعيل مرة أخرى.",
-  };
-
   const error = errorCode
-    ? errorMessages[errorCode] ?? "حدث خطأ غير متوقع."
+    ? copy.errors[errorCode as keyof typeof copy.errors] ?? copy.errors.default
     : undefined;
 
-  return <LoginForm error={error} registered={registered} />;
+  return <LoginForm error={error} registered={registered} locale={locale} copy={copy} />;
 }

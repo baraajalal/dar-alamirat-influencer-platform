@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     if (userError || !user) {
       return NextResponse.json(
-        { message: "انتهت جلسة التفعيل. سجلي الدخول مرة أخرى." },
+        { code: "SESSION_EXPIRED", message: "انتهت جلسة التفعيل. سجلي الدخول مرة أخرى." },
         { status: 401 },
       );
     }
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (influencerError) throw new Error(influencerError.message);
     if (!influencer) {
       return NextResponse.json(
-        { message: "حساب الدخول غير مربوط بملف مؤثر." },
+        { code: "PROFILE_NOT_FOUND", message: "حساب الدخول غير مربوط بملف مؤثر." },
         { status: 404 },
       );
     }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       if (assignmentError) throw new Error(assignmentError.message);
       if (!assignment) {
         return NextResponse.json(
-          { message: "التكليف غير مرتبط بهذا الحساب." },
+          { code: "ASSIGNMENT_MISMATCH", message: "التكليف غير مرتبط بهذا الحساب." },
           { status: 403 },
         );
       }
@@ -97,12 +97,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       nextPath,
+      code: "ACTIVATED",
       message: "تم إنشاء كلمة المرور وتفعيل الحساب.",
     });
   } catch (error) {
     console.error("Influencer password completion failed:", error);
     return NextResponse.json(
-      { message: "تم حفظ كلمة المرور، لكن تعذر إكمال تفعيل الملف." },
+      { code: "ACTIVATION_COMPLETION_FAILED", message: "تم حفظ كلمة المرور، لكن تعذر إكمال تفعيل الملف." },
       { status: 500 },
     );
   }

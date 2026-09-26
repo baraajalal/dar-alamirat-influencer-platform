@@ -17,6 +17,8 @@ export type InfluencerAccount = {
   activation_status: string;
   must_change_password: boolean;
   profile_completion: number;
+  restriction_status: string;
+  restriction_expires_at: string | null;
   created_at: string;
 };
 
@@ -27,7 +29,7 @@ export async function requireInfluencerAccount() {
   const { data: influencer, error } = await admin
     .from("influencers")
     .select(
-      "id,user_id,full_name,email,mobile_e164,city,country,gender,account_status,activation_status,must_change_password,profile_completion,created_at",
+      "id,user_id,full_name,email,mobile_e164,city,country,gender,account_status,activation_status,must_change_password,profile_completion,restriction_status,restriction_expires_at,created_at",
     )
     .eq("user_id", session.user.id)
     .maybeSingle();
