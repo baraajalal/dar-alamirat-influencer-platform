@@ -122,6 +122,7 @@
     "saving": "Submitting...",
     "loading": "Loading your application...",
     "steps": [
+      "Terms & privacy",
       "Personal details",
       "Mawthooq details",
       "Social accounts",
@@ -176,7 +177,7 @@
     },
     "personal": {
       "title": "Personal details",
-      "description": "Enter the basic information you want the Dar Al Amirat team to see.",
+      "description": "Enter your basic information. Select the country first, then the city. You can choose an existing option or type a new one.",
       "fullName": "Full name *",
       "mobile": "Mobile number *",
       "email": "Email *",
@@ -184,11 +185,12 @@
       "city": "City *",
       "country": "Country *",
       "cityPlaceholder": "Select a city or type another city",
-      "countryPlaceholder": "Saudi Arabia, GCC countries, or type another country",
+      "countryPlaceholder": "Select a country or type another country",
       "gender": "Gender *",
       "female": "Female",
       "male": "Male",
-      "other": "Other"
+      "other": "Other",
+      "genderPlaceholder": "Select gender"
     },
     "mawthooq": {
       "title": "Mawthooq details",
@@ -199,8 +201,8 @@
       "expiry": "Expiry date"
     },
     "social": {
-      "title": "Social media accounts",
-      "description": "Add the profile link and follower count. Additional performance metrics are optional.",
+      "title": "Social profile links",
+      "description": "Add the profile link only. Follower counts and performance metrics are not required during registration.",
       "platformName": "Platform name",
       "profileUrl": "Profile link",
       "followers": "Followers",
@@ -217,11 +219,18 @@
         "maleAudience": "Male audience %",
         "audienceMainCity": "Top audience city",
         "audienceMainCountry": "Top audience country"
-      }
+      },
+      "platform": "Platform",
+      "otherPlatform": "Other platform",
+      "profileUrlPlaceholder": "https://...",
+      "platformNamePlaceholder": "Type the platform name",
+      "addAccount": "+ Add another account",
+      "removeAccount": "Remove",
+      "linkOnlyHint": "The profile link is enough. The Dar Al Amirat team can complete performance data later if needed."
     },
     "preferences": {
       "title": "Content and production preferences",
-      "description": "Choose the options that fit your work. You can select multiple options in each group.",
+      "description": "Choose from each dropdown. Every selection appears below as a saved option that you can remove before submitting.",
       "categories": "Collaboration categories",
       "contentTypes": "Content types",
       "shootingStyles": "Production style",
@@ -266,7 +275,10 @@
         "زيارة فرع": "Store visit",
         "تصوير خارجي": "Outdoor production",
         "بدون ظهور وجه": "No face shown"
-      }
+      },
+      "selectPlaceholder": "Choose from the list",
+      "selectedHint": "You can choose multiple options; select × to remove any choice.",
+      "removeOption": "Remove option"
     },
     "review": {
       "title": "Review and submit",
@@ -275,11 +287,11 @@
       "mawthooq": "Mawthooq",
       "mawthooqYes": "Mawthooq:",
       "mawthooqNo": "No Mawthooq license",
-      "social": "Social accounts",
+      "social": "Social profile links",
       "followerSuffix": "followers",
       "preferences": "Preferences",
-      "consentsTitle": "Required consents before submission",
-      "consentsDescription": "We store the document version and acceptance time for audit purposes. You can open each document separately before accepting.",
+      "consentsTitle": "Accepted before registration",
+      "consentsDescription": "The Terms and Conditions and Privacy Policy were accepted at the start of the application. You can reopen either document before submitting.",
       "agreePrefix": "I have read and agree to the",
       "terms": "Terms and Conditions",
       "privacy": "Privacy Policy",
@@ -290,7 +302,29 @@
     "okay": "OK",
     "newLocationOption": "New option — it will be saved to the list after entry.",
     "successTitle": "Completed successfully",
-    "errorTitle": "Unable to complete the action"
+    "errorTitle": "Unable to complete the action",
+    "legal": {
+      "eyebrow": "Before registration",
+      "title": "Review the terms and privacy notice first",
+      "description": "Before entering your details, review the key points, open the full documents if needed, then confirm your acceptance to continue.",
+      "summaryTitle": "Key points to know",
+      "summaryDescription": "This is a short operational summary and does not replace the full Terms and Conditions or Privacy Policy.",
+      "highlights": [
+        "Submitting an application is a request to join and does not guarantee acceptance into the community or any campaign.",
+        "Your information and social profile links must be accurate, current, and belong to you or be accounts you are authorized to manage.",
+        "Campaign participation is only final after the campaign team approves you and the assignment details are completed.",
+        "Once a collaboration is accepted, you must follow the approved brief, deadlines, and campaign requirements.",
+        "Profile data and prior collaborations may be used internally to match opportunities and prevent duplicate records.",
+        "Portal access may be suspended for misuse, materially inaccurate information, or violations of collaboration requirements."
+      ],
+      "openTerms": "Open full Terms and Conditions",
+      "openPrivacy": "Open full Privacy Policy",
+      "acceptanceTitle": "Accept to continue",
+      "acceptanceDescription": "Confirm that you have reviewed and accepted the documents before entering registration details.",
+      "acceptTerms": "I have read and accept the Terms and Conditions.",
+      "acceptPrivacy": "I have reviewed the Privacy Policy and consent to the processing of my data under it.",
+      "continueHint": "After accepting, select “Next” to start entering your information."
+    }
   },
   "portal": {
     "nav": {

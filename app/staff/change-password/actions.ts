@@ -5,13 +5,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function passwordIsStrong(value: string) {
-  return (
-    value.length >= 8 &&
-    /[a-z]/.test(value) &&
-    /[A-Z]/.test(value) &&
-    /[0-9]/.test(value) &&
-    /[^A-Za-z0-9]/.test(value)
-  );
+  // Keep the first-login flow easy while retaining a sensible baseline:
+  // 10+ characters, at least one letter and at least one number.
+  // Uppercase letters and symbols are welcome but intentionally optional.
+  return value.length >= 10 && /\p{L}/u.test(value) && /[0-9]/.test(value);
 }
 
 export async function changeForcedStaffPassword(formData: FormData) {
