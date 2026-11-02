@@ -207,3 +207,70 @@ a[href^="/portal/"]:not([class*="text-white"]):hover { color: var(--da-700) !imp
 .bg-violet-50 { background-color: var(--da-100) !important; }
 .text-violet-700 { color: var(--da-800) !important; }
 .ring-violet-100 { --tw-ring-color: var(--da-200) !important; }
+
+/* Creator registration: comfortable bilingual typography + mobile-first controls.
+   Scoped to onboarding only so staff/creator login and the rest of the platform remain unchanged. */
+.da-onboarding {
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html[lang="ar"] .da-onboarding {
+  font-family: "Tajawal",Tahoma,Arial,"Segoe UI",sans-serif !important;
+}
+
+html[lang="en"] .da-onboarding,
+html[lang="en"] .da-onboarding :where(*) {
+  font-family: "Times New Roman",Times,serif !important;
+}
+
+/* Keep registration visually balanced in both languages even though the wider
+   product keeps a slightly smaller English scale. */
+html[lang="en"] .da-onboarding .text-xs { font-size: .80rem !important; }
+html[lang="en"] .da-onboarding .text-sm { font-size: .94rem !important; }
+html[lang="en"] .da-onboarding .text-base { font-size: 1rem !important; }
+html[lang="en"] .da-onboarding .text-xl { font-size: 1.25rem !important; }
+html[lang="en"] .da-onboarding .text-2xl { font-size: 1.55rem !important; }
+html[lang="en"] .da-onboarding .text-3xl { font-size: 1.85rem !important; }
+
+.da-onboarding input:not([type="checkbox"]):not([type="radio"]),
+.da-onboarding select,
+.da-onboarding textarea {
+  min-height: 3.5rem;
+  font-size: 16px !important; /* prevents iOS Safari auto-zoom */
+  line-height: 1.35;
+}
+
+.da-onboarding button,
+.da-onboarding a {
+  touch-action: manipulation;
+}
+
+.da-onboarding select {
+  cursor: pointer;
+}
+
+.da-onboarding input[dir="ltr"] {
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .da-onboarding {
+    font-size: 16px;
+  }
+
+  .da-onboarding h1,
+  .da-onboarding h2,
+  .da-onboarding h3 {
+    line-height: 1.3;
+  }
+
+  .da-onboarding button,
+  .da-onboarding a,
+  .da-onboarding select,
+  .da-onboarding input:not([type="checkbox"]):not([type="radio"]) {
+    min-height: 44px;
+  }
+}

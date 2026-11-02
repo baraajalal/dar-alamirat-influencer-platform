@@ -38,8 +38,5 @@ export async function staffLogin(formData: FormData) {
     redirect("/staff/change-password");
   }
 
-if (data.user.app_metadata?.must_change_password === true) {
-
   redirect("/dashboard");
-}
 }
